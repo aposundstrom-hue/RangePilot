@@ -14,7 +14,7 @@ private enum EntitlementError: Error {
 
 @MainActor
 final class EntitlementManager: ObservableObject {
-    nonisolated static let unlockProductID = "com.minirange.unlock"
+    nonisolated static let unlockProductID = "com.ontographist.rangepilot.unlock"
 
     private static let firstFreemiumVersion = "1.2"
     private static let firstLaunchDateKey = "miniRangeTrialFirstLaunchDate"

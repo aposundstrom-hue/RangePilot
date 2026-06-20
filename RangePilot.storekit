@@ -21,12 +21,12 @@
       "localizations" : [
         {
           "description" : "14-day free trial. One-time purchase. No subscription.",
-          "displayName" : "Unlock Mini Range",
+          "displayName" : "Unlock RangePilot",
           "locale" : "en_US"
         }
       ],
-      "productID" : "com.minirange.unlock",
-      "referenceName" : "Unlock Mini Range",
+      "productID" : "com.ontographist.rangepilot.unlock",
+      "referenceName" : "Unlock RangePilot",
       "type" : "NonConsumable"
     }
   ],

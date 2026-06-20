@@ -12,8 +12,8 @@
 		E123AB112FD70000007407EA /* MiniConsumption/VehicleProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = E123AB142FD70000007407EA /* MiniConsumption/VehicleProfile.swift */; };
 		E123AB122FD70000007407EA /* MiniConsumption/MiniConsumptionCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E123AB152FD70000007407EA /* MiniConsumption/MiniConsumptionCalculator.swift */; };
 		E123AB162FD70000007407EA /* MiniConsumption/WatchRangeStateSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = E123AB172FD70000007407EA /* MiniConsumption/WatchRangeStateSnapshot.swift */; };
-		E1D7CF4E2FD94D4B00943C97 /* MiniRange.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E1D7CF4D2FD94D4B00943C97 /* MiniRange.storekit */; };
-		E1D7CF4F2FD94D4B00943C97 /* MiniRange.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E1D7CF4D2FD94D4B00943C97 /* MiniRange.storekit */; };
+		E1D7CF4E2FD94D4B00943C97 /* RangePilot.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E1D7CF4D2FD94D4B00943C97 /* RangePilot.storekit */; };
+		E1D7CF4F2FD94D4B00943C97 /* RangePilot.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E1D7CF4D2FD94D4B00943C97 /* RangePilot.storekit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,7 +47,7 @@
 		E123AB142FD70000007407EA /* MiniConsumption/VehicleProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConsumption/VehicleProfile.swift; sourceTree = SOURCE_ROOT; };
 		E123AB152FD70000007407EA /* MiniConsumption/MiniConsumptionCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConsumption/MiniConsumptionCalculator.swift; sourceTree = SOURCE_ROOT; };
 		E123AB172FD70000007407EA /* MiniConsumption/WatchRangeStateSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConsumption/WatchRangeStateSnapshot.swift; sourceTree = SOURCE_ROOT; };
-		E1D7CF4D2FD94D4B00943C97 /* MiniRange.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = MiniRange.storekit; sourceTree = "<group>"; };
+		E1D7CF4D2FD94D4B00943C97 /* RangePilot.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = RangePilot.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -84,7 +84,7 @@
 		83F04CFF2FBB936400BE1A9F = {
 			isa = PBXGroup;
 			children = (
-				E1D7CF4D2FD94D4B00943C97 /* MiniRange.storekit */,
+				E1D7CF4D2FD94D4B00943C97 /* RangePilot.storekit */,
 				83F04D0A2FBB936400BE1A9F /* MiniConsumption */,
 				E123AAF22FD5E8EA007407EA /* Mini Range Watch Watch App */,
 				83F04D092FBB936400BE1A9F /* Products */,
@@ -214,7 +214,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1D7CF4F2FD94D4B00943C97 /* MiniRange.storekit in Resources */,
+				E1D7CF4F2FD94D4B00943C97 /* RangePilot.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,7 +222,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1D7CF4E2FD94D4B00943C97 /* MiniRange.storekit in Resources */,
+				E1D7CF4E2FD94D4B00943C97 /* RangePilot.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

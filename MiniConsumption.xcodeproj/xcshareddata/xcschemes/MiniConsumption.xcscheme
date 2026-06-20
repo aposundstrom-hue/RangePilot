@@ -52,7 +52,7 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
-         identifier = "../../MiniRange.storekit">
+         identifier = "../../RangePilot.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
