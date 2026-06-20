@@ -8,14 +8,14 @@ struct PaywallView: View {
             Spacer(minLength: 24)
 
             VStack(spacing: 12) {
-                Text("Mini Range")
+                Text("RangePilot")
                     .font(.largeTitle.bold())
 
                 Text("Your 14-day free trial has ended.")
                     .font(.title3.weight(.semibold))
                     .multilineTextAlignment(.center)
 
-                Text("Unlock Mini Range with a one-time purchase.")
+                Text("Unlock RangePilot with a one-time purchase.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

@@ -1,6 +1,6 @@
-# Mini Range Support
+# RangePilot Support
 
-Mini Range provides practical range and charging estimates for the Mini Cooper SE (2019–2023).
+RangePilot provides practical range and charging estimates for the Mini Cooper SE (2019–2023).
 
 The app is designed for quick everyday estimates and simpler trip planning, with a focus on understandable results and comfortable safety margins.
 
@@ -25,13 +25,13 @@ For more reliable estimates:
 
 Privacy
 
-Mini Range does not collect personal data or use tracking.
+RangePilot does not collect personal data or use tracking.
 
 All settings, trip logs, and calibration data remain stored locally on your device.
 
 Disclaimer
 
-Mini Range provides approximate range and charging estimates only. Actual consumption varies with weather, traffic, elevation, battery temperature, driving style, tyre pressure, and other real-world conditions. Always use your own judgment and maintain a comfortable safety margin.
+RangePilot provides approximate range and charging estimates only. Actual consumption varies with weather, traffic, elevation, battery temperature, driving style, tyre pressure, and other real-world conditions. Always use your own judgment and maintain a comfortable safety margin.
 
 Contact
 
@@ -43,4 +43,4 @@ Designed specifically for:
 
 * Mini Cooper SE (2019–2023)
 
-Mini Range is an independent app and is not affiliated with MINI or BMW.
+RangePilot is an independent app and is not affiliated with MINI or BMW.

@@ -81,13 +81,13 @@ final class EntitlementManager: ObservableObject {
             unlockProduct = products.first { $0.id == Self.unlockProductID }
 
             if unlockProduct == nil {
-                errorMessage = "Mini Range unlock is currently unavailable. Please try again later."
-            } else if errorMessage == "Mini Range unlock is currently unavailable. Please try again later." {
+                errorMessage = "RangePilot unlock is currently unavailable. Please try again later."
+            } else if errorMessage == "RangePilot unlock is currently unavailable. Please try again later." {
                 errorMessage = nil
             }
         } catch {
             unlockProduct = nil
-            errorMessage = "Could not load Mini Range unlock. Please check your connection and try again."
+            errorMessage = "Could not load RangePilot unlock. Please check your connection and try again."
         }
     }
 
@@ -95,7 +95,7 @@ final class EntitlementManager: ObservableObject {
         errorMessage = nil
 
         guard let unlockProduct else {
-            errorMessage = "Mini Range unlock is currently unavailable. Please try again later."
+            errorMessage = "RangePilot unlock is currently unavailable. Please try again later."
             await loadProducts()
             return
         }
@@ -135,7 +135,7 @@ final class EntitlementManager: ObservableObject {
             await refreshPurchasedUnlock()
 
             if isUnlocked == false {
-                errorMessage = "No Mini Range unlock purchase was found for this Apple ID."
+                errorMessage = "No RangePilot unlock purchase was found for this Apple ID."
             }
         } catch {
             errorMessage = "Restore failed. Please try again."

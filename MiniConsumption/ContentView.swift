@@ -2301,7 +2301,7 @@ struct ContentView: View {
                     }
                 }
 
-                Text("Mini Range")
+                Text("RangePilot")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
@@ -2530,7 +2530,7 @@ struct ContentView: View {
                 .padding(.bottom)
             }
 
-            Text("Mini Range")
+            Text("RangePilot")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 10)
@@ -3011,7 +3011,7 @@ struct ContentView: View {
                 )
             )
 
-            Text("Custom EV estimates are approximate at first. Mini Range was originally modelled on the MINI Cooper SE, but trip logging can calibrate estimates to your vehicle after at least three logged trips in a driving mode.")
+            Text("Custom EV estimates are approximate at first. RangePilot was originally modelled on the MINI Cooper SE, but trip logging can calibrate estimates to your vehicle after at least three logged trips in a driving mode.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -7813,7 +7813,7 @@ struct AboutAppGuideView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     guideSection {
-                        Text("Mini Range helps electric vehicle drivers estimate real-world range and charging needs.")
+                        Text("RangePilot helps electric vehicle drivers estimate real-world range and charging needs.")
                         Text("Adjust battery level and driving conditions to see how temperature, speed, wind, road surface, tyres, and other factors affect expected range.")
                         Text("Create custom vehicle profiles, log trips, and optionally calibrate estimates to match your own vehicle and driving habits over time.")
                         Text("The app focuses on quick, understandable estimates for everyday driving and simpler trip planning. It is intentionally lighter and simpler than full route-planning tools.")
@@ -8217,7 +8217,7 @@ struct WelcomePopupView: View {
                 Text("Welcome")
                     .font(.title2.weight(.semibold))
 
-                Text("Welcome to Mini Range\n\nDrag the battery slider to see the estimated range.\n\nChange vehicle profile and driving conditions to explore different range scenarios.")
+                Text("Welcome to RangePilot\n\nDrag the battery slider to see the estimated range.\n\nChange vehicle profile and driving conditions to explore different range scenarios.")
                     .font(.body)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -8284,7 +8284,7 @@ private struct OneTimeInfoDialogPresenter: ViewModifier {
                 }
             } message: {
                 Text("""
-                Mini Range was originally modelled on the MINI Cooper SE 2019–2023.
+                RangePilot was originally modelled on the MINI Cooper SE 2019–2023.
 
                 Custom profiles allow you to use the app with other electric vehicles by entering battery capacity, WLTP range, and charging speed.
 

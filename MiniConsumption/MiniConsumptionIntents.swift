@@ -9,7 +9,7 @@ import MapKit
 
 struct EstimateCurrentRangeIntent: AppIntent {
     static let title: LocalizedStringResource = "Estimate Current Range"
-    static let description = IntentDescription("Estimate the remaining driving range using Mini Range settings.")
+    static let description = IntentDescription("Estimate the remaining driving range using RangePilot settings.")
     static let openAppWhenRun = false
 
     init() {}
@@ -70,7 +70,7 @@ struct EstimateCurrentRangeIntent: AppIntent {
 
 struct PlanTripChargingIntent: AppIntent {
     static let title: LocalizedStringResource = "Plan Trip Charging"
-    static let description = IntentDescription("Estimate whether a planned trip needs charging using Mini Range settings.")
+    static let description = IntentDescription("Estimate whether a planned trip needs charging using RangePilot settings.")
     static let openAppWhenRun = false
 
     init() {}
@@ -150,12 +150,12 @@ struct PlanTripChargingIntent: AppIntent {
 }
 
 struct PlanMiniRangeTripIntent: AppIntent {
-    static let title: LocalizedStringResource = "Plan Mini Range Trip"
-    static let description = IntentDescription("Plan a Mini Range trip from a natural language description.")
+    static let title: LocalizedStringResource = "Plan RangePilot Trip"
+    static let description = IntentDescription("Plan a RangePilot trip from a natural language description.")
     static let openAppWhenRun = false
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Plan Mini Range trip from \(\.$naturalLanguageTripDescription)")
+        Summary("Plan RangePilot trip from \(\.$naturalLanguageTripDescription)")
     }
 
     @Parameter(title: "Trip description", requestValueDialog: "Where are you going, or how far is the trip?")
@@ -281,8 +281,8 @@ struct PlanMiniRangeTripIntent: AppIntent {
 }
 
 struct CheckMiniRangeTripIntent: AppIntent {
-    static let title: LocalizedStringResource = "Check Mini Range Trip"
-    static let description = IntentDescription("Check whether a planned Mini Range trip is likely possible from a battery level.")
+    static let title: LocalizedStringResource = "Check RangePilot Trip"
+    static let description = IntentDescription("Check whether a planned RangePilot trip is likely possible from a battery level.")
     static let openAppWhenRun = false
 
     static var parameterSummary: some ParameterSummary {
@@ -370,7 +370,7 @@ struct CheckMiniRangeTripIntent: AppIntent {
 
 struct RequiredBatteryForTripIntent: AppIntent {
     static let title: LocalizedStringResource = "Required Battery for Trip"
-    static let description = IntentDescription("Estimate the starting battery needed for a planned Mini Range trip.")
+    static let description = IntentDescription("Estimate the starting battery needed for a planned RangePilot trip.")
     static let openAppWhenRun = false
 
     static var parameterSummary: some ParameterSummary {
@@ -434,7 +434,7 @@ struct RequiredBatteryForTripIntent: AppIntent {
 
 struct FindChargersNearLimitIntent: AppIntent {
     static let title: LocalizedStringResource = "Find Chargers Near Limit"
-    static let description = IntentDescription("Search for EV chargers near where Mini Range expects you to reach your lower battery limit.")
+    static let description = IntentDescription("Search for EV chargers near where RangePilot expects you to reach your lower battery limit.")
     static let openAppWhenRun = false
     private static let chargerSearchRadiusMeters = 25_000.0
 
@@ -720,7 +720,7 @@ enum DrivingPreset: String, AppEnum {
 
 struct DescribeTripIntent: AppIntent {
     static let title: LocalizedStringResource = "Describe Trip"
-    static let description = IntentDescription("Estimate a Mini Range trip from a short natural language description.")
+    static let description = IntentDescription("Estimate a RangePilot trip from a short natural language description.")
     static let openAppWhenRun = false
 
     static var parameterSummary: some ParameterSummary {
@@ -809,7 +809,7 @@ struct DescribeTripIntent: AppIntent {
 
 struct AskTripAssistantIntent: AppIntent {
     static let title: LocalizedStringResource = "Ask Trip Assistant"
-    static let description = IntentDescription("Ask Mini Range a handsfree trip-planning question.")
+    static let description = IntentDescription("Ask RangePilot a handsfree trip-planning question.")
     static let openAppWhenRun = false
 
     static var parameterSummary: some ParameterSummary {
@@ -1053,7 +1053,7 @@ struct MiniConsumptionShortcuts: AppShortcutsProvider {
                 "Estimate range in \(.applicationName)",
                 "Estimate current range in \(.applicationName)",
                 "Estimate range with battery in \(.applicationName)",
-                "Check my Mini range in \(.applicationName)",
+                "Check my RangePilot range in \(.applicationName)",
                 "How far can I drive in \(.applicationName)"
             ],
             shortTitle: "Estimate Range",
@@ -1091,12 +1091,12 @@ struct MiniConsumptionShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: PlanMiniRangeTripIntent(),
             phrases: [
-                "Plan a Mini Range trip in \(.applicationName)",
-                "Plan a Mini trip in \(.applicationName)",
-                "Plan my Mini Range trip in \(.applicationName)",
-                "Estimate a Mini Range trip in \(.applicationName)"
+                "Plan a RangePilot trip in \(.applicationName)",
+                "Plan a trip in \(.applicationName)",
+                "Plan my RangePilot trip in \(.applicationName)",
+                "Estimate a RangePilot trip in \(.applicationName)"
             ],
-            shortTitle: "Plan Mini Trip",
+            shortTitle: "Plan Trip",
             systemImageName: "map"
         )
         AppShortcut(
@@ -1104,7 +1104,7 @@ struct MiniConsumptionShortcuts: AppShortcutsProvider {
             phrases: [
                 "Check if I can drive in \(.applicationName)",
                 "Can I drive in \(.applicationName)",
-                "Check a Mini Range trip in \(.applicationName)"
+                "Check a RangePilot trip in \(.applicationName)"
             ],
             shortTitle: "Can I Drive",
             systemImageName: "checkmark.circle"

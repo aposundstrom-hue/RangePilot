@@ -1,8 +1,8 @@
 # Frequently Asked Questions
 
-## Is Mini Range an official MINI app?
+## Is RangePilot an official MINI app?
 
-No. Mini Range is an independent app and is not affiliated with MINI or BMW.
+No. RangePilot is an independent app and is not affiliated with MINI or BMW.
 
 ## Does the app collect driving data?
 
@@ -10,7 +10,7 @@ No. All trip data and settings remain locally stored on your device.
 
 ## Does the app require an account?
 
-No. Mini Range works without accounts, subscriptions, or cloud services.
+No. RangePilot works without accounts, subscriptions, or cloud services.
 
 ## How accurate are the estimates?
 
@@ -19,7 +19,7 @@ The estimates are approximate and depend on many factors, including:
 - driving speed
 - road conditions
 - wind
-Mini Range does not currently model elevation or battery temperature.
+RangePilot does not currently model elevation or battery temperature.
 
 ## Why does motorway driving reduce range so much?
 
@@ -31,7 +31,7 @@ If you log trips in the app, the app can use your recent driving history to adju
 
 ## Does the app replace navigation apps?
 
-No. Mini Range is designed as a simple range and charging companion, not a full navigation or route-planning system.
+No. RangePilot is designed as a simple range and charging companion, not a full navigation or route-planning system.
 
 ## Is my driving data uploaded anywhere?
 
