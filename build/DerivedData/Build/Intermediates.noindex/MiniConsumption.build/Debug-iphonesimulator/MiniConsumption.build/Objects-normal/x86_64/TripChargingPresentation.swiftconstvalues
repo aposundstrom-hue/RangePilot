@@ -1,0 +1,126 @@
+[
+  {
+    "typeName": "MiniConsumption.RoadTypeProfile",
+    "mangledTypeName": "15MiniConsumption15RoadTypeProfileO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 160,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.RawRepresentable",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "AppIntents.CaseDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "MiniConsumption"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "MiniConsumption"
+      }
+    ],
+    "associatedTypeAliases": [],
+    "properties": [
+      {
+        "label": "drivingTimeAffectedShare",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/MiniConsumption/TripChargingPresentation.swift",
+        "line": 42,
+        "valueKind": "Runtime"
+      }
+    ]
+  }
+]

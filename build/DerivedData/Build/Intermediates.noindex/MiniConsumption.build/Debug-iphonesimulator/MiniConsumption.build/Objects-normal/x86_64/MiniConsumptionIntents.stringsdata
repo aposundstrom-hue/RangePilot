@@ -1,0 +1,976 @@
+{
+  "source": "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/MiniConsumption/MiniConsumptionIntents.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Estimate Current Range",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 11
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate the remaining driving range using Mini Range settings.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 12
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery percentage",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "What temperature should I use?",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road Profile",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preset",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan Trip Charging",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate whether a planned trip needs charging using Mini Range settings.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planned distance",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "How far is the trip?",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery percentage",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning Mode",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preset",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "How far is the trip?",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan Mini Range Trip",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan a Mini Range trip from a natural language description.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip description",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 161
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going, or how far is the trip?",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 161
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery percentage",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 164
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 164
+        }
+      },
+      {
+        "comment": "",
+        "key": "Outdoor temperature",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning Mode",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 170
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road Surface",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going, or how far is the trip?",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "I need a destination or trip distance to estimate that.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check Mini Range Trip",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check whether a planned Mini Range trip is likely possible from a battery level.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip description",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going, or how far is the trip?",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery percentage",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Arrival battery target",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 298
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning Mode",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going, or how far is the trip?",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "I need a destination or trip distance to estimate that.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "Required Battery for Trip",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 372
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate the starting battery needed for a planned Mini Range trip.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip description",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 380
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going, or how far is the trip?",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 380
+        }
+      },
+      {
+        "comment": "",
+        "key": "Arrival battery target",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 383
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 386
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning Mode",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 389
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going, or how far is the trip?",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 405
+        }
+      },
+      {
+        "comment": "",
+        "key": "I need a destination or trip distance to estimate that.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 418
+        }
+      },
+      {
+        "comment": "",
+        "key": "Find Chargers Near Limit",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search for EV chargers near where Mini Range expects you to reach your lower battery limit.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 437
+        }
+      },
+      {
+        "comment": "",
+        "key": "Direction or destination",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 445
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you heading?",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 445
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery percentage",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning Mode",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "You are already near your lower battery limit. I’ll open Maps nearby.",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 478
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you heading?",
+        "location": {
+          "startingColumn": 85,
+          "startingLine": 490
+        }
+      },
+      {
+        "comment": "",
+        "key": "You should reach your lower battery limit in about %@. I’ll show chargers around that area.",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 520
+        }
+      },
+      {
+        "comment": "",
+        "key": "You should reach your lower battery limit in about %@. I’ll open that area in Maps.",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 526
+        }
+      },
+      {
+        "comment": "",
+        "key": "You should reach your lower battery limit in about %@. I’ll open the estimated area.",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 533
+        }
+      },
+      {
+        "comment": "",
+        "key": "I couldn’t place that route, but I can open a nearby charger search area.",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 505
+        }
+      },
+      {
+        "comment": "",
+        "key": "Driving Preset",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 679
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Settings",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 684
+        }
+      },
+      {
+        "comment": "",
+        "key": "Winter",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 685
+        }
+      },
+      {
+        "comment": "",
+        "key": "Motorway",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 686
+        }
+      },
+      {
+        "comment": "",
+        "key": "City",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 687
+        }
+      },
+      {
+        "comment": "",
+        "key": "Describe Trip",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 722
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate a Mini Range trip from a short natural language description.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 723
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip description",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 730
+        }
+      },
+      {
+        "comment": "",
+        "key": "Describe the trip.",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 730
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planned distance",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 733
+        }
+      },
+      {
+        "comment": "",
+        "key": "How far is the trip?",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 733
+        }
+      },
+      {
+        "comment": "",
+        "key": "Natural language trip descriptions require Apple Foundation Models support.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 742
+        }
+      },
+      {
+        "comment": "",
+        "key": "How far is the trip?",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 750
+        }
+      },
+      {
+        "comment": "",
+        "key": "I need a trip distance to estimate that.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 759
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ask Trip Assistant",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 811
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ask Mini Range a handsfree trip-planning question.",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 812
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip message",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 819
+        }
+      },
+      {
+        "comment": "",
+        "key": "What should I know about your trip?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 819
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery percentage",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 822
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 822
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip detail",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 825
+        }
+      },
+      {
+        "comment": "",
+        "key": "How far are you driving, or where are you going?",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 825
+        }
+      },
+      {
+        "comment": "",
+        "key": "What is your current battery percentage?",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 842
+        }
+      },
+      {
+        "comment": "",
+        "key": "How far are you driving, or where are you going?",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 853
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate Range",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1059
+        }
+      },
+      {
+        "comment": "",
+        "key": "Winter Range",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1068
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan Charging",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1079
+        }
+      },
+      {
+        "comment": "",
+        "key": "Motorway Trip",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1088
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan Mini Trip",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1099
+        }
+      },
+      {
+        "comment": "",
+        "key": "Can I Drive",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1109
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery Needed",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1120
+        }
+      },
+      {
+        "comment": "",
+        "key": "Find Chargers",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Describe Trip",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ask Trip",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road Profile",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 1302
+        }
+      },
+      {
+        "comment": "",
+        "key": "City mix",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 1307
+        }
+      },
+      {
+        "comment": "",
+        "key": "Calm roads",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 1308
+        }
+      },
+      {
+        "comment": "",
+        "key": "Motorway mix",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 1309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Motorway",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 1310
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road Surface",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 1317
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dry",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 1322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Damp",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 1323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wet",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 1324
+        }
+      },
+      {
+        "comment": "",
+        "key": "Heavy rain",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 1325
+        }
+      },
+      {
+        "comment": "",
+        "key": "Snow or slush",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 1326
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 1333
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tailwind",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 1338
+        }
+      },
+      {
+        "comment": "",
+        "key": "Normal",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 1339
+        }
+      },
+      {
+        "comment": "",
+        "key": "Headwind",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 1340
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning Mode",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 1347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cautious",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 1352
+        }
+      },
+      {
+        "comment": "",
+        "key": "Normal",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 1353
+        }
+      },
+      {
+        "comment": "",
+        "key": "Optimistic",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 1354
+        }
+      }
+    ]
+  },
+  "version": 1
+}

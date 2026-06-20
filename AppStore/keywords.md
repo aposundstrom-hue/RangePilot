@@ -1,0 +1,1 @@
+Mini,Mini Cooper SE,EV,electric car,range,battery,charging,trip planner,range estimator,EV charging,EV range,electric vehicle

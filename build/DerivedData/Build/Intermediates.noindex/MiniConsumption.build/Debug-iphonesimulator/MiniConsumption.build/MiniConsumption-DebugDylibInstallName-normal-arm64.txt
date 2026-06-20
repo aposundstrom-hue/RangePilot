@@ -1,0 +1,1 @@
+@rpath/MiniConsumption.debug.dylib

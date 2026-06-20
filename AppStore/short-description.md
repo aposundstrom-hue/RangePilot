@@ -1,0 +1,1 @@
+Practical range and charging estimates for the Mini Cooper SE (2019–2023).

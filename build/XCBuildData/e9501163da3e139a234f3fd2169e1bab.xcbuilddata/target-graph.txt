@@ -1,0 +1,2 @@
+Target dependency graph (1 target)
+Target 'Mini Range Watch Watch App' in project 'MiniConsumption' (no dependencies)

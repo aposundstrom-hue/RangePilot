@@ -1,0 +1,74 @@
+{
+  "buildCommand" : {
+    "command" : "build",
+    "skipDependencies" : false,
+    "style" : "buildOnly"
+  },
+  "configuredTargets" : [
+    {
+      "guid" : "61bc7ecce1fb2080c7352bf3a336fc807f83543750e0c9b91530d38eb63564eb"
+    },
+    {
+      "guid" : "61bc7ecce1fb2080c7352bf3a336fc80cf77eafced8d1ed557d4eaeccaa92b89"
+    }
+  ],
+  "containerPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/MiniConsumption.xcodeproj",
+  "continueBuildingAfterErrors" : false,
+  "dependencyScope" : "workspace",
+  "enableIndexBuildArena" : false,
+  "hideShellScriptEnvironment" : false,
+  "parameters" : {
+    "action" : "build",
+    "activeArchitecture" : "undefined_arch",
+    "activeRunDestination" : {
+      "disableOnlyActiveArch" : true,
+      "hostTargetedPlatform" : null,
+      "platform" : "watchos",
+      "sdk" : "watchos26.5",
+      "sdkVariant" : "watchos",
+      "supportedArchitectures" : [
+        "armv4t",
+        "armv5",
+        "armv6",
+        "armv7",
+        "armv7f",
+        "armv7s",
+        "armv7k",
+        "arm64",
+        "arm64e"
+      ],
+      "targetArchitecture" : "undefined_arch"
+    },
+    "arenaInfo" : {
+      "buildIntermediatesPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/build/Build/Intermediates.noindex",
+      "buildProductsPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/build/Build/Products",
+      "derivedDataPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/build",
+      "indexDataStoreFolderPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/build/Index.noindex/DataStore",
+      "indexEnableDataStore" : true,
+      "indexPCHPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/build/Index.noindex/PrecompiledHeaders",
+      "pchPath" : "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/build/Build/Intermediates.noindex/PrecompiledHeaders"
+    },
+    "configurationName" : "Debug",
+    "overrides" : {
+      "commandLine" : {
+        "table" : {
+          "CODE_SIGNING_ALLOWED" : "NO"
+        }
+      },
+      "synthesized" : {
+        "table" : {
+          "ACTION" : "build",
+          "ENABLE_PREVIEWS" : "NO",
+          "ENABLE_XOJIT_PREVIEWS" : "YES",
+          "ONLY_ACTIVE_ARCH" : "YES"
+        }
+      }
+    }
+  },
+  "schemeCommand" : "launch",
+  "showNonLoggedProgress" : true,
+  "useDryRun" : false,
+  "useImplicitDependencies" : true,
+  "useLegacyBuildLocations" : false,
+  "useParallelTargets" : true
+}

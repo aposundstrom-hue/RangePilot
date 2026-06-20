@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'MiniConsumption' in project 'MiniConsumption'
+➜ Explicit dependency on target 'Mini Range Watch Watch App' in project 'MiniConsumption'
+Target 'Mini Range Watch Watch App' in project 'MiniConsumption' (no dependencies)

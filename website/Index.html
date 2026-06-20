@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Range</title>
+
+<style>
+:root {
+  --bg: #f6f4ef;
+  --surface: #fffdf9;
+  --text: #171717;
+  --muted: #5f5a52;
+  --line: #d8d2c8;
+  --max: 920px;
+  --radius: 22px;
+  --shadow: 0 8px 30px rgba(0,0,0,0.04);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.68;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wrap {
+  width: min(var(--max), calc(100% - 32px));
+  margin: 0 auto;
+}
+
+.header {
+  padding: 24px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.nav {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  color: var(--muted);
+}
+
+.hero {
+  padding: 72px 0 28px;
+}
+
+.hero-card,
+.card,
+.text-card,
+.footer-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+}
+
+.hero-card {
+  padding: 42px;
+}
+
+.eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+h1 {
+  margin: 0 0 14px;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1.03;
+  letter-spacing: -0.04em;
+  max-width: 760px;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+  max-width: 640px;
+  font-size: 1.04rem;
+}
+
+.hero-meta {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.section {
+  padding: 18px 0 0;
+}
+
+.section h2 {
+  margin: 0 0 12px;
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+}
+
+.section-intro {
+  margin: 0 0 18px;
+  color: var(--muted);
+  max-width: 660px;
+}
+
+.card-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card {
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1.02rem;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.text-card {
+  padding: 34px 42px;
+}
+
+.text-card p {
+  margin: 0 0 18px;
+  max-width: 740px;
+  color: var(--muted);
+}
+
+.text-card p:last-child {
+  margin-bottom: 0;
+}
+
+.statement {
+  color: var(--text) !important;
+}
+
+.links-list {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+.links-list a {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1px;
+}
+
+.footer {
+  padding: 28px 0 56px;
+}
+
+.footer-card {
+  padding: 22px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .header,
+  .footer-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero {
+    padding: 52px 0 24px;
+  }
+
+  .hero-card,
+  .text-card {
+    padding: 30px 22px;
+    border-radius: 22px;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap header">
+  <div><strong>Mini Range</strong></div>
+
+  <div class="nav">
+    <a href="#why">Why</a>
+    <a href="#features">Features</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#contact">Contact</a>
+  </div>
+</div>
+
+<div class="wrap hero">
+  <div class="hero-card">
+
+    <div class="eyebrow">Mini Cooper SE 2019–2023</div>
+
+    <h1>
+      Practical range and charging estimates for the Mini Cooper SE.
+    </h1>
+
+    <p class="lead">
+      Mini Range helps estimate remaining range and charging needs
+      for the Mini Cooper SE using adjustable driving conditions
+      and optional personal calibration.
+    </p>
+
+    <div class="hero-meta">
+      Free. No accounts. No tracking.
+    </div>
+
+  </div>
+</div>
+
+<div class="wrap section" id="why">
+  <div class="text-card">
+
+    <p class="statement">
+      I built Mini Range because I drive a Mini Cooper SE myself.
+    </p>
+
+    <p>
+      It is a wonderful small electric car, but its limited battery means
+      that range matters in everyday use. The car’s own range estimate is
+      useful, but it is mainly based on recent driving. It does not let
+      you adjust for the trip you are about to make.
+    </p>
+
+    <p>
+      Mini Range started as a practical tool for my own use. The estimates
+      are informed by real driving experience from my own Mini Cooper SE,
+      together with transparent adjustments for conditions that affect
+      consumption.
+    </p>
+
+    <p>
+      Since the app already exists, I see no reason not to share it with
+      other Cooper SE drivers who may find it useful when estimating range
+      or planning a longer drive.
+    </p>
+
+  </div>
+</div>
+
+<div class="wrap section" id="features">
+
+  <h2>What it does</h2>
+
+  <p class="section-intro">
+    Mini Range is designed for quick everyday estimates and simpler
+    trip planning rather than full route optimisation.
+  </p>
+
+  <div class="card-grid">
+
+    <div class="card">
+      <strong>Estimate remaining range</strong>
+      <p>
+        Enter the current battery level and get an approximate range
+        estimate for the conditions you expect.
+      </p>
+    </div>
+
+    <div class="card">
+      <strong>Plan a trip</strong>
+      <p>
+        Enter a planned distance and see whether the trip likely fits,
+        or whether charging is probably needed.
+      </p>
+    </div>
+
+    <div class="card">
+      <strong>Adjust driving conditions</strong>
+      <p>
+        Tune the estimate for road type, motorway speed, temperature,
+        road surface, wind, tyres, and planning style.
+      </p>
+    </div>
+
+    <div class="card">
+      <strong>Built for one car</strong>
+      <p>
+        The app is specifically aimed at the Mini Cooper SE 2019–2023,
+        not electric cars in general or newer MINI EV models.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<div class="wrap section" id="privacy">
+  <div class="text-card">
+
+    <p class="statement">
+      The app is private by design.
+    </p>
+
+    <p>
+      Mini Range does not collect personal information, driving data,
+      location data, or usage analytics. There are no accounts, no
+      tracking, and no third-party analytics services.
+    </p>
+
+    <p>
+      Mini Range is designed as a small independent utility app with a
+      local-first and privacy-focused approach.
+    </p>
+
+  </div>
+</div>
+
+<div class="wrap section" id="contact">
+  <div class="text-card">
+
+    <p class="statement">
+      Feedback and suggestions are welcome.
+    </p>
+
+    <p>
+      Suggestions are especially useful from other Cooper SE drivers using
+      the app in different conditions, such as cold weather, motorway
+      driving, tyres, wind, or road surface.
+    </p>
+
+    <div class="links-list">
+      <a href="mailto:minirange@ontography.se">Contact</a>
+      <a href="#">App Store link coming soon</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="wrap section">
+  <div class="text-card">
+
+    <p class="statement">
+      Important note
+    </p>
+
+    <p>
+      Mini Range provides approximate range and charging estimates only.
+      Actual range and charging performance vary with weather, traffic,
+      elevation, battery temperature, driving style, tyre pressure,
+      battery condition, and other real-world factors.
+    </p>
+
+    <p>
+      Mini Range is an independent app and is not affiliated with,
+      endorsed by, or approved by MINI or BMW Group.
+    </p>
+
+  </div>
+</div>
+
+<div class="wrap footer">
+  <div class="footer-card">
+    <div>© Mini Range</div>
+    <div>Independent app for Mini Cooper SE (2019–2023).</div>
+  </div>
+</div>
+
+</body>
+</html>

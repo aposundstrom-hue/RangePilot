@@ -1,0 +1,40 @@
+{
+  "source": "/Users/andreas/Documents/* Ontography AB/app_dev/MiniConsumption/MiniConsumption/TripChargingPresentation.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Alternative charging plan for reduced charging time",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 785
+        }
+      },
+      {
+        "comment": "",
+        "key": "Switches back to your charging window plan.",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 786
+        }
+      },
+      {
+        "comment": "",
+        "key": "Selects the reduced charging time plan for the route preview and summary.",
+        "location": {
+          "startingColumn": 97,
+          "startingLine": 786
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alternative charging plan for reduced charging time",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 754
+        }
+      }
+    ]
+  },
+  "version": 1
+}
