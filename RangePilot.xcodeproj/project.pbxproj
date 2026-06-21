@@ -41,7 +41,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		83F04D082FBB936400BE1A9F /* MiniConsumption.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiniConsumption.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		83F04D082FBB936400BE1A9F /* RangePilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RangePilot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E123AAF12FD5E8EA007407EA /* Mini Range Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mini Range Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E123AB132FD70000007407EA /* MiniConsumption/MiniConsumptionRangeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConsumption/MiniConsumptionRangeModels.swift; sourceTree = SOURCE_ROOT; };
 		E123AB142FD70000007407EA /* MiniConsumption/VehicleProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConsumption/VehicleProfile.swift; sourceTree = SOURCE_ROOT; };
@@ -95,7 +95,7 @@
 		83F04D092FBB936400BE1A9F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				83F04D082FBB936400BE1A9F /* MiniConsumption.app */,
+				83F04D082FBB936400BE1A9F /* RangePilot.app */,
 				E123AAF12FD5E8EA007407EA /* Mini Range Watch Watch App.app */,
 			);
 			name = Products;
@@ -115,9 +115,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		83F04D072FBB936400BE1A9F /* MiniConsumption */ = {
+		83F04D072FBB936400BE1A9F /* RangePilot */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 83F04D132FBB936500BE1A9F /* Build configuration list for PBXNativeTarget "MiniConsumption" */;
+			buildConfigurationList = 83F04D132FBB936500BE1A9F /* Build configuration list for PBXNativeTarget "RangePilot" */;
 			buildPhases = (
 				83F04D042FBB936400BE1A9F /* Sources */,
 				83F04D052FBB936400BE1A9F /* Frameworks */,
@@ -132,11 +132,11 @@
 			fileSystemSynchronizedGroups = (
 				83F04D0A2FBB936400BE1A9F /* MiniConsumption */,
 			);
-			name = MiniConsumption;
+			name = RangePilot;
 			packageProductDependencies = (
 			);
-			productName = MiniConsumption;
-			productReference = 83F04D082FBB936400BE1A9F /* MiniConsumption.app */;
+			productName = RangePilot;
+			productReference = 83F04D082FBB936400BE1A9F /* RangePilot.app */;
 			productType = "com.apple.product-type.application";
 		};
 		E123AAF02FD5E8EA007407EA /* Mini Range Watch Watch App */ = {
@@ -189,7 +189,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83F04D032FBB936400BE1A9F /* Build configuration list for PBXProject "MiniConsumption" */;
+			buildConfigurationList = 83F04D032FBB936400BE1A9F /* Build configuration list for PBXProject "RangePilot" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -203,7 +203,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				83F04D072FBB936400BE1A9F /* MiniConsumption */,
+				83F04D072FBB936400BE1A9F /* RangePilot */,
 				E123AAF02FD5E8EA007407EA /* Mini Range Watch Watch App */,
 			);
 		};
@@ -402,7 +402,7 @@
 				);
 				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ontographist.rangepilot;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = RangePilot;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -443,7 +443,7 @@
 				);
 				MARKETING_VERSION = 1.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ontographist.rangepilot;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = RangePilot;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -532,7 +532,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		83F04D032FBB936400BE1A9F /* Build configuration list for PBXProject "MiniConsumption" */ = {
+		83F04D032FBB936400BE1A9F /* Build configuration list for PBXProject "RangePilot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83F04D112FBB936500BE1A9F /* Debug */,
@@ -541,7 +541,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83F04D132FBB936500BE1A9F /* Build configuration list for PBXNativeTarget "MiniConsumption" */ = {
+		83F04D132FBB936500BE1A9F /* Build configuration list for PBXNativeTarget "RangePilot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83F04D142FBB936500BE1A9F /* Debug */,

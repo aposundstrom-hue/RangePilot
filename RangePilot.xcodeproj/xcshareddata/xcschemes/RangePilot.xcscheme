@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "83F04D072FBB936400BE1A9F"
-               BuildableName = "MiniConsumption.app"
-               BlueprintName = "MiniConsumption"
-               ReferencedContainer = "container:MiniConsumption.xcodeproj">
+               BuildableName = "RangePilot.app"
+               BlueprintName = "RangePilot"
+               ReferencedContainer = "container:RangePilot.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,9 +46,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83F04D072FBB936400BE1A9F"
-            BuildableName = "MiniConsumption.app"
-            BlueprintName = "MiniConsumption"
-            ReferencedContainer = "container:MiniConsumption.xcodeproj">
+            BuildableName = "RangePilot.app"
+            BlueprintName = "RangePilot"
+            ReferencedContainer = "container:RangePilot.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
@@ -66,9 +66,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "83F04D072FBB936400BE1A9F"
-            BuildableName = "MiniConsumption.app"
-            BlueprintName = "MiniConsumption"
-            ReferencedContainer = "container:MiniConsumption.xcodeproj">
+            BuildableName = "RangePilot.app"
+            BlueprintName = "RangePilot"
+            ReferencedContainer = "container:RangePilot.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

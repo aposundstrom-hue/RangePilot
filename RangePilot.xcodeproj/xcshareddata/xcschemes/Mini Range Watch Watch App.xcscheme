@@ -18,7 +18,7 @@
                BlueprintIdentifier = "E123AAF02FD5E8EA007407EA"
                BuildableName = "Mini Range Watch Watch App.app"
                BlueprintName = "Mini Range Watch Watch App"
-               ReferencedContainer = "container:MiniConsumption.xcodeproj">
+               ReferencedContainer = "container:RangePilot.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -30,9 +30,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "83F04D072FBB936400BE1A9F"
-               BuildableName = "MiniConsumption.app"
-               BlueprintName = "MiniConsumption"
-               ReferencedContainer = "container:MiniConsumption.xcodeproj">
+               BuildableName = "RangePilot.app"
+               BlueprintName = "RangePilot"
+               ReferencedContainer = "container:RangePilot.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -62,7 +62,7 @@
             BlueprintIdentifier = "E123AAF02FD5E8EA007407EA"
             BuildableName = "Mini Range Watch Watch App.app"
             BlueprintName = "Mini Range Watch Watch App"
-            ReferencedContainer = "container:MiniConsumption.xcodeproj">
+            ReferencedContainer = "container:RangePilot.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -79,7 +79,7 @@
             BlueprintIdentifier = "E123AAF02FD5E8EA007407EA"
             BuildableName = "Mini Range Watch Watch App.app"
             BlueprintName = "Mini Range Watch Watch App"
-            ReferencedContainer = "container:MiniConsumption.xcodeproj">
+            ReferencedContainer = "container:RangePilot.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
