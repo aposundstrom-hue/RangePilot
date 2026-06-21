@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-private let watchRangeAccentColor = Color(red: 0.82, green: 0.70, blue: 0.22)
+private let watchRangeAccentColor = Color(red: 62.0 / 255.0, green: 95.0 / 255.0, blue: 138.0 / 255.0)
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase

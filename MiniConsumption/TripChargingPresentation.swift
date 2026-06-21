@@ -747,14 +747,14 @@ struct TripChargingSummaryView: View {
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: alternative.symbol)
                             .font(.caption)
-                            .foregroundStyle(isSelected ? sliderAccentColor : .secondary)
+                            .foregroundStyle(isSelected ? rangePilotAccentColor : .secondary)
                             .frame(width: 18)
 
                         VStack(alignment: .leading, spacing: 3) {
                             Text("Alternative charging plan for reduced charging time")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                                .foregroundStyle(isSelected ? sliderAccentColor : .primary)
+                                .foregroundStyle(isSelected ? rangePilotAccentColor : .primary)
 
                             Text(alternative.primaryDetail)
                                 .font(.footnote)
@@ -776,7 +776,7 @@ struct TripChargingSummaryView: View {
                         if isSelected {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.caption)
-                                .foregroundStyle(sliderAccentColor)
+                                .foregroundStyle(rangePilotAccentColor)
                                 .accessibilityHidden(true)
                         }
                     }
@@ -787,7 +787,7 @@ struct TripChargingSummaryView: View {
                 .padding(10)
                 .background {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(isSelected ? sliderAccentColor.opacity(0.12) : Color(.tertiarySystemGroupedBackground))
+                        .fill(isSelected ? rangePilotAccentColor.opacity(0.12) : Color(.tertiarySystemGroupedBackground))
                 }
             }
         }

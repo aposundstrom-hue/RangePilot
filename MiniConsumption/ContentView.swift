@@ -16,7 +16,7 @@ import MapKit
 #endif
 
 let defaultTripChargingSetupMinutes = 2.0
-let sliderAccentColor = Color(red: 0.82, green: 0.70, blue: 0.22)
+let rangePilotAccentColor = Color(red: 62.0 / 255.0, green: 95.0 / 255.0, blue: 138.0 / 255.0)
 private let supportedTemperatureRangeC = -20.0...40.0
 private let kilometersPerMile = 1.609344
 private let windConditionSelectedAtKey = "windConditionSelectedAt"
@@ -2945,6 +2945,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     Toggle("Calibration based on logged trips", isOn: $useContinuousCalibration)
                         .font(.subheadline.weight(.semibold))
+                        .tint(rangePilotAccentColor)
 
                     if useContinuousCalibration {
                         Text(continuousCalibrationStatusText)
@@ -3070,7 +3071,7 @@ struct ContentView: View {
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2.weight(.semibold))
             }
-            .foregroundStyle(.blue)
+            .foregroundStyle(rangePilotAccentColor)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -3175,7 +3176,7 @@ struct ContentView: View {
             presentEditVehicleProfileSheet(activeVehicleProfile.profile)
         }
         .font(.caption)
-        .foregroundStyle(.blue)
+        .foregroundStyle(rangePilotAccentColor)
         .buttonStyle(.plain)
     }
 
@@ -3520,7 +3521,7 @@ struct ContentView: View {
                     in: ChargingWindow.minimumBounds,
                     step: 1
                 )
-                .tint(sliderAccentColor)
+                .tint(rangePilotAccentColor)
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -3537,7 +3538,7 @@ struct ContentView: View {
                     in: ChargingWindow.targetBounds,
                     step: 1
                 )
-                .tint(sliderAccentColor)
+                .tint(rangePilotAccentColor)
             }
 
             DisclosureGroup(isExpanded: $isTripAdvancedChargingSettingsExpanded) {
@@ -3556,7 +3557,7 @@ struct ContentView: View {
                             in: 0...5,
                             step: 1
                         )
-                        .tint(sliderAccentColor)
+                        .tint(rangePilotAccentColor)
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
@@ -3574,7 +3575,7 @@ struct ContentView: View {
                                 in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
                                 step: MiniConsumptionCalculator.averageChargingSpeedStepKW
                             )
-                            .tint(sliderAccentColor)
+                            .tint(rangePilotAccentColor)
                         }
 
                         Text("Used as the average charging power up to 80%. This should reflect a normal fast-charge session, not the brief peak.")
@@ -3610,7 +3611,7 @@ struct ContentView: View {
                     TripPlanningDescriptionInputView(
                         text: $tripAssistantDescription,
                         isFocused: $isTripAssistantDescriptionFocused,
-                        accentColor: sliderAccentColor,
+                        accentColor: rangePilotAccentColor,
                         showsClearButton: isTripSearchActive,
                         onClear: clearActiveTripSearch,
                         onFocusChanged: presentTripPlanningInputInfoIfNeeded
@@ -3645,7 +3646,7 @@ struct ContentView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(sliderAccentColor)
+                .tint(rangePilotAccentColor)
                 .disabled(isTripAssistantInterpreting || tripAssistantDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
                 if hasTripEstimate {
@@ -3962,7 +3963,7 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)
-        .tint(sliderAccentColor)
+        .tint(rangePilotAccentColor)
     }
 
     private var tripOutcomeOverlay: some View {
@@ -4053,7 +4054,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(activeVehicleProfile.profile.displayName)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(sliderAccentColor)
+                .foregroundStyle(rangePilotAccentColor)
 
             Text("This outcome will calibrate this profile only.")
                 .font(.caption)
@@ -4061,7 +4062,7 @@ struct ContentView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(sliderAccentColor.opacity(0.10))
+        .background(rangePilotAccentColor.opacity(0.10))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityElement(children: .combine)
     }
@@ -4375,7 +4376,7 @@ struct ContentView: View {
             HStack(alignment: .top, spacing: 12) {
                 if isSelectingTripData {
                     Image(systemName: selectedTripOutcomeIDs.contains(outcome.id) ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(selectedTripOutcomeIDs.contains(outcome.id) ? sliderAccentColor : .secondary)
+                        .foregroundStyle(selectedTripOutcomeIDs.contains(outcome.id) ? rangePilotAccentColor : .secondary)
                         .font(.title3)
                 }
 
@@ -4422,10 +4423,10 @@ struct ContentView: View {
     private var customEVTripBadge: some View {
         Text("Custom profile")
             .font(.caption2.weight(.semibold))
-            .foregroundStyle(sliderAccentColor)
+            .foregroundStyle(rangePilotAccentColor)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
-            .background(sliderAccentColor.opacity(0.12), in: Capsule())
+            .background(rangePilotAccentColor.opacity(0.12), in: Capsule())
     }
 
     private var aboutAppButton: some View {
@@ -4509,7 +4510,7 @@ struct ContentView: View {
                 }
 
                 Slider(value: value, in: range, step: step)
-                    .tint(isVisuallyDisabled ? .secondary : sliderAccentColor)
+                    .tint(isVisuallyDisabled ? .secondary : rangePilotAccentColor)
                     .opacity(isVisuallyDisabled ? 0.55 : 1)
 
                 if showsPrecisionButtons {
@@ -6011,7 +6012,7 @@ private struct TripRoutePreviewView: View {
             MapReader { mapProxy in
                 Map(position: $mapPosition, interactionModes: [.pan, .zoom]) {
                     MapPolyline(routePolyline)
-                        .stroke(sliderAccentColor, lineWidth: 4)
+                        .stroke(rangePilotAccentColor, lineWidth: 4)
 
                     if let startCoordinate {
                         Annotation("Start", coordinate: startCoordinate) {
@@ -6140,7 +6141,7 @@ private struct TripRoutePreviewView: View {
             .font(.caption2.weight(.bold))
             .foregroundStyle(.white)
             .frame(width: 24, height: 24)
-            .background(sliderAccentColor, in: Circle())
+            .background(rangePilotAccentColor, in: Circle())
             .overlay {
                 Circle()
                     .stroke(.white, lineWidth: 2)
@@ -6305,11 +6306,11 @@ struct RangeMapView: View {
                 MapReader { mapProxy in
                     Map(position: $mapPosition, interactionModes: [.pan, .zoom]) {
                         MapCircle(center: coordinate, radius: rangeHaloRadiusMeters)
-                            .foregroundStyle(sliderAccentColor.opacity(0.13))
+                            .foregroundStyle(rangePilotAccentColor.opacity(0.13))
 
                         if let chargingThresholdRadiusMeters {
                             MapCircle(center: coordinate, radius: chargingThresholdRadiusMeters)
-                                .foregroundStyle(sliderAccentColor.opacity(0.16))
+                                .foregroundStyle(rangePilotAccentColor.opacity(0.16))
 
                             if let reserveZonePolygon = reserveZonePolygon(
                                 center: coordinate,
@@ -6321,16 +6322,16 @@ struct RangeMapView: View {
 
                             MapCircle(center: coordinate, radius: rangeRadiusMeters)
                                 .foregroundStyle(Color.clear)
-                                .stroke(sliderAccentColor.opacity(0.30), lineWidth: 2)
+                                .stroke(rangePilotAccentColor.opacity(0.30), lineWidth: 2)
                         } else {
                             MapCircle(center: coordinate, radius: rangeRadiusMeters)
-                                .foregroundStyle(sliderAccentColor.opacity(0.16))
-                                .stroke(sliderAccentColor.opacity(0.30), lineWidth: 2)
+                                .foregroundStyle(rangePilotAccentColor.opacity(0.16))
+                                .stroke(rangePilotAccentColor.opacity(0.30), lineWidth: 2)
                         }
 
                         if let selectedDestinationCoordinate {
                             Marker("Destination", systemImage: "mappin", coordinate: selectedDestinationCoordinate)
-                                .tint(sliderAccentColor)
+                                .tint(rangePilotAccentColor)
                         }
 
                         UserAnnotation()
@@ -6642,7 +6643,7 @@ struct RangeGaugeView: View {
                             endAngle: fanEndAngle
                         )
                         .stroke(
-                            sliderAccentColor.opacity(0.16),
+                            rangePilotAccentColor.opacity(0.16),
                             style: StrokeStyle(lineWidth: 20, lineCap: .round)
                         )
                         .blur(radius: 3)
@@ -6654,7 +6655,7 @@ struct RangeGaugeView: View {
                             endAngle: fanEndAngle
                         )
                         .stroke(
-                            sliderAccentColor.opacity(0.38),
+                            rangePilotAccentColor.opacity(0.38),
                             style: StrokeStyle(lineWidth: 10, lineCap: .round)
                         )
 
@@ -6666,7 +6667,7 @@ struct RangeGaugeView: View {
                             rangeStartAngle: fanStartAngle,
                             rangeEndAngle: fanEndAngle
                         )
-                        .fill(sliderAccentColor.opacity(0.13))
+                        .fill(rangePilotAccentColor.opacity(0.13))
                         .blur(radius: 0.7)
 
                         ForEach(scaleTicks) { tick in
@@ -6728,7 +6729,7 @@ struct RangeGaugeView: View {
                             .frame(width: 24, height: 24)
                             .overlay(
                                 Circle()
-                                    .stroke(sliderAccentColor.opacity(0.65), lineWidth: 2.5)
+                                    .stroke(rangePilotAccentColor.opacity(0.65), lineWidth: 2.5)
                             )
                             .position(center)
 
@@ -6960,9 +6961,9 @@ struct BatteryLevelSlider: View {
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    sliderAccentColor.opacity(0.72),
-                                    sliderAccentColor.opacity(0.96),
-                                    sliderAccentColor.opacity(0.76)
+                                    rangePilotAccentColor.opacity(0.72),
+                                    rangePilotAccentColor.opacity(0.96),
+                                    rangePilotAccentColor.opacity(0.76)
                                 ],
                                 startPoint: .top,
                                 endPoint: .bottom
@@ -7007,8 +7008,10 @@ struct BatteryLevelSlider: View {
 
                     Text("\(roundedPercentText(value))%")
                         .font(.callout.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white)
                         .monospacedDigit()
+                        .shadow(color: Color.black.opacity(0.62), radius: 1.4, x: 0, y: 0)
+                        .shadow(color: Color.black.opacity(0.42), radius: 0.7, x: 0, y: 1)
                         .frame(width: bodyWidth, height: controlHeight)
                 }
                 .contentShape(Rectangle())
@@ -8302,7 +8305,7 @@ private struct RangeSliderSection: View {
             }
 
             Slider(value: value, in: range, step: step)
-                .tint(sliderAccentColor)
+                .tint(rangePilotAccentColor)
         }
     }
 }
@@ -8370,6 +8373,7 @@ private struct RangeTrailerTowSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle("Trailer / tow mode", isOn: $isEnabled)
                 .font(.subheadline.weight(.semibold))
+                .tint(rangePilotAccentColor)
 
             Text("Adds an estimated consumption penalty when driving with a trailer.")
                 .font(.caption)
@@ -8388,6 +8392,7 @@ private struct RangeTrailerTowSection: View {
 
                 Toggle("Boxy trailer / caravan", isOn: $boxyTrailerEnabled)
                     .font(.subheadline.weight(.semibold))
+                    .tint(rangePilotAccentColor)
                     .padding(.top, 2)
 
                 Text("Adds an extra aerodynamic penalty for enclosed trailers and caravans.")
