@@ -395,7 +395,7 @@ struct ContentView: View {
     @AppStorage("experimentalUsableBatteryCapacityKWh") private var experimentalUsableBatteryCapacityKWh = 28.9
     @AppStorage("experimentalOfficialWLTPRangeKm") private var experimentalOfficialWLTPRangeKm = 234.0
     @AppStorage("experimentalMaximumDCChargingSpeedKW") private var experimentalMaximumDCChargingSpeedKW = 50.0
-    @AppStorage(VehicleProfileStore.selectedProfileIDStorageKey) private var selectedVehicleProfileID = VehicleProfileResolver.builtInMiniProfileID
+    @AppStorage(VehicleProfileStore.selectedProfileIDStorageKey) private var selectedVehicleProfileID = ""
     @State private var outcomes = TripOutcomeStore.load()
     @State private var outcomeActualConsumptionTenths = Int((defaultReferenceConsumptionKWhPer100Km * 10).rounded())
     @State private var outcomeDistanceKm = 15
@@ -477,6 +477,7 @@ struct ContentView: View {
     @State private var selectedVehicleProfileTemplateBrand = VehicleProfileTemplate.customProfileID
     @State private var selectedVehicleProfileTemplateID = VehicleProfileTemplate.customProfileID
     @State private var pendingDeletedVehicleProfile: VehicleProfile?
+    @State private var isVehicleSetupSheetTemporarilyHidden = false
     @StateObject private var rangeMapLocationProvider = RangeMapLocationProvider()
     @State private var rangeMapAutofitRequestID = 0
     @State private var isRangeChargingReserveInfoPresented = false
@@ -813,6 +814,27 @@ struct ContentView: View {
             customProfiles: customVehicleProfiles,
             selectedProfileID: selectedVehicleProfileID
         )
+    }
+
+    private var normalizedSelectedVehicleProfileID: String? {
+        let trimmedID = selectedVehicleProfileID.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedID.isEmpty ? nil : trimmedID
+    }
+
+    private var hasValidSelectedVehicleProfile: Bool {
+        guard let selectedProfileID = normalizedSelectedVehicleProfileID else {
+            return false
+        }
+
+        if selectedProfileID == VehicleProfileResolver.builtInMiniProfileID {
+            return true
+        }
+
+        return customVehicleProfiles.contains { $0.id == selectedProfileID }
+    }
+
+    private var requiresVehicleSetup: Bool {
+        hasValidSelectedVehicleProfile == false
     }
 
     private var watchRangeStateSnapshot: WatchRangeStateSnapshot {
@@ -2131,7 +2153,14 @@ struct ContentView: View {
 
     private var welcomePopupBinding: Binding<Bool> {
         Binding(
-            get: { !hasSeenWelcomePopup },
+            get: { !hasSeenWelcomePopup && !requiresVehicleSetup },
+            set: { _ in }
+        )
+    }
+
+    private var vehicleSetupSheetBinding: Binding<Bool> {
+        Binding(
+            get: { requiresVehicleSetup && !isVehicleSetupSheetTemporarilyHidden },
             set: { _ in }
         )
     }
@@ -2206,8 +2235,14 @@ struct ContentView: View {
         .sheet(isPresented: $isSaveDestinationSheetPresented) {
             saveDestinationSheet
         }
-        .sheet(item: $profileEditorMode) { mode in
+        .sheet(item: $profileEditorMode, onDismiss: {
+            isVehicleSetupSheetTemporarilyHidden = false
+        }) { mode in
             vehicleProfileEditorSheet(mode: mode)
+        }
+        .sheet(isPresented: vehicleSetupSheetBinding) {
+            vehicleSetupSheet
+                .interactiveDismissDisabled()
         }
         .sheet(isPresented: welcomePopupBinding) {
             WelcomePopupView {
@@ -3054,6 +3089,72 @@ struct ContentView: View {
 
     private var selectedVehicleProfileDisplayName: String {
         activeVehicleProfile.profile.displayName
+    }
+
+    private var vehicleSetupSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("RangePilot needs a vehicle profile before it can estimate range and charging needs. You can start with a template or enter your own values.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    VStack(spacing: 10) {
+                        Button {
+                            selectBuiltInMiniVehicleProfile()
+                        } label: {
+                            Label("Use MINI Cooper SE (F56)", systemImage: "car")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button {
+                            beginVehicleSetupProfileCreation()
+                        } label: {
+                            Label("Add vehicle profile", systemImage: "plus")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    if customVehicleProfiles.isEmpty == false {
+                        Divider()
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Existing profiles")
+                                .font(.headline)
+
+                            ForEach(customVehicleProfiles) { profile in
+                                Button {
+                                    selectCustomVehicleProfile(profile)
+                                } label: {
+                                    HStack {
+                                        Text(profile.displayName)
+                                            .foregroundStyle(.primary)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption.weight(.semibold))
+                                            .foregroundStyle(.tertiary)
+                                    }
+                                    .padding(12)
+                                    .background(Color(.tertiarySystemGroupedBackground))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Choose your vehicle")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.hidden)
     }
 
     private var customVehicleProfileEditAction: some View {
@@ -5414,8 +5515,13 @@ struct ContentView: View {
 
     private func reconcileSelectedVehicleProfile(defaults: UserDefaults = .standard) {
         customVehicleProfiles = VehicleProfileStore.loadCustomProfiles(defaults: defaults)
-        let storedSelection = VehicleProfileStore.selectedProfileID(defaults: defaults)
-            ?? VehicleProfileResolver.builtInMiniProfileID
+        guard let storedSelection = VehicleProfileStore.selectedProfileID(defaults: defaults)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              storedSelection.isEmpty == false else {
+            selectedVehicleProfileID = ""
+            experimentalCustomVehicleProfileEnabled = false
+            return
+        }
 
         if storedSelection == VehicleProfileResolver.builtInMiniProfileID {
             selectBuiltInMiniVehicleProfile(defaults: defaults)
@@ -5423,7 +5529,8 @@ struct ContentView: View {
         }
 
         guard let profile = customVehicleProfiles.first(where: { $0.id == storedSelection }) else {
-            selectBuiltInMiniVehicleProfile(defaults: defaults)
+            selectedVehicleProfileID = storedSelection
+            experimentalCustomVehicleProfileEnabled = false
             return
         }
 
@@ -5469,6 +5576,13 @@ struct ContentView: View {
         selectedVehicleProfileTemplateID = VehicleProfileTemplate.customProfileID
         profileEditorDraft.resetForCreate(displayUnits: displayUnits)
         profileEditorMode = .create
+    }
+
+    private func beginVehicleSetupProfileCreation() {
+        isVehicleSetupSheetTemporarilyHidden = true
+        DispatchQueue.main.async {
+            presentCreateVehicleProfileSheet()
+        }
     }
 
     private func presentEditVehicleProfileSheet(_ profile: VehicleProfile) {
@@ -5583,7 +5697,8 @@ struct ContentView: View {
         customVehicleProfiles = VehicleProfileStore.loadCustomProfiles()
 
         if selectedVehicleProfileID == profile.id {
-            selectBuiltInMiniVehicleProfile()
+            selectedVehicleProfileID = ""
+            experimentalCustomVehicleProfileEnabled = false
         }
 
         pendingDeletedVehicleProfile = nil

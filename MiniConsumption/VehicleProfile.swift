@@ -395,7 +395,7 @@ enum VehicleProfileStore {
         saveCustomProfiles(profiles, defaults: defaults)
 
         if selectedProfileID(defaults: defaults) == profileID {
-            setSelectedProfileID(VehicleProfileResolver.builtInMiniProfileID, defaults: defaults)
+            setSelectedProfileID("", defaults: defaults)
             defaults.set(false, forKey: "experimentalCustomVehicleProfileEnabled")
         }
     }
@@ -443,8 +443,6 @@ enum VehicleProfileStore {
         if input.experimentalCustomVehicleProfileEnabled,
            profileIDs.contains(VehicleProfileResolver.legacyCustomEVProfileID) {
             setSelectedProfileID(VehicleProfileResolver.legacyCustomEVProfileID, defaults: defaults)
-        } else if selectedProfileID(defaults: defaults) == nil {
-            setSelectedProfileID(VehicleProfileResolver.builtInMiniProfileID, defaults: defaults)
         }
         defaults.set(true, forKey: legacyCustomEVMigrationCompletedKey)
 
