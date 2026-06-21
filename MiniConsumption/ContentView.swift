@@ -506,11 +506,17 @@ struct ContentView: View {
             )
 
             guard useContinuousCalibration else {
-                return applyingTrailerConsumptionAdjustment(to: ruleBasedForecast)
+                return applyingTrailerConsumptionAdjustment(
+                    to: ruleBasedForecast,
+                    roadTypeProfile: tripEstimateRoadTypeProfile,
+                    motorwaySpeed: tripEstimateMotorwaySpeed
+                )
             }
 
             return applyingTrailerConsumptionAdjustment(
-                to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+                to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+                roadTypeProfile: tripEstimateRoadTypeProfile,
+                motorwaySpeed: tripEstimateMotorwaySpeed
             )
         }
 
@@ -536,11 +542,17 @@ struct ContentView: View {
         )
 
         guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(to: ruleBasedForecast)
+            return applyingTrailerConsumptionAdjustment(
+                to: ruleBasedForecast,
+                roadTypeProfile: tripEstimateRoadTypeProfile,
+                motorwaySpeed: tripEstimateMotorwaySpeed
+            )
         }
 
         return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+            roadTypeProfile: tripEstimateRoadTypeProfile,
+            motorwaySpeed: tripEstimateMotorwaySpeed
         )
     }
 
@@ -650,11 +662,17 @@ struct ContentView: View {
         )
 
         guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(to: ruleBasedForecast)
+            return applyingTrailerConsumptionAdjustment(
+                to: ruleBasedForecast,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: activeMotorwaySpeed
+            )
         }
 
         return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: activeMotorwaySpeed
         )
     }
 
@@ -697,11 +715,17 @@ struct ContentView: View {
         )
 
         guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(to: ruleBasedForecast)
+            return applyingTrailerConsumptionAdjustment(
+                to: ruleBasedForecast,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: activeMotorwaySpeed
+            )
         }
 
         return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: activeMotorwaySpeed
         )
     }
 
@@ -844,22 +868,65 @@ struct ContentView: View {
         MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg)
     }
 
-    private var trailerConsumptionMultiplier: Double {
+    private func trailerExtraConsumptionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
         guard trailerTowModeEnabled else {
-            return 1.0
+            return 0
         }
 
-        return 1.0
-            + min(normalizedTrailerWeightKg / 1000.0, 1.0) * 0.35
-            + (boxyTrailerEnabled ? 0.15 : 0.0)
+        let weightExtraConsumption = normalizedTrailerWeightKg * 0.003
+        let aerodynamicExtraConsumption = boxyTrailerEnabled
+            ? boxyTrailerAerodynamicExtraConsumptionKWhPer100Km(
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: motorwaySpeed
+            )
+            : 0
+
+        return weightExtraConsumption + aerodynamicExtraConsumption
+    }
+
+    private func boxyTrailerAerodynamicExtraConsumptionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
+        let baseExtraConsumption: Double
+        switch roadTypeProfile {
+        case .cityMix:
+            baseExtraConsumption = 0.8
+        case .countryside:
+            baseExtraConsumption = 1.2
+        case .motorwayMix:
+            baseExtraConsumption = 2.2
+        case .motorway:
+            baseExtraConsumption = 3.0
+        }
+
+        guard roadTypeProfile == .motorwayMix || roadTypeProfile == .motorway else {
+            return baseExtraConsumption
+        }
+
+        let normalizedSpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
+        let speedRatio = max(normalizedSpeed, 100) / 100
+        return baseExtraConsumption * speedRatio * speedRatio
     }
 
     private var trailerWeightText: String {
         weightUnits.formattedWeight(normalizedTrailerWeightKg)
     }
 
-    private func applyingTrailerConsumptionAdjustment(to forecast: ForecastResult) -> ForecastResult {
-        forecast.applyingFinalConsumptionMultiplier(trailerConsumptionMultiplier)
+    private func applyingTrailerConsumptionAdjustment(
+        to forecast: ForecastResult,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> ForecastResult {
+        forecast.applyingFinalConsumptionAddition(
+            trailerExtraConsumptionKWhPer100Km(
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: motorwaySpeed
+            )
+        )
     }
 
     private var activeAirConditioningMode: AirConditioningMode {
@@ -1025,11 +1092,17 @@ struct ContentView: View {
         )
 
         guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(to: ruleBasedForecast)
+            return applyingTrailerConsumptionAdjustment(
+                to: ruleBasedForecast,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: activeMotorwaySpeed
+            )
         }
 
         return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: activeMotorwaySpeed
         )
     }
 

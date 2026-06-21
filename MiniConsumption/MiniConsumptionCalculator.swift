@@ -913,21 +913,27 @@ struct ForecastResult {
         return airConditioningAdjustmentKWhPer100km / plannedKWhPer100km
     }
 
-    nonisolated func applyingFinalConsumptionMultiplier(_ multiplier: Double) -> ForecastResult {
-        guard multiplier > 0, multiplier != 1 else {
+    nonisolated func applyingFinalConsumptionAddition(_ additionalKWhPer100km: Double) -> ForecastResult {
+        guard additionalKWhPer100km.isFinite, additionalKWhPer100km != 0 else {
             return self
         }
+
+        let adjustedFinalKWhPer100km = max(0, finalKWhPer100km + additionalKWhPer100km)
+        let distanceFactor = finalKWhPer100km > 0 ? totalKWh / finalKWhPer100km : 0
+        let lowRangeFactor = finalKWhPer100km > 0 ? likelyRangeLow / finalKWhPer100km : 0
+        let highRangeFactor = finalKWhPer100km > 0 ? likelyRangeHigh / finalKWhPer100km : 0
+        let batteryPercentageFactor = finalKWhPer100km > 0 ? usableBatteryPercentageUsed / finalKWhPer100km : 0
 
         return ForecastResult(
             referenceConsumptionKWhPer100km: referenceConsumptionKWhPer100km,
             baseEstimateKWhPer100km: baseEstimateKWhPer100km,
             adjustmentFactor: adjustmentFactor,
             calibratedKWhPer100km: calibratedKWhPer100km,
-            finalKWhPer100km: finalKWhPer100km * multiplier,
-            totalKWh: totalKWh * multiplier,
-            likelyRangeLow: likelyRangeLow * multiplier,
-            likelyRangeHigh: likelyRangeHigh * multiplier,
-            usableBatteryPercentageUsed: usableBatteryPercentageUsed * multiplier,
+            finalKWhPer100km: adjustedFinalKWhPer100km,
+            totalKWh: adjustedFinalKWhPer100km * distanceFactor,
+            likelyRangeLow: adjustedFinalKWhPer100km * lowRangeFactor,
+            likelyRangeHigh: adjustedFinalKWhPer100km * highRangeFactor,
+            usableBatteryPercentageUsed: adjustedFinalKWhPer100km * batteryPercentageFactor,
             temperatureAdjustmentKWhPer100km: temperatureAdjustmentKWhPer100km,
             distanceAdjustmentKWhPer100km: distanceAdjustmentKWhPer100km,
             roadTypeFactor: roadTypeFactor,
