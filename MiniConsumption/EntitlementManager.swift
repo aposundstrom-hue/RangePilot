@@ -33,6 +33,7 @@ final class EntitlementManager: ObservableObject {
     @Published private(set) var unlockProduct: Product?
     @Published private(set) var isUnlocked = false
     @Published private(set) var hasLegacyUnlock = false
+    @Published private(set) var hasPurchasedUnlock = false
     @Published private(set) var hasManualActivation = false
     @Published private(set) var accessState: AppAccessState
     @Published private(set) var hasCheckedPurchasedUnlock = false
@@ -148,7 +149,7 @@ final class EntitlementManager: ObservableObject {
             try await AppStore.sync()
             await refreshPurchasedUnlock()
 
-            if isUnlocked == false {
+            if hasLegacyUnlock == false && hasPurchasedUnlock == false {
                 errorMessage = "No RangePilot unlock purchase was found for this Apple ID."
             }
         } catch {
@@ -203,6 +204,7 @@ final class EntitlementManager: ObservableObject {
         }
 
         self.hasLegacyUnlock = hasLegacyUnlock
+        self.hasPurchasedUnlock = hasPurchasedUnlock
         hasManualActivation = defaults.bool(forKey: Self.manualUnlockKey)
         isUnlocked = hasLegacyUnlock || hasPurchasedUnlock || hasManualActivation
         hasCheckedPurchasedUnlock = true
