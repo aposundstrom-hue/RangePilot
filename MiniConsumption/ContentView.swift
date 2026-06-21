@@ -903,13 +903,18 @@ struct ContentView: View {
             baseExtraConsumption = 3.0
         }
 
-        guard roadTypeProfile == .motorwayMix || roadTypeProfile == .motorway else {
-            return baseExtraConsumption
+        let speedKmh: Double
+        switch roadTypeProfile {
+        case .cityMix:
+            speedKmh = 50
+        case .countryside:
+            speedKmh = 80
+        case .motorwayMix, .motorway:
+            speedKmh = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
         }
 
-        let normalizedSpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
-        let speedRatio = max(normalizedSpeed, 100) / 100
-        return baseExtraConsumption * speedRatio * speedRatio
+        let speedFactor = pow(speedKmh / 100, 2)
+        return baseExtraConsumption * speedFactor
     }
 
     private var trailerWeightText: String {
