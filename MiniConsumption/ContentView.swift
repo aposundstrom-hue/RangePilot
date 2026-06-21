@@ -474,6 +474,7 @@ struct ContentView: View {
     @State private var shouldScrollToVehicleProfileCard = false
     @State private var profileEditorMode: VehicleProfileEditorMode?
     @State private var profileEditorDraft = VehicleProfileEditorDraft()
+    @State private var isProfileEditorTemplateSelectionVisible = true
     @State private var selectedVehicleProfileTemplateBrand = VehicleProfileTemplate.customProfileID
     @State private var selectedVehicleProfileTemplateID = VehicleProfileTemplate.customProfileID
     @State private var pendingDeletedVehicleProfile: VehicleProfile?
@@ -3094,29 +3095,41 @@ struct ContentView: View {
     private var vehicleSetupSheet: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("RangePilot needs a vehicle profile before it can estimate range and charging needs. You can start with a template or enter your own values.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Welcome to RangePilot")
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        Text("Choose a vehicle profile to get started. RangePilot uses your vehicle profile to estimate range, charging needs, and trip margins.")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
 
                     VStack(spacing: 10) {
                         Button {
-                            selectBuiltInMiniVehicleProfile()
+                            beginVehicleSetupTemplateProfileCreation()
                         } label: {
-                            Label("Use MINI Cooper SE (F56)", systemImage: "car")
+                            Label("Browse vehicle templates", systemImage: "list.bullet.rectangle")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
 
                         Button {
-                            beginVehicleSetupProfileCreation()
+                            beginVehicleSetupCustomProfileCreation()
                         } label: {
-                            Label("Add vehicle profile", systemImage: "plus")
+                            Label("Create custom vehicle", systemImage: "plus")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
                     }
+
+                    Text("A vehicle profile is required before RangePilot can estimate range or charging needs.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     if customVehicleProfiles.isEmpty == false {
                         Divider()
@@ -3150,7 +3163,7 @@ struct ContentView: View {
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Choose your vehicle")
+            .navigationTitle("Vehicle setup")
             .navigationBarTitleDisplayMode(.inline)
         }
         .presentationDetents([.medium, .large])
@@ -3213,7 +3226,7 @@ struct ContentView: View {
     private func vehicleProfileEditorSheet(mode: VehicleProfileEditorMode) -> some View {
         NavigationStack {
             Form {
-                if case .create = mode {
+                if case .create = mode, isProfileEditorTemplateSelectionVisible {
                     Section {
                         Picker("Vehicle brand", selection: vehicleProfileTemplateBrandSelectionBinding) {
                             Text("Custom Profile").tag(VehicleProfileTemplate.customProfileID)
@@ -5571,17 +5584,39 @@ struct ContentView: View {
         batteryDegradationPercent = selectedProfile.batteryDegradationPercent
     }
 
-    private func presentCreateVehicleProfileSheet() {
+    private func presentCreateVehicleProfileSheet(showTemplateSelection: Bool = true) {
+        isProfileEditorTemplateSelectionVisible = showTemplateSelection
         selectedVehicleProfileTemplateBrand = VehicleProfileTemplate.customProfileID
         selectedVehicleProfileTemplateID = VehicleProfileTemplate.customProfileID
         profileEditorDraft.resetForCreate(displayUnits: displayUnits)
         profileEditorMode = .create
     }
 
-    private func beginVehicleSetupProfileCreation() {
+    private func presentCreateVehicleProfileSheetWithTemplates() {
+        isProfileEditorTemplateSelectionVisible = true
+
+        guard let brand = VehicleProfileTemplate.brands.first,
+              let template = VehicleProfileTemplate.templates(forBrand: brand).first else {
+            presentCreateVehicleProfileSheet(showTemplateSelection: true)
+            return
+        }
+
+        applySelectedVehicleProfileTemplateBrand(brand)
+        applySelectedVehicleProfileTemplate(id: template.id)
+        profileEditorMode = .create
+    }
+
+    private func beginVehicleSetupTemplateProfileCreation() {
         isVehicleSetupSheetTemporarilyHidden = true
         DispatchQueue.main.async {
-            presentCreateVehicleProfileSheet()
+            presentCreateVehicleProfileSheetWithTemplates()
+        }
+    }
+
+    private func beginVehicleSetupCustomProfileCreation() {
+        isVehicleSetupSheetTemporarilyHidden = true
+        DispatchQueue.main.async {
+            presentCreateVehicleProfileSheet(showTemplateSelection: false)
         }
     }
 
