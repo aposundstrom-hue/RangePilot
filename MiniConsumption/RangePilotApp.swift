@@ -1,5 +1,5 @@
 //
-//  MiniConsumptionApp.swift
+//  RangePilotApp.swift
 //  MiniConsumption
 //
 //  Created by Andreas Sundström on 2026-05-18.
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct MiniConsumptionApp: App {
+struct RangePilotApp: App {
     @StateObject private var entitlementManager = EntitlementManager()
 
     init() {

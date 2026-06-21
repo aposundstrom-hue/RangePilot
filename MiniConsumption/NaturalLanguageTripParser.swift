@@ -188,7 +188,7 @@ enum FoundationModelsTripParser {
         let session = LanguageModelSession(
             model: model,
             instructions: """
-            Extract only structured trip-planning fields for Mini Range.
+            Extract only structured trip-planning fields for RangePilot.
             Do not answer the user's driving question.
             Do not invent missing numbers.
             Extract originText and destinationText when the user names a start place, origin, destination, or place they are going to.

@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Mini Range Watch Watch App
+//  RangePilot Watch App
 //
 //  Created by Andreas Sundström on 2026-06-07.
 //
