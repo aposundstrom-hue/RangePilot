@@ -18,11 +18,22 @@ final class EntitlementManager: ObservableObject {
 
     private static let firstFreemiumVersion = "1.2"
     private static let firstLaunchDateKey = "miniRangeTrialFirstLaunchDate"
+    private static let manualUnlockKey = "hasManualActivation"
     private static let trialLengthDays = 14
+    // Manual activation codes for reviewer/support use.
+    // Intentionally offline and not intended as a general licensing system.
+    private static let activationCodes: Set<String> = [
+        "RP-7K4M-X92Q",
+        "RP-T8FD-3P7L",
+        "RP-M6RX-W4KC",
+        "RP-Q9VN-2JHT",
+        "RP-B3LW-8FDM"
+    ]
 
     @Published private(set) var unlockProduct: Product?
     @Published private(set) var isUnlocked = false
     @Published private(set) var hasLegacyUnlock = false
+    @Published private(set) var hasManualActivation = false
     @Published private(set) var accessState: AppAccessState
     @Published private(set) var hasCheckedPurchasedUnlock = false
     @Published private(set) var isLoadingProducts = false
@@ -45,9 +56,12 @@ final class EntitlementManager: ObservableObject {
         self.calendar = calendar
 
         let firstLaunchDate = Self.firstLaunchDate(defaults: defaults)
+        let hasManualActivation = defaults.bool(forKey: Self.manualUnlockKey)
+        self.hasManualActivation = hasManualActivation
+        isUnlocked = hasManualActivation
         let initialAccessState = Self.accessState(
             firstLaunchDate: firstLaunchDate,
-            isUnlocked: false,
+            isUnlocked: hasManualActivation,
             calendar: calendar
         )
         accessState = initialAccessState
@@ -142,6 +156,19 @@ final class EntitlementManager: ObservableObject {
         }
     }
 
+    func redeemActivationCode(_ code: String) -> Bool {
+        let normalizedCode = code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard Self.activationCodes.contains(normalizedCode) else {
+            return false
+        }
+
+        defaults.set(true, forKey: Self.manualUnlockKey)
+        hasManualActivation = true
+        isUnlocked = true
+        updateAccessState()
+        return true
+    }
+
     private func listenForTransactionUpdates() -> Task<Void, Never> {
         Task { [weak self] in
             for await update in Transaction.updates {
@@ -176,7 +203,8 @@ final class EntitlementManager: ObservableObject {
         }
 
         self.hasLegacyUnlock = hasLegacyUnlock
-        isUnlocked = hasLegacyUnlock || hasPurchasedUnlock
+        hasManualActivation = defaults.bool(forKey: Self.manualUnlockKey)
+        isUnlocked = hasLegacyUnlock || hasPurchasedUnlock || hasManualActivation
         hasCheckedPurchasedUnlock = true
         updateAccessState()
     }

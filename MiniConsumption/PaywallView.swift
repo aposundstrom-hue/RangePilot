@@ -2,6 +2,9 @@ import SwiftUI
 
 struct PaywallView: View {
     @ObservedObject var entitlementManager: EntitlementManager
+    @State private var activationCode = ""
+    @State private var activationMessage: String?
+    @State private var activationSucceeded = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -59,6 +62,33 @@ struct PaywallView: View {
                 .disabled(entitlementManager.isRestoring)
             }
 
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Activation code")
+                    .font(.headline)
+
+                HStack(spacing: 8) {
+                    TextField("Activation code", text: $activationCode)
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .onSubmit {
+                            redeemActivationCode()
+                        }
+
+                    Button("Redeem") {
+                        redeemActivationCode()
+                    }
+                    .disabled(activationCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+
+                if let activationMessage {
+                    Text(activationMessage)
+                        .font(.footnote)
+                        .foregroundStyle(activationSucceeded ? .green : .red)
+                }
+            }
+            .frame(maxWidth: 360)
+
             if entitlementManager.isLoadingProducts {
                 ProgressView("Loading purchase options...")
                     .font(.footnote)
@@ -88,5 +118,15 @@ struct PaywallView: View {
         }
 
         return "Unlock Unavailable"
+    }
+
+    private func redeemActivationCode() {
+        let didRedeem = entitlementManager.redeemActivationCode(activationCode)
+        activationSucceeded = didRedeem
+        activationMessage = didRedeem ? "Activation code redeemed." : "Invalid activation code."
+
+        if didRedeem {
+            activationCode = ""
+        }
     }
 }
