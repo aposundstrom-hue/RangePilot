@@ -834,16 +834,20 @@ struct ContentView: View {
         return trimmedID.isEmpty ? nil : trimmedID
     }
 
-    private var hasValidSelectedVehicleProfile: Bool {
+    private var selectedVehicleProfile: VehicleProfile? {
         guard let selectedProfileID = normalizedSelectedVehicleProfileID else {
-            return false
+            return nil
         }
 
         if selectedProfileID == VehicleProfileResolver.builtInMiniProfileID {
-            return true
+            return VehicleProfileResolver.builtInMiniProfile(from: vehicleProfileResolverInput)
         }
 
-        return customVehicleProfiles.contains { $0.id == selectedProfileID }
+        return customVehicleProfiles.first { $0.id == selectedProfileID }
+    }
+
+    private var hasValidSelectedVehicleProfile: Bool {
+        selectedVehicleProfile != nil
     }
 
     private var requiresVehicleSetup: Bool {
@@ -2882,7 +2886,7 @@ struct ContentView: View {
     }
 
     private var rangeVehicleProfileSummaryText: String {
-        activeVehicleProfile.profile.displayName
+        selectedVehicleProfileDisplayName
     }
 
     private var experimentalVehicleProfileDetailText: String {
@@ -3028,19 +3032,25 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 12) {
                 vehicleProfileSelectorRow
 
-                if isCustomVehicleProfileSelected {
-                    customVehicleProfileEditAction
-                }
+                if let selectedVehicleProfile {
+                    if selectedVehicleProfile.kind == .custom {
+                        customVehicleProfileEditAction
+                    }
 
-                Divider()
+                    Divider()
 
-                if isCustomVehicleProfileSelected {
-                    customVehicleProfileDetails
+                    if selectedVehicleProfile.kind == .custom {
+                        customVehicleProfileDetails
+                    } else {
+                        miniVehicleProfileDetails
+                    }
+
+                    batteryDegradationControl
                 } else {
-                    miniVehicleProfileDetails
+                    Text("Choose vehicle")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
                 }
-
-                batteryDegradationControl
             }
         }
     }
@@ -3052,7 +3062,7 @@ struct ContentView: View {
             } label: {
                 menuProfileLabel(
                     title: VehicleProfileResolver.builtInMiniName,
-                    isSelected: activeVehicleProfile.profile.id == VehicleProfileResolver.builtInMiniProfileID
+                    isSelected: selectedVehicleProfile?.id == VehicleProfileResolver.builtInMiniProfileID
                 )
             }
 
@@ -3062,7 +3072,7 @@ struct ContentView: View {
                 } label: {
                     menuProfileLabel(
                         title: profile.displayName,
-                        isSelected: activeVehicleProfile.profile.id == profile.id
+                        isSelected: selectedVehicleProfile?.id == profile.id
                     )
                 }
             }
@@ -3102,7 +3112,7 @@ struct ContentView: View {
     }
 
     private var selectedVehicleProfileDisplayName: String {
-        activeVehicleProfile.profile.displayName
+        selectedVehicleProfile?.displayName ?? "Choose vehicle"
     }
 
     private var vehicleSetupSheet: some View {

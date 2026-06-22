@@ -114,6 +114,7 @@ extension VehicleProfileTemplate {
 
         brands.append(template.brand)
     }
+    .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
 
     static func templates(forBrand brand: String) -> [VehicleProfileTemplate] {
         templates.filter { $0.brand == brand }
