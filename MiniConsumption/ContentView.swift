@@ -503,7 +503,13 @@ struct ContentView: View {
 
     private var tripEstimateForecast: ForecastResult {
         guard isCustomVehicleProfileSelected == false else {
-            let calibrationCorrection = activeCalibrationCorrection
+            let calibrationCorrection = continuousCalibrationSummary.correction(
+                for: CalibrationPredictionContext(
+                    roadTypeProfile: tripEstimateRoadTypeProfile,
+                    tyreSet: activeSelectedTyreSet,
+                    trailerTowModeEnabled: trailerTowModeEnabled
+                )
+            )
             let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
                 referenceConsumption: experimentalForecastReferenceConsumption(for: calibrationCorrection),
                 distance: tripEstimateDistance,
@@ -519,16 +525,9 @@ struct ContentView: View {
                 usableBatteryKWh: tripPlanningUsableBatteryKWh
             )
 
-            guard useContinuousCalibration else {
-                return applyingTrailerConsumptionAdjustment(
-                    to: ruleBasedForecast,
-                    roadTypeProfile: tripEstimateRoadTypeProfile,
-                    motorwaySpeed: tripEstimateMotorwaySpeed
-                )
-            }
-
-            return applyingTrailerConsumptionAdjustment(
-                to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+            return applyingActiveCalibrationAndTrailerAdjustment(
+                to: ruleBasedForecast,
+                correction: calibrationCorrection,
                 roadTypeProfile: tripEstimateRoadTypeProfile,
                 motorwaySpeed: tripEstimateMotorwaySpeed
             )
@@ -537,7 +536,8 @@ struct ContentView: View {
         let calibrationCorrection = continuousCalibrationSummary.correction(
             for: CalibrationPredictionContext(
                 roadTypeProfile: tripEstimateRoadTypeProfile,
-                tyreSet: activeSelectedTyreSet
+                tyreSet: activeSelectedTyreSet,
+                trailerTowModeEnabled: trailerTowModeEnabled
             )
         )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -555,16 +555,9 @@ struct ContentView: View {
             usableBatteryKWh: tripPlanningUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(
-                to: ruleBasedForecast,
-                roadTypeProfile: tripEstimateRoadTypeProfile,
-                motorwaySpeed: tripEstimateMotorwaySpeed
-            )
-        }
-
-        return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+        return applyingActiveCalibrationAndTrailerAdjustment(
+            to: ruleBasedForecast,
+            correction: calibrationCorrection,
             roadTypeProfile: tripEstimateRoadTypeProfile,
             motorwaySpeed: tripEstimateMotorwaySpeed
         )
@@ -675,16 +668,9 @@ struct ContentView: View {
             usableBatteryKWh: rangeUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(
-                to: ruleBasedForecast,
-                roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: activeMotorwaySpeed
-            )
-        }
-
-        return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+        return applyingActiveCalibrationAndTrailerAdjustment(
+            to: ruleBasedForecast,
+            correction: calibrationCorrection,
             roadTypeProfile: roadTypeProfile,
             motorwaySpeed: activeMotorwaySpeed
         )
@@ -728,16 +714,9 @@ struct ContentView: View {
             usableBatteryKWh: rangeUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(
-                to: ruleBasedForecast,
-                roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: activeMotorwaySpeed
-            )
-        }
-
-        return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+        return applyingActiveCalibrationAndTrailerAdjustment(
+            to: ruleBasedForecast,
+            correction: calibrationCorrection,
             roadTypeProfile: roadTypeProfile,
             motorwaySpeed: activeMotorwaySpeed
         )
@@ -756,7 +735,8 @@ struct ContentView: View {
             let calibrationCorrection = continuousCalibrationSummary.correction(
                 for: CalibrationPredictionContext(
                     roadTypeProfile: outcomeRoadTypeProfile,
-                    tyreSet: outcomeTyreSet
+                    tyreSet: outcomeTyreSet,
+                    trailerTowModeEnabled: trailerTowModeEnabled
                 )
             )
             let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -774,17 +754,19 @@ struct ContentView: View {
                 usableBatteryKWh: rangeUsableBatteryKWh
             )
 
-            guard useContinuousCalibration else {
-                return ruleBasedForecast
-            }
-
-            return ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+            return applyingActiveCalibrationAndTrailerAdjustment(
+                to: ruleBasedForecast,
+                correction: calibrationCorrection,
+                roadTypeProfile: outcomeRoadTypeProfile,
+                motorwaySpeed: outcomeMotorwaySpeed
+            )
         }
 
         let calibrationCorrection = continuousCalibrationSummary.correction(
             for: CalibrationPredictionContext(
                 roadTypeProfile: outcomeRoadTypeProfile,
-                tyreSet: outcomeTyreSet
+                tyreSet: outcomeTyreSet,
+                trailerTowModeEnabled: trailerTowModeEnabled
             )
         )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -802,11 +784,12 @@ struct ContentView: View {
             usableBatteryKWh: rangeUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return ruleBasedForecast
-        }
-
-        return ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+        return applyingActiveCalibrationAndTrailerAdjustment(
+            to: ruleBasedForecast,
+            correction: calibrationCorrection,
+            roadTypeProfile: outcomeRoadTypeProfile,
+            motorwaySpeed: outcomeMotorwaySpeed
+        )
     }
 
     private var outcomeLogRemainingRange: RemainingRangeEstimate {
@@ -973,6 +956,32 @@ struct ContentView: View {
         )
     }
 
+    private func applyingActiveCalibrationAndTrailerAdjustment(
+        to forecast: ForecastResult,
+        correction: CalibrationCorrection,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> ForecastResult {
+        guard useContinuousCalibration else {
+            return applyingTrailerConsumptionAdjustment(
+                to: forecast,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: motorwaySpeed
+            )
+        }
+
+        if trailerTowModeEnabled {
+            return applyingTrailerConsumptionAdjustment(
+                to: forecast,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: motorwaySpeed
+            )
+            .applyingCalibrationFactor(correction.totalFactor)
+        }
+
+        return forecast.applyingCalibrationFactor(correction.totalFactor)
+    }
+
     private var activeAirConditioningMode: AirConditioningMode {
         airConditioningMode(for: activeVehicleProfile.profile)
     }
@@ -1021,7 +1030,8 @@ struct ContentView: View {
         continuousCalibrationSummary.correction(
             for: CalibrationPredictionContext(
                 roadTypeProfile: roadTypeProfile,
-                tyreSet: activeSelectedTyreSet
+                tyreSet: activeSelectedTyreSet,
+                trailerTowModeEnabled: trailerTowModeEnabled
             )
         )
     }
@@ -1135,16 +1145,9 @@ struct ContentView: View {
             usableBatteryKWh: rangeUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(
-                to: ruleBasedForecast,
-                roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: activeMotorwaySpeed
-            )
-        }
-
-        return applyingTrailerConsumptionAdjustment(
-            to: ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor),
+        return applyingActiveCalibrationAndTrailerAdjustment(
+            to: ruleBasedForecast,
+            correction: calibrationCorrection,
             roadTypeProfile: roadTypeProfile,
             motorwaySpeed: activeMotorwaySpeed
         )
@@ -4899,6 +4902,9 @@ struct ContentView: View {
             return
         }
 
+        let calibrationBaselineForecast = outcomeCalibrationBaselineForecast(
+            distanceKm: input.actualDistanceKm ?? distance
+        )
         let outcome = TripOutcome(
             date: Date(),
             vehicleProfileKind: activeVehicleProfileKind,
@@ -4925,6 +4931,8 @@ struct ContentView: View {
             tyreSet: outcomeTyreSet,
             rollingResistanceClass: outcomeRollingResistanceClass,
             winterTyres: outcomeTyreSet == .winter,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            calibrationBaselinePredictedConsumptionKWhPer100Km: calibrationBaselineForecast.finalKWhPer100km,
             note: outcomeNote.trimmingCharacters(in: .whitespacesAndNewlines)
         )
 
@@ -4932,6 +4940,32 @@ struct ContentView: View {
         TripOutcomeStore.save(outcomes)
         resetTripOutcomeInput()
         isTripOutcomeCardPresented = false
+    }
+
+    private func outcomeCalibrationBaselineForecast(distanceKm: Double) -> ForecastResult {
+        let referenceConsumption = isCustomVehicleProfileSelected
+            ? experimentalReferenceConsumptionKWhPer100Km
+            : MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
+        let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
+            referenceConsumption: referenceConsumption,
+            distance: distanceKm,
+            temperature: outcomeTemperature,
+            roadTypeProfile: outcomeRoadTypeProfile,
+            motorwaySpeed: outcomeMotorwaySpeed,
+            roadSurface: outcomeRoadSurface,
+            windCondition: outcomeWindCondition,
+            planningMode: .normal,
+            rollingResistanceClass: outcomeRollingResistanceClass,
+            airConditioningMode: activeAirConditioningMode,
+            usesCustomVehicleProfile: isCustomVehicleProfileSelected,
+            usableBatteryKWh: rangeUsableBatteryKWh
+        )
+
+        return applyingTrailerConsumptionAdjustment(
+            to: ruleBasedForecast,
+            roadTypeProfile: outcomeRoadTypeProfile,
+            motorwaySpeed: outcomeMotorwaySpeed
+        )
     }
 
     private func presentTripOutcomeCard() {
@@ -5490,18 +5524,27 @@ struct ContentView: View {
         } ?? "Distance not saved"
         let tyreClassText = (outcome.rollingResistanceClass ?? .b).label
 
-        return [
+        var details = [
             distanceText,
             temperatureUnits.formattedTemperature(outcome.temperatureC),
             outcome.roadSurface.label,
             "\(outcome.windCondition.label) wind",
             outcome.roadTypeProfile.label,
             "Tyres \(tyreClassText)"
-        ].joined(separator: " • ")
+        ]
+        if outcome.trailerTowModeEnabled {
+            details.append("Trailer / tow")
+        }
+
+        return details.joined(separator: " • ")
     }
 
     private func tripOutcomeCalibrationEligibilityText(for outcome: TripOutcome) -> String {
         let display = CalibrationTripEligibility.display(for: outcome)
+        if display.eligible, outcome.trailerTowModeEnabled {
+            return "Eligible for trailer / tow calibration"
+        }
+
         if display.eligible, outcome.vehicleProfileKind == .customEV {
             return "Eligible for custom profile calibration"
         }
@@ -7197,6 +7240,8 @@ struct TripOutcome: Codable, Identifiable {
     let tyreSet: TyreSet?
     let rollingResistanceClass: RollingResistanceClass?
     let winterTyres: Bool
+    let trailerTowModeEnabled: Bool
+    let calibrationBaselinePredictedConsumptionKWhPer100Km: Double?
     let note: String
 
     init(
@@ -7224,6 +7269,8 @@ struct TripOutcome: Codable, Identifiable {
         tyreSet: TyreSet?,
         rollingResistanceClass: RollingResistanceClass?,
         winterTyres: Bool,
+        trailerTowModeEnabled: Bool = false,
+        calibrationBaselinePredictedConsumptionKWhPer100Km: Double? = nil,
         note: String
     ) {
         self.id = id
@@ -7250,6 +7297,8 @@ struct TripOutcome: Codable, Identifiable {
         self.tyreSet = tyreSet
         self.rollingResistanceClass = rollingResistanceClass
         self.winterTyres = winterTyres
+        self.trailerTowModeEnabled = trailerTowModeEnabled
+        self.calibrationBaselinePredictedConsumptionKWhPer100Km = calibrationBaselinePredictedConsumptionKWhPer100Km
         self.note = note
     }
 
@@ -7278,6 +7327,8 @@ struct TripOutcome: Codable, Identifiable {
         case tyreSet
         case rollingResistanceClass
         case winterTyres
+        case trailerTowModeEnabled
+        case calibrationBaselinePredictedConsumptionKWhPer100Km
         case note
     }
 
@@ -7314,6 +7365,8 @@ struct TripOutcome: Codable, Identifiable {
             tyreSet: try container.decodeIfPresent(TyreSet.self, forKey: .tyreSet),
             rollingResistanceClass: try container.decodeIfPresent(RollingResistanceClass.self, forKey: .rollingResistanceClass),
             winterTyres: try container.decodeIfPresent(Bool.self, forKey: .winterTyres) ?? false,
+            trailerTowModeEnabled: try container.decodeIfPresent(Bool.self, forKey: .trailerTowModeEnabled) ?? false,
+            calibrationBaselinePredictedConsumptionKWhPer100Km: try container.decodeIfPresent(Double.self, forKey: .calibrationBaselinePredictedConsumptionKWhPer100Km),
             note: try container.decodeIfPresent(String.self, forKey: .note) ?? ""
         )
     }
@@ -7343,6 +7396,8 @@ struct TripOutcome: Codable, Identifiable {
         try container.encodeIfPresent(tyreSet, forKey: .tyreSet)
         try container.encodeIfPresent(rollingResistanceClass, forKey: .rollingResistanceClass)
         try container.encode(winterTyres, forKey: .winterTyres)
+        try container.encode(trailerTowModeEnabled, forKey: .trailerTowModeEnabled)
+        try container.encodeIfPresent(calibrationBaselinePredictedConsumptionKWhPer100Km, forKey: .calibrationBaselinePredictedConsumptionKWhPer100Km)
         try container.encode(note, forKey: .note)
     }
 
@@ -7399,6 +7454,11 @@ struct TripOutcome: Codable, Identifiable {
     }
 
     nonisolated var fixedCalibrationBaselinePredictedConsumptionKWhPer100Km: Double? {
+        if trailerTowModeEnabled {
+            return calibrationBaselinePredictedConsumptionKWhPer100Km
+                ?? predictedConsumptionKWhPer100Km
+        }
+
         guard let calibrationDistanceKm else {
             return nil
         }
@@ -7437,6 +7497,15 @@ struct TripOutcome: Codable, Identifiable {
         note: String
     ) -> TripOutcome {
         let updatedLoggedDistanceKm = loggedOutcomeDistanceKm == nil ? nil : storedDistanceKm
+        let updatedCalibrationBaseline = updatedTrailerCalibrationBaselinePredictedConsumption(
+            temperatureC: temperatureC,
+            roadSurface: roadSurface,
+            windCondition: windCondition,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeedKmh: motorwaySpeedKmh,
+            rollingResistanceClass: rollingResistanceClass,
+            distanceKm: updatedLoggedDistanceKm
+        ) ?? calibrationBaselinePredictedConsumptionKWhPer100Km
 
         return TripOutcome(
             id: id,
@@ -7463,8 +7532,74 @@ struct TripOutcome: Codable, Identifiable {
             tyreSet: tyreSet,
             rollingResistanceClass: rollingResistanceClass,
             winterTyres: winterTyres,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            calibrationBaselinePredictedConsumptionKWhPer100Km: updatedCalibrationBaseline,
             note: note
         )
+    }
+
+    private nonisolated func updatedTrailerCalibrationBaselinePredictedConsumption(
+        temperatureC: Double,
+        roadSurface: RoadSurface,
+        windCondition: WindCondition,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeedKmh: Double,
+        rollingResistanceClass: RollingResistanceClass,
+        distanceKm: Double?
+    ) -> Double? {
+        guard trailerTowModeEnabled,
+              let originalDistanceKm = calibrationDistanceKm,
+              let updatedDistanceKm = distanceKm else {
+            return nil
+        }
+
+        let originalRuleBasedBaseline = ruleBasedCalibrationBaselinePredictedConsumption(
+            distanceKm: originalDistanceKm,
+            temperatureC: self.temperatureC,
+            roadSurface: self.roadSurface,
+            windCondition: self.windCondition,
+            roadTypeProfile: self.roadTypeProfile,
+            motorwaySpeedKmh: self.motorwaySpeedKmh,
+            rollingResistanceClass: self.rollingResistanceClass ?? .b
+        )
+        let storedTrailerBaseline = calibrationBaselinePredictedConsumptionKWhPer100Km
+            ?? predictedConsumptionKWhPer100Km
+        let trailerModelAddition = max(0, storedTrailerBaseline - originalRuleBasedBaseline)
+        let updatedRuleBasedBaseline = ruleBasedCalibrationBaselinePredictedConsumption(
+            distanceKm: updatedDistanceKm,
+            temperatureC: temperatureC,
+            roadSurface: roadSurface,
+            windCondition: windCondition,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeedKmh: motorwaySpeedKmh,
+            rollingResistanceClass: rollingResistanceClass
+        )
+
+        return updatedRuleBasedBaseline + trailerModelAddition
+    }
+
+    private nonisolated func ruleBasedCalibrationBaselinePredictedConsumption(
+        distanceKm: Double,
+        temperatureC: Double,
+        roadSurface: RoadSurface,
+        windCondition: WindCondition,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeedKmh: Double,
+        rollingResistanceClass: RollingResistanceClass
+    ) -> Double {
+        MiniConsumptionCalculator.calculateForecast(
+            referenceConsumption: fixedCalibrationBaselineReferenceConsumptionKWhPer100Km,
+            distance: distanceKm,
+            temperature: temperatureC,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeedKmh,
+            roadSurface: roadSurface,
+            windCondition: windCondition,
+            planningMode: .normal,
+            rollingResistanceClass: rollingResistanceClass,
+            airConditioningMode: airConditioningMode ?? .on
+        )
+        .finalKWhPer100km
     }
 }
 
@@ -7476,6 +7611,17 @@ private struct TripOutcomeInput {
 struct CalibrationPredictionContext {
     let roadTypeProfile: RoadTypeProfile
     let tyreSet: TyreSet
+    let trailerTowModeEnabled: Bool
+
+    init(
+        roadTypeProfile: RoadTypeProfile,
+        tyreSet: TyreSet,
+        trailerTowModeEnabled: Bool = false
+    ) {
+        self.roadTypeProfile = roadTypeProfile
+        self.tyreSet = tyreSet
+        self.trailerTowModeEnabled = trailerTowModeEnabled
+    }
 }
 
 struct CalibrationCorrection {
@@ -7483,6 +7629,7 @@ struct CalibrationCorrection {
         case manual
         case global
         case drivingMode
+        case trailerTow
     }
 
     let source: Source
@@ -7523,6 +7670,13 @@ struct CalibrationCorrection {
                 "\(tyreSet.label) + route type calibration"
             case .customEV:
                 "Custom profile \(tyreSet.label) + route type calibration"
+            }
+        case .trailerTow:
+            switch vehicleProfileKind {
+            case .mini:
+                "Trailer / tow calibration"
+            case .customEV:
+                "Custom profile trailer / tow calibration"
             }
         }
     }
@@ -7652,6 +7806,7 @@ struct ContinuousCalibrationSummary {
     private let samples: [CalibrationFactorSample]
     private let tyreSamples: [TyreSet: [CalibrationFactorSample]]
     private let tyreModeSamples: [TyreSet: [RoadTypeProfile: [CalibrationFactorSample]]]
+    private let trailerModeSamples: [RoadTypeProfile: [CalibrationFactorSample]]
 
     var canApply: Bool {
         validTripCount >= Self.minimumValidTrips
@@ -7673,6 +7828,10 @@ struct ContinuousCalibrationSummary {
     }
 
     func correction(for context: CalibrationPredictionContext) -> CalibrationCorrection {
+        if context.trailerTowModeEnabled {
+            return trailerTowCorrection(for: context)
+        }
+
         let contextTyreSamples = tyreSamples[context.tyreSet] ?? []
         let contextModeSamples = tyreModeSamples[context.tyreSet]?[context.roadTypeProfile] ?? []
         let contextMeanFactor = Self.meanFactor(in: contextTyreSamples) ?? 1
@@ -7720,6 +7879,34 @@ struct ContinuousCalibrationSummary {
         )
     }
 
+    private func trailerTowCorrection(for context: CalibrationPredictionContext) -> CalibrationCorrection {
+        let contextModeSamples = trailerModeSamples[context.roadTypeProfile] ?? []
+
+        guard contextModeSamples.count >= Self.minimumValidTrips,
+              let modeMean = Self.meanFactor(in: contextModeSamples) else {
+            return CalibrationCorrection(
+                source: .manual,
+                roadTypeProfile: context.roadTypeProfile,
+                tyreSet: context.tyreSet,
+                usableRecordCount: contextModeSamples.count,
+                globalFactor: 1,
+                modeDeviationFactor: nil
+            )
+        }
+
+        return CalibrationCorrection(
+            source: .trailerTow,
+            roadTypeProfile: context.roadTypeProfile,
+            tyreSet: context.tyreSet,
+            usableRecordCount: contextModeSamples.count,
+            globalFactor: Self.globalCorrectionFactor(
+                meanFactor: modeMean,
+                count: contextModeSamples.count
+            ),
+            modeDeviationFactor: nil
+        )
+    }
+
     init(outcomes: [TripOutcome], vehicleProfileKind: VehicleProfileKind? = nil) {
         let filteredOutcomes = vehicleProfileKind.map { profileKind in
             outcomes.filter { $0.vehicleProfileKind == profileKind }
@@ -7736,13 +7923,15 @@ struct ContinuousCalibrationSummary {
 
             return CalibrationFactorSample(outcome: outcome)
         }
+        let normalUsableSamples = allUsableSamples.filter { $0.trailerTowModeEnabled == false }
+        let trailerUsableSamples = allUsableSamples.filter(\.trailerTowModeEnabled)
 
         let cappedTyreModeSamples = Dictionary(
             uniqueKeysWithValues: TyreSet.allCases.map { tyreSet in
                 let modeSamples = Dictionary(
                     uniqueKeysWithValues: RoadTypeProfile.allCases.map { roadTypeProfile in
                         let samples = Array(
-                            allUsableSamples
+                            normalUsableSamples
                                 .filter {
                                     $0.tyreSet == tyreSet
                                         && $0.roadTypeProfile == roadTypeProfile
@@ -7753,6 +7942,16 @@ struct ContinuousCalibrationSummary {
                     }
                 )
                 return (tyreSet, modeSamples)
+            }
+        )
+        let cappedTrailerModeSamples = Dictionary(
+            uniqueKeysWithValues: RoadTypeProfile.allCases.map { roadTypeProfile in
+                let samples = Array(
+                    trailerUsableSamples
+                        .filter { $0.roadTypeProfile == roadTypeProfile }
+                        .prefix(Self.maximumCalibrationSampleCount)
+                )
+                return (roadTypeProfile, samples)
             }
         )
 
@@ -7767,6 +7966,7 @@ struct ContinuousCalibrationSummary {
 
         tyreModeSamples = cappedTyreModeSamples
         tyreSamples = cappedTyreSamples
+        trailerModeSamples = cappedTrailerModeSamples
         samples = TyreSet.allCases.flatMap { cappedTyreSamples[$0] ?? [] }
         validTripCount = samples.count
         meanFactor = Self.meanFactor(in: samples) ?? 1
@@ -7820,6 +8020,7 @@ private struct CalibrationFactorSample {
     let factor: Double
     let roadTypeProfile: RoadTypeProfile
     let tyreSet: TyreSet
+    let trailerTowModeEnabled: Bool
 
     nonisolated init?(outcome: TripOutcome) {
         guard
@@ -7834,6 +8035,7 @@ private struct CalibrationFactorSample {
         factor = actualConsumptionKWhPer100Km / fixedBaseline
         roadTypeProfile = outcome.roadTypeProfile
         tyreSet = outcome.resolvedTyreSet
+        trailerTowModeEnabled = outcome.trailerTowModeEnabled
     }
 }
 
