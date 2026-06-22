@@ -63,6 +63,7 @@ enum MiniConsumptionInitialSetup {
         guard isFreshInstall(defaults: defaults) else {
             normalizeMotorwaySpeedIfNeeded(defaults: defaults)
             expireWindConditionIfNeeded(defaults: defaults)
+            migrateUnselectedExistingMiniInstallIfNeeded(defaults: defaults)
             defaults.set(true, forKey: hasCompletedInitialSetupKey)
             return
         }
@@ -118,6 +119,17 @@ enum MiniConsumptionInitialSetup {
     private static func isFreshInstall(defaults: UserDefaults) -> Bool {
         !existingInstallEvidenceKeys.contains { defaults.object(forKey: $0) != nil }
             && TripOutcomeStore.load().isEmpty
+    }
+
+    private static func migrateUnselectedExistingMiniInstallIfNeeded(defaults: UserDefaults) {
+        let storedSelection = VehicleProfileStore.selectedProfileID(defaults: defaults)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard storedSelection?.isEmpty != false,
+              defaults.bool(forKey: "experimentalCustomVehicleProfileEnabled") == false else {
+            return
+        }
+
+        VehicleProfileStore.setSelectedProfileID(VehicleProfileResolver.builtInMiniProfileID, defaults: defaults)
     }
 
     private static func normalizeMotorwaySpeedIfNeeded(defaults: UserDefaults) {
@@ -813,7 +825,7 @@ struct ContentView: View {
         VehicleProfileResolver.activeProfile(
             for: vehicleProfileResolverInput,
             customProfiles: customVehicleProfiles,
-            selectedProfileID: selectedVehicleProfileID
+            selectedProfileID: normalizedSelectedVehicleProfileID
         )
     }
 
@@ -8069,8 +8081,8 @@ struct AboutAppGuideView: View {
 
     private var aboutLinksSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Link("Website", destination: URL(string: "https://sites.google.com/view/mini-range/")!)
-            Link("FAQ", destination: URL(string: "https://sites.google.com/view/mini-range/faq")!)
+            Link("Website", destination: URL(string: "https://sites.google.com/view/range-pilot/")!)
+            Link("FAQ", destination: URL(string: "https://sites.google.com/view/range-pilot/faq")!)
         }
         .font(.subheadline)
         .padding(.top, 8)
@@ -8188,8 +8200,6 @@ private struct RangeDrivingConditionsControlsView: View {
         VStack(spacing: 18) {
             RangeRouteTypeSection(roadTypeProfile: $roadTypeProfile)
 
-            RangeRoadSurfaceSection(roadSurface: roadSurface)
-
             RangeSliderSection(
                 title: "Outdoor temperature",
                 value: displayedTemperature,
@@ -8197,6 +8207,8 @@ private struct RangeDrivingConditionsControlsView: View {
                 step: 1,
                 displayValue: temperatureText
             )
+
+            RangeRoadSurfaceSection(roadSurface: roadSurface)
 
             Divider()
 

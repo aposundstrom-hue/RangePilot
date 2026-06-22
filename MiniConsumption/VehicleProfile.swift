@@ -173,7 +173,8 @@ enum VehicleProfileResolver {
         customProfiles: [VehicleProfile],
         selectedProfileID: String?
     ) -> ActiveVehicleProfile {
-        guard let selectedProfileID else {
+        guard let selectedProfileID = selectedProfileID?.trimmingCharacters(in: .whitespacesAndNewlines),
+              selectedProfileID.isEmpty == false else {
             return activeProfile(for: input)
         }
 
