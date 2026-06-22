@@ -80,6 +80,7 @@ enum MiniConsumptionInitialSetup {
         defaults.set(MiniConsumptionDefaults.airConditioningMode.rawValue, forKey: "airConditioningMode")
         defaults.set(MiniConsumptionDefaults.selectedTyreSet.rawValue, forKey: "selectedTyreSet")
         defaults.set(false, forKey: "winterTyres")
+        defaults.set(false, forKey: "roofBoxEnabled")
         defaults.set(MiniConsumptionDefaults.summerTyreClass.rawValue, forKey: "summerTyreClass")
         defaults.set(MiniConsumptionDefaults.winterTyreClass.rawValue, forKey: "winterTyreClass")
         defaults.set(MiniConsumptionDefaults.summerTyreClass.rawValue, forKey: "rollingResistanceClass")
@@ -370,6 +371,7 @@ struct ContentView: View {
     @AppStorage("trailerTowModeEnabled") private var trailerTowModeEnabled = false
     @AppStorage("trailerWeightKg") private var trailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
     @AppStorage("boxyTrailerEnabled") private var boxyTrailerEnabled = false
+    @AppStorage("roofBoxEnabled") private var roofBoxEnabled = false
     @AppStorage("planningMode") private var tripPlanningStrategy = MiniConsumptionDefaults.planningMode
     @AppStorage("currentBatteryPercent") private var startBatteryPercent = MiniConsumptionDefaults.currentBatteryPercent
     @AppStorage("rollingResistanceClass") private var rollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
@@ -925,18 +927,40 @@ struct ContentView: View {
             baseExtraConsumption = 3.0
         }
 
-        let speedKmh: Double
+        let speedFactor = pow(loadAerodynamicSpeedKmh(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed
+        ) / 100, 2)
+        return baseExtraConsumption * speedFactor
+    }
+
+    private func loadAerodynamicSpeedKmh(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
         switch roadTypeProfile {
         case .cityMix:
-            speedKmh = 50
+            return 50
         case .countryside:
-            speedKmh = 80
+            return 80
         case .motorwayMix, .motorway:
-            speedKmh = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
+            return MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
+        }
+    }
+
+    private func roofBoxExtraConsumptionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
+        guard roofBoxEnabled else {
+            return 0
         }
 
-        let speedFactor = pow(speedKmh / 100, 2)
-        return baseExtraConsumption * speedFactor
+        let speedKmh = loadAerodynamicSpeedKmh(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed
+        )
+        return 1.2 * pow(speedKmh / 100.0, 2)
     }
 
     private var trailerWeightText: String {
@@ -956,6 +980,19 @@ struct ContentView: View {
         )
     }
 
+    private func applyingRoofBoxConsumptionAdjustment(
+        to forecast: ForecastResult,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> ForecastResult {
+        forecast.applyingFinalConsumptionAddition(
+            roofBoxExtraConsumptionKWhPer100Km(
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeed: motorwaySpeed
+            )
+        )
+    }
+
     private func applyingActiveCalibrationAndTrailerAdjustment(
         to forecast: ForecastResult,
         correction: CalibrationCorrection,
@@ -963,23 +1000,35 @@ struct ContentView: View {
         motorwaySpeed: Double
     ) -> ForecastResult {
         guard useContinuousCalibration else {
-            return applyingTrailerConsumptionAdjustment(
-                to: forecast,
+            return applyingRoofBoxConsumptionAdjustment(
+                to: applyingTrailerConsumptionAdjustment(
+                    to: forecast,
+                    roadTypeProfile: roadTypeProfile,
+                    motorwaySpeed: motorwaySpeed
+                ),
                 roadTypeProfile: roadTypeProfile,
                 motorwaySpeed: motorwaySpeed
             )
         }
 
         if trailerTowModeEnabled {
-            return applyingTrailerConsumptionAdjustment(
-                to: forecast,
+            return applyingRoofBoxConsumptionAdjustment(
+                to: applyingTrailerConsumptionAdjustment(
+                    to: forecast,
+                    roadTypeProfile: roadTypeProfile,
+                    motorwaySpeed: motorwaySpeed
+                )
+                .applyingCalibrationFactor(correction.totalFactor),
                 roadTypeProfile: roadTypeProfile,
                 motorwaySpeed: motorwaySpeed
             )
-            .applyingCalibrationFactor(correction.totalFactor)
         }
 
-        return forecast.applyingCalibrationFactor(correction.totalFactor)
+        return applyingRoofBoxConsumptionAdjustment(
+            to: forecast.applyingCalibrationFactor(correction.totalFactor),
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed
+        )
     }
 
     private var activeAirConditioningMode: AirConditioningMode {
@@ -3464,6 +3513,7 @@ struct ContentView: View {
             trailerWeightStep: displayedTrailerWeightStep,
             trailerWeightText: trailerWeightText,
             boxyTrailerEnabled: $boxyTrailerEnabled,
+            roofBoxEnabled: $roofBoxEnabled,
             selectedTyreSet: activeSelectedTyreSetBinding,
             rollingResistanceClass: activeRollingResistanceClassBinding,
             onTyreSetChanged: { newValue in
@@ -5463,6 +5513,7 @@ struct ContentView: View {
         setWindCondition(MiniConsumptionDefaults.windCondition)
         tripPlanningStrategy = MiniConsumptionDefaults.planningMode
         airConditioningMode = MiniConsumptionDefaults.airConditioningMode
+        roofBoxEnabled = false
 
         selectedTyreSet = MiniConsumptionDefaults.selectedTyreSet
         winterTyres = false
@@ -8350,6 +8401,7 @@ private struct RangeConditionsCard: View {
     let trailerWeightStep: Double
     let trailerWeightText: String
     @Binding var boxyTrailerEnabled: Bool
+    @Binding var roofBoxEnabled: Bool
     @Binding var selectedTyreSet: TyreSet
     let rollingResistanceClass: Binding<RollingResistanceClass>
     let onTyreSetChanged: (TyreSet) -> Void
@@ -8374,6 +8426,7 @@ private struct RangeConditionsCard: View {
             trailerWeightStep: trailerWeightStep,
             trailerWeightText: trailerWeightText,
             boxyTrailerEnabled: $boxyTrailerEnabled,
+            roofBoxEnabled: $roofBoxEnabled,
             selectedTyreSet: $selectedTyreSet,
             rollingResistanceClass: rollingResistanceClass,
             onTyreSetChanged: onTyreSetChanged
@@ -8404,6 +8457,7 @@ private struct RangeDrivingConditionsControlsView: View {
     let trailerWeightStep: Double
     let trailerWeightText: String
     @Binding var boxyTrailerEnabled: Bool
+    @Binding var roofBoxEnabled: Bool
     @Binding var selectedTyreSet: TyreSet
     let rollingResistanceClass: Binding<RollingResistanceClass>
     let onTyreSetChanged: (TyreSet) -> Void
@@ -8446,7 +8500,8 @@ private struct RangeDrivingConditionsControlsView: View {
                         weightRange: trailerWeightRange,
                         weightStep: trailerWeightStep,
                         weightText: trailerWeightText,
-                        boxyTrailerEnabled: $boxyTrailerEnabled
+                        boxyTrailerEnabled: $boxyTrailerEnabled,
+                        roofBoxEnabled: $roofBoxEnabled
                     )
 
                     RangeTyreSection(
@@ -8592,6 +8647,7 @@ private struct RangeTrailerTowSection: View {
     let weightStep: Double
     let weightText: String
     @Binding var boxyTrailerEnabled: Bool
+    @Binding var roofBoxEnabled: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -8624,6 +8680,11 @@ private struct RangeTrailerTowSection: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+
+            Toggle("Roof box", isOn: $roofBoxEnabled)
+                .font(.subheadline.weight(.semibold))
+                .tint(rangePilotAccentColor)
+                .padding(.top, isEnabled ? 8 : 2)
         }
     }
 }
