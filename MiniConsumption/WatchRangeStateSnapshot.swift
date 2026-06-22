@@ -29,7 +29,7 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
 }
 
 enum WatchRangeStateSnapshotStore {
-    static let appGroupID = "group.com.ontographist.rangepilot"
+    static let appGroupID = "group.com.ontographist.MiniConsumption"
     static let storageKey = "watchRangeState.v1"
     static let lastSuccessfulPhoneSyncStorageKey = "watchRangeStateLastPhoneSync.v1"
     private static let snapshotPayloadKey = "watchRangeStateSnapshotData"
