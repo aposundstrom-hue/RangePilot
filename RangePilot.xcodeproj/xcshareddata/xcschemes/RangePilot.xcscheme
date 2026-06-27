@@ -51,6 +51,10 @@
             ReferencedContainer = "container:RangePilot.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <LocationScenarioReference
+         identifier = "San Francisco, CA, USA"
+         referenceType = "1">
+      </LocationScenarioReference>
       <StoreKitConfigurationFileReference
          identifier = "../../RangePilot.storekit">
       </StoreKitConfigurationFileReference>

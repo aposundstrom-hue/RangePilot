@@ -5,6 +5,7 @@ struct PaywallView: View {
     @State private var activationCode = ""
     @State private var activationMessage: String?
     @State private var activationSucceeded = false
+    @State private var isShowingActivationCodeAlert = false
 
     var body: some View {
         VStack(spacing: 24) {
@@ -27,7 +28,7 @@ struct PaywallView: View {
                     .font(.body.weight(.semibold))
             }
 
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 Button {
                     Task {
                         await entitlementManager.purchaseUnlock()
@@ -46,48 +47,31 @@ struct PaywallView: View {
                 .controlSize(.large)
                 .disabled(entitlementManager.unlockProduct == nil || entitlementManager.isPurchasing)
 
-                Button {
-                    Task {
-                        await entitlementManager.restorePurchases()
-                    }
-                } label: {
-                    if entitlementManager.isRestoring {
-                        ProgressView()
-                    } else {
-                        Text("Restore Purchases")
-                    }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
-                .disabled(entitlementManager.isRestoring)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Activation code")
-                    .font(.headline)
-
-                HStack(spacing: 8) {
-                    TextField("Activation code", text: $activationCode)
-                        .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .onSubmit {
-                            redeemActivationCode()
+                HStack(spacing: 10) {
+                    Button {
+                        Task {
+                            await entitlementManager.restorePurchases()
                         }
-
-                    Button("Redeem") {
-                        redeemActivationCode()
+                    } label: {
+                        Text(entitlementManager.isRestoring ? "Restoring..." : "Restore Purchases")
                     }
-                    .disabled(activationCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
+                    .font(.footnote.weight(.medium))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    .disabled(entitlementManager.isRestoring)
 
-                if let activationMessage {
-                    Text(activationMessage)
-                        .font(.footnote)
-                        .foregroundStyle(activationSucceeded ? .green : .red)
+                    Text("|")
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.tertiary)
+
+                    Button("I have a code") {
+                        isShowingActivationCodeAlert = true
+                    }
+                    .font(.footnote.weight(.medium))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxWidth: 360)
 
             if entitlementManager.isLoadingProducts {
                 ProgressView("Loading purchase options...")
@@ -102,11 +86,32 @@ struct PaywallView: View {
                     .padding(.horizontal)
             }
 
+            Spacer(minLength: 32)
+
+            if let activationMessage {
+                Text(activationMessage)
+                    .font(.footnote)
+                    .foregroundStyle(activationSucceeded ? .green : .red)
+                    .multilineTextAlignment(.center)
+            }
+
             Spacer(minLength: 64)
         }
         .padding(28)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
+        .alert("Activation code", isPresented: $isShowingActivationCodeAlert) {
+            TextField("Enter code", text: $activationCode)
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+
+            Button("Activate") {
+                redeemActivationCode()
+            }
+            .disabled(activationCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+            Button("Cancel", role: .cancel) {}
+        }
         .task {
             await entitlementManager.refresh()
         }

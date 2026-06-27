@@ -8403,8 +8403,9 @@ struct AboutAppGuideView: View {
 
     private var aboutLinksSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Link("Website", destination: URL(string: "https://sites.google.com/view/range-pilot/")!)
-            Link("FAQ", destination: URL(string: "https://sites.google.com/view/range-pilot/faq")!)
+            Link("Website", destination: URL(string: "https://sites.google.com/view/rangepilot/home")!)
+            Link("FAQ", destination: URL(string: "https://sites.google.com/view/rangepilot/faq")!)
+            Link("Privacy Policy", destination: URL(string: "https://sites.google.com/view/rangepilot/privacy-policy")!)
         }
         .font(.subheadline)
         .padding(.top, 8)
