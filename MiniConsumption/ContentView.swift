@@ -181,7 +181,7 @@ private enum RangeDisplayMode: String, CaseIterable, Identifiable {
     }
 }
 
-private enum RoofBoxMode: String, CaseIterable, Identifiable {
+enum RoofBoxMode: String, Codable, CaseIterable, Identifiable {
     case off
     case small
     case large
@@ -199,7 +199,7 @@ private enum RoofBoxMode: String, CaseIterable, Identifiable {
         }
     }
 
-    var aerodynamicCoefficient: Double {
+    nonisolated var aerodynamicCoefficient: Double {
         switch self {
         case .off:
             return 0
@@ -247,6 +247,25 @@ private enum VehicleProfileEditorMode: Identifiable {
             return "edit-\(profile.id)"
         }
     }
+}
+
+private struct TripEstimateAssumptionsFingerprint: Equatable {
+    let distance: Double
+    let startBatteryPercent: Double
+    let temperature: Double
+    let roadTypeProfile: RoadTypeProfile
+    let motorwaySpeed: Double
+    let roadSurface: RoadSurface
+    let windCondition: WindCondition
+    let planningMode: PlanningMode
+    let arrivalBatteryTargetPercent: Double
+    let trailerTowModeEnabled: Bool
+    let trailerWeightKg: Double
+    let boxyTrailerEnabled: Bool
+    let roofBoxMode: RoofBoxMode
+    let tyreSet: TyreSet
+    let rollingResistanceClass: RollingResistanceClass
+    let airConditioningMode: AirConditioningMode
 }
 
 private struct VehicleProfileEditorDraft {
@@ -451,6 +470,11 @@ struct ContentView: View {
     @State private var outcomeMotorwaySpeed = MiniConsumptionDefaults.motorwaySpeedKmh
     @State private var outcomeTyreSet = MiniConsumptionDefaults.selectedTyreSet
     @State private var outcomeRollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
+    @State private var outcomeAirConditioningMode = MiniConsumptionDefaults.airConditioningMode
+    @State private var outcomeTrailerTowModeEnabled = false
+    @State private var outcomeTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
+    @State private var outcomeBoxyTrailerEnabled = false
+    @State private var outcomeRoofBoxMode = RoofBoxMode.off
     @State private var batteryDegradationPercent = MiniConsumptionDefaults.batteryDegradationPercent
     @State private var csvExportFile: CSVExportFile?
     @State private var isTripDataEditorPresented = false
@@ -462,7 +486,13 @@ struct ContentView: View {
     @State private var draftTripDetailsWindCondition = MiniConsumptionDefaults.windCondition
     @State private var draftTripDetailsRoadTypeProfile = MiniConsumptionDefaults.roadTypeProfile
     @State private var draftTripDetailsMotorwaySpeed = MiniConsumptionDefaults.motorwaySpeedKmh
+    @State private var draftTripDetailsTyreSet = MiniConsumptionDefaults.selectedTyreSet
     @State private var draftTripDetailsRollingResistanceClass = RollingResistanceClass.b
+    @State private var draftTripDetailsAirConditioningMode = MiniConsumptionDefaults.airConditioningMode
+    @State private var draftTripDetailsTrailerTowModeEnabled = false
+    @State private var draftTripDetailsTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
+    @State private var draftTripDetailsBoxyTrailerEnabled = false
+    @State private var draftTripDetailsRoofBoxMode = RoofBoxMode.off
     @State private var draftTripDetailsDistanceKm: Double?
     @State private var draftTripDetailsNote = ""
     @State private var isDeleteAllTripDataConfirmationPresented = false
@@ -488,6 +518,13 @@ struct ContentView: View {
     @State private var tripEstimateWindCondition = MiniConsumptionDefaults.windCondition
     @State private var tripEstimatePlanningMode = MiniConsumptionDefaults.planningMode
     @State private var tripEstimateArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
+    @State private var tripEstimateTrailerTowModeEnabled = false
+    @State private var tripEstimateTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
+    @State private var tripEstimateBoxyTrailerEnabled = false
+    @State private var tripEstimateRoofBoxMode = RoofBoxMode.off
+    @State private var tripEstimateTyreSet = MiniConsumptionDefaults.selectedTyreSet
+    @State private var tripEstimateRollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
+    @State private var tripEstimateAirConditioningMode = MiniConsumptionDefaults.airConditioningMode
     @State private var isTripDistanceMapDerived = false
     @State private var selectedAppTab: AppTab = .range
     @State private var selectedTripChargingOption: TripChargingOption = .userSettings
@@ -505,6 +542,13 @@ struct ContentView: View {
     @State private var draftTripAssumptionsRoadSurface = MiniConsumptionDefaults.roadSurface
     @State private var draftTripAssumptionsWindCondition = MiniConsumptionDefaults.windCondition
     @State private var draftTripAssumptionsArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
+    @State private var draftTripAssumptionsTrailerTowModeEnabled = false
+    @State private var draftTripAssumptionsTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
+    @State private var draftTripAssumptionsBoxyTrailerEnabled = false
+    @State private var draftTripAssumptionsRoofBoxMode = RoofBoxMode.off
+    @State private var draftTripAssumptionsTyreSet = MiniConsumptionDefaults.selectedTyreSet
+    @State private var draftTripAssumptionsRollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
+    @State private var draftTripAssumptionsAirConditioningMode = MiniConsumptionDefaults.airConditioningMode
     @State private var isTripAssumptionsEditorPresented = false
 #if canImport(MapKit)
     @State private var tripAssistantRouteEstimate: RouteDistanceEstimate?
@@ -538,8 +582,8 @@ struct ContentView: View {
             let calibrationCorrection = continuousCalibrationSummary.correction(
                 for: CalibrationPredictionContext(
                     roadTypeProfile: tripEstimateRoadTypeProfile,
-                    tyreSet: activeSelectedTyreSet,
-                    trailerTowModeEnabled: trailerTowModeEnabled
+                    tyreSet: tripEstimateTyreSet,
+                    trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled
                 )
             )
             let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -551,8 +595,8 @@ struct ContentView: View {
                 roadSurface: tripEstimateRoadSurface,
                 windCondition: tripEstimateWindCondition,
                 planningMode: tripEstimatePlanningMode,
-                rollingResistanceClass: activeRollingResistanceClass,
-                airConditioningMode: activeAirConditioningMode,
+                rollingResistanceClass: tripEstimateRollingResistanceClass,
+                airConditioningMode: tripEstimateAirConditioningMode,
                 usesCustomVehicleProfile: true,
                 usableBatteryKWh: tripPlanningUsableBatteryKWh
             )
@@ -561,15 +605,19 @@ struct ContentView: View {
                 to: ruleBasedForecast,
                 correction: calibrationCorrection,
                 roadTypeProfile: tripEstimateRoadTypeProfile,
-                motorwaySpeed: tripEstimateMotorwaySpeed
+                motorwaySpeed: tripEstimateMotorwaySpeed,
+                trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled,
+                trailerWeightKg: tripEstimateTrailerWeightKg,
+                boxyTrailerEnabled: tripEstimateBoxyTrailerEnabled,
+                roofBoxMode: tripEstimateRoofBoxMode
             )
         }
 
         let calibrationCorrection = continuousCalibrationSummary.correction(
             for: CalibrationPredictionContext(
                 roadTypeProfile: tripEstimateRoadTypeProfile,
-                tyreSet: activeSelectedTyreSet,
-                trailerTowModeEnabled: trailerTowModeEnabled
+                tyreSet: tripEstimateTyreSet,
+                trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled
             )
         )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -581,8 +629,8 @@ struct ContentView: View {
             roadSurface: tripEstimateRoadSurface,
             windCondition: tripEstimateWindCondition,
             planningMode: tripEstimatePlanningMode,
-            rollingResistanceClass: activeRollingResistanceClass,
-            airConditioningMode: activeAirConditioningMode,
+            rollingResistanceClass: tripEstimateRollingResistanceClass,
+            airConditioningMode: tripEstimateAirConditioningMode,
             usesCustomVehicleProfile: false,
             usableBatteryKWh: tripPlanningUsableBatteryKWh
         )
@@ -591,7 +639,11 @@ struct ContentView: View {
             to: ruleBasedForecast,
             correction: calibrationCorrection,
             roadTypeProfile: tripEstimateRoadTypeProfile,
-            motorwaySpeed: tripEstimateMotorwaySpeed
+            motorwaySpeed: tripEstimateMotorwaySpeed,
+            trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled,
+            trailerWeightKg: tripEstimateTrailerWeightKg,
+            boxyTrailerEnabled: tripEstimateBoxyTrailerEnabled,
+            roofBoxMode: tripEstimateRoofBoxMode
         )
     }
 
@@ -768,7 +820,7 @@ struct ContentView: View {
                 for: CalibrationPredictionContext(
                     roadTypeProfile: outcomeRoadTypeProfile,
                     tyreSet: outcomeTyreSet,
-                    trailerTowModeEnabled: trailerTowModeEnabled
+                    trailerTowModeEnabled: outcomeTrailerTowModeEnabled
                 )
             )
             let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -781,7 +833,7 @@ struct ContentView: View {
                 windCondition: outcomeWindCondition,
                 planningMode: .normal,
                 rollingResistanceClass: outcomeRollingResistanceClass,
-                airConditioningMode: activeAirConditioningMode,
+                airConditioningMode: outcomeAirConditioningMode,
                 usesCustomVehicleProfile: true,
                 usableBatteryKWh: rangeUsableBatteryKWh
             )
@@ -790,7 +842,11 @@ struct ContentView: View {
                 to: ruleBasedForecast,
                 correction: calibrationCorrection,
                 roadTypeProfile: outcomeRoadTypeProfile,
-                motorwaySpeed: outcomeMotorwaySpeed
+                motorwaySpeed: outcomeMotorwaySpeed,
+                trailerTowModeEnabled: outcomeTrailerTowModeEnabled,
+                trailerWeightKg: outcomeTrailerWeightKg,
+                boxyTrailerEnabled: outcomeBoxyTrailerEnabled,
+                roofBoxMode: outcomeRoofBoxMode
             )
         }
 
@@ -798,7 +854,7 @@ struct ContentView: View {
             for: CalibrationPredictionContext(
                 roadTypeProfile: outcomeRoadTypeProfile,
                 tyreSet: outcomeTyreSet,
-                trailerTowModeEnabled: trailerTowModeEnabled
+                trailerTowModeEnabled: outcomeTrailerTowModeEnabled
             )
         )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -811,7 +867,7 @@ struct ContentView: View {
             windCondition: outcomeWindCondition,
             planningMode: .normal,
             rollingResistanceClass: outcomeRollingResistanceClass,
-            airConditioningMode: activeAirConditioningMode,
+            airConditioningMode: outcomeAirConditioningMode,
             usesCustomVehicleProfile: false,
             usableBatteryKWh: rangeUsableBatteryKWh
         )
@@ -820,7 +876,11 @@ struct ContentView: View {
             to: ruleBasedForecast,
             correction: calibrationCorrection,
             roadTypeProfile: outcomeRoadTypeProfile,
-            motorwaySpeed: outcomeMotorwaySpeed
+            motorwaySpeed: outcomeMotorwaySpeed,
+            trailerTowModeEnabled: outcomeTrailerTowModeEnabled,
+            trailerWeightKg: outcomeTrailerWeightKg,
+            boxyTrailerEnabled: outcomeBoxyTrailerEnabled,
+            roofBoxMode: outcomeRoofBoxMode
         )
     }
 
@@ -906,6 +966,27 @@ struct ContentView: View {
         activeVehicleProfile.usesCustomEVBehavior
     }
 
+    private var tripEstimateAssumptionsFingerprint: TripEstimateAssumptionsFingerprint {
+        TripEstimateAssumptionsFingerprint(
+            distance: tripEstimateDistance,
+            startBatteryPercent: tripEstimateStartBatteryPercent,
+            temperature: tripEstimateTemperature,
+            roadTypeProfile: tripEstimateRoadTypeProfile,
+            motorwaySpeed: tripEstimateMotorwaySpeed,
+            roadSurface: tripEstimateRoadSurface,
+            windCondition: tripEstimateWindCondition,
+            planningMode: tripEstimatePlanningMode,
+            arrivalBatteryTargetPercent: tripEstimateArrivalBatteryTargetPercent,
+            trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled,
+            trailerWeightKg: tripEstimateTrailerWeightKg,
+            boxyTrailerEnabled: tripEstimateBoxyTrailerEnabled,
+            roofBoxMode: tripEstimateRoofBoxMode,
+            tyreSet: tripEstimateTyreSet,
+            rollingResistanceClass: tripEstimateRollingResistanceClass,
+            airConditioningMode: tripEstimateAirConditioningMode
+        )
+    }
+
     private var activeAverageChargingSpeedKW: Double {
         averageChargingSpeedKW(for: activeVehicleProfile.profile)
     }
@@ -926,11 +1007,27 @@ struct ContentView: View {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeed: Double
     ) -> Double {
+        trailerExtraConsumptionKWhPer100Km(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled
+        )
+    }
+
+    private func trailerExtraConsumptionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        trailerTowModeEnabled: Bool,
+        trailerWeightKg: Double,
+        boxyTrailerEnabled: Bool
+    ) -> Double {
         guard trailerTowModeEnabled else {
             return 0
         }
 
-        let weightExtraConsumption = normalizedTrailerWeightKg * 0.003
+        let weightExtraConsumption = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg) * 0.003
         let aerodynamicExtraConsumption = boxyTrailerEnabled
             ? boxyTrailerAerodynamicExtraConsumptionKWhPer100Km(
                 roadTypeProfile: roadTypeProfile,
@@ -982,6 +1079,18 @@ struct ContentView: View {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeed: Double
     ) -> Double {
+        roofBoxExtraConsumptionKWhPer100Km(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            roofBoxMode: roofBoxMode
+        )
+    }
+
+    private func roofBoxExtraConsumptionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        roofBoxMode: RoofBoxMode
+    ) -> Double {
         guard roofBoxMode != .off else {
             return 0
         }
@@ -1002,10 +1111,31 @@ struct ContentView: View {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeed: Double
     ) -> ForecastResult {
+        applyingTrailerConsumptionAdjustment(
+            to: forecast,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled
+        )
+    }
+
+    private func applyingTrailerConsumptionAdjustment(
+        to forecast: ForecastResult,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        trailerTowModeEnabled: Bool,
+        trailerWeightKg: Double,
+        boxyTrailerEnabled: Bool
+    ) -> ForecastResult {
         forecast.applyingFinalConsumptionAddition(
             trailerExtraConsumptionKWhPer100Km(
                 roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: motorwaySpeed
+                motorwaySpeed: motorwaySpeed,
+                trailerTowModeEnabled: trailerTowModeEnabled,
+                trailerWeightKg: trailerWeightKg,
+                boxyTrailerEnabled: boxyTrailerEnabled
             )
         )
     }
@@ -1015,10 +1145,25 @@ struct ContentView: View {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeed: Double
     ) -> ForecastResult {
+        applyingRoofBoxConsumptionAdjustment(
+            to: forecast,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            roofBoxMode: roofBoxMode
+        )
+    }
+
+    private func applyingRoofBoxConsumptionAdjustment(
+        to forecast: ForecastResult,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        roofBoxMode: RoofBoxMode
+    ) -> ForecastResult {
         forecast.applyingFinalConsumptionAddition(
             roofBoxExtraConsumptionKWhPer100Km(
                 roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: motorwaySpeed
+                motorwaySpeed: motorwaySpeed,
+                roofBoxMode: roofBoxMode
             )
         )
     }
@@ -1029,15 +1174,41 @@ struct ContentView: View {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeed: Double
     ) -> ForecastResult {
+        applyingActiveCalibrationAndTrailerAdjustment(
+            to: forecast,
+            correction: correction,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled,
+            roofBoxMode: roofBoxMode
+        )
+    }
+
+    private func applyingActiveCalibrationAndTrailerAdjustment(
+        to forecast: ForecastResult,
+        correction: CalibrationCorrection,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        trailerTowModeEnabled: Bool,
+        trailerWeightKg: Double,
+        boxyTrailerEnabled: Bool,
+        roofBoxMode: RoofBoxMode
+    ) -> ForecastResult {
         guard useContinuousCalibration else {
             return applyingRoofBoxConsumptionAdjustment(
                 to: applyingTrailerConsumptionAdjustment(
                     to: forecast,
                     roadTypeProfile: roadTypeProfile,
-                    motorwaySpeed: motorwaySpeed
+                    motorwaySpeed: motorwaySpeed,
+                    trailerTowModeEnabled: trailerTowModeEnabled,
+                    trailerWeightKg: trailerWeightKg,
+                    boxyTrailerEnabled: boxyTrailerEnabled
                 ),
                 roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: motorwaySpeed
+                motorwaySpeed: motorwaySpeed,
+                roofBoxMode: roofBoxMode
             )
         }
 
@@ -1046,18 +1217,23 @@ struct ContentView: View {
                 to: applyingTrailerConsumptionAdjustment(
                     to: forecast,
                     roadTypeProfile: roadTypeProfile,
-                    motorwaySpeed: motorwaySpeed
+                    motorwaySpeed: motorwaySpeed,
+                    trailerTowModeEnabled: trailerTowModeEnabled,
+                    trailerWeightKg: trailerWeightKg,
+                    boxyTrailerEnabled: boxyTrailerEnabled
                 )
                 .applyingCalibrationFactor(correction.totalFactor),
                 roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: motorwaySpeed
+                motorwaySpeed: motorwaySpeed,
+                roofBoxMode: roofBoxMode
             )
         }
 
         return applyingRoofBoxConsumptionAdjustment(
             to: forecast.applyingCalibrationFactor(correction.totalFactor),
             roadTypeProfile: roadTypeProfile,
-            motorwaySpeed: motorwaySpeed
+            motorwaySpeed: motorwaySpeed,
+            roofBoxMode: roofBoxMode
         )
     }
 
@@ -1357,6 +1533,37 @@ struct ContentView: View {
         Binding(
             get: { weightUnits.displayWeight(fromKg: normalizedTrailerWeightKg) },
             set: { trailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(weightUnits.storedWeightKg(fromDisplayed: $0)) }
+        )
+    }
+
+    private var displayedTripEstimateTrailerWeightBinding: Binding<Double> {
+        displayedTrailerWeightBinding(for: $tripEstimateTrailerWeightKg)
+    }
+
+    private var displayedDraftTripAssumptionsTrailerWeightBinding: Binding<Double> {
+        displayedTrailerWeightBinding(for: $draftTripAssumptionsTrailerWeightKg)
+    }
+
+    private var displayedOutcomeTrailerWeightBinding: Binding<Double> {
+        displayedTrailerWeightBinding(for: $outcomeTrailerWeightKg)
+    }
+
+    private var displayedDraftTripDetailsTrailerWeightBinding: Binding<Double> {
+        displayedTrailerWeightBinding(for: $draftTripDetailsTrailerWeightKg)
+    }
+
+    private func displayedTrailerWeightBinding(for storedWeightKg: Binding<Double>) -> Binding<Double> {
+        Binding(
+            get: {
+                weightUnits.displayWeight(
+                    fromKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(storedWeightKg.wrappedValue)
+                )
+            },
+            set: {
+                storedWeightKg.wrappedValue = MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                    weightUnits.storedWeightKg(fromDisplayed: $0)
+                )
+            }
         )
     }
 
@@ -2442,31 +2649,7 @@ struct ContentView: View {
         .onChange(of: displayUnits) {
             resetTripOutcomeInput()
         }
-        .onChange(of: tripEstimateDistance) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateStartBatteryPercent) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateTemperature) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateRoadTypeProfile) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateMotorwaySpeed) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateRoadSurface) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateWindCondition) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimatePlanningMode) {
-            resetTransientAlternativeTripPlanSelection()
-        }
-        .onChange(of: tripEstimateArrivalBatteryTargetPercent) {
+        .onChange(of: tripEstimateAssumptionsFingerprint) {
             resetTransientAlternativeTripPlanSelection()
         }
         .onChange(of: normalMinimumChargingPercent) {
@@ -2696,6 +2879,75 @@ struct ContentView: View {
                                 }
                             }
                             .pickerStyle(.segmented)
+
+                            Picker("Climate", selection: $draftTripAssumptionsAirConditioningMode) {
+                                ForEach(AirConditioningMode.allCases) { mode in
+                                    Text(mode.label).tag(mode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Tyre set")
+                                    .font(.subheadline.weight(.semibold))
+
+                                Picker("Tyre set", selection: $draftTripAssumptionsTyreSet) {
+                                    ForEach(TyreSet.allCases) { tyreSet in
+                                        Text(tyreSet.label).tag(tyreSet as TyreSet)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .onChange(of: draftTripAssumptionsTyreSet) { _, newValue in
+                                    draftTripAssumptionsRollingResistanceClass = newValue == .summer
+                                        ? activeSummerTyreClass
+                                        : activeWinterTyreClass
+                                }
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Rolling resistance")
+                                    .font(.subheadline.weight(.semibold))
+
+                                Picker("Rolling resistance", selection: $draftTripAssumptionsRollingResistanceClass) {
+                                    ForEach(RollingResistanceClass.rangeOrderedCases) { tyreClass in
+                                        Text(tyreClass.label).tag(tyreClass as RollingResistanceClass)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
+
+                            Toggle("Trailer / tow", isOn: $draftTripAssumptionsTrailerTowModeEnabled)
+                                .font(.subheadline.weight(.semibold))
+                                .tint(rangePilotAccentColor)
+
+                            if draftTripAssumptionsTrailerTowModeEnabled {
+                                sliderSection(
+                                    title: "Trailer weight",
+                                    value: displayedDraftTripAssumptionsTrailerWeightBinding,
+                                    range: displayedTrailerWeightRange,
+                                    step: displayedTrailerWeightStep,
+                                    displayValue: weightUnits.formattedWeight(
+                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(draftTripAssumptionsTrailerWeightKg)
+                                    ),
+                                    showsPrecisionButtons: true
+                                )
+
+                                Toggle("Boxy trailer / caravan", isOn: $draftTripAssumptionsBoxyTrailerEnabled)
+                                    .font(.subheadline.weight(.semibold))
+                                    .tint(rangePilotAccentColor)
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Roof box")
+                                    .font(.subheadline.weight(.semibold))
+
+                                Picker("Roof box", selection: $draftTripAssumptionsRoofBoxMode) {
+                                    ForEach(RoofBoxMode.allCases) { mode in
+                                        Text(mode.label).tag(mode as RoofBoxMode)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
                         }
                     }
                 }
@@ -4056,6 +4308,13 @@ struct ContentView: View {
         draftTripAssumptionsMotorwaySpeed = tripEstimateMotorwaySpeedBinding.wrappedValue
         draftTripAssumptionsRoadSurface = tripEstimateRoadSurface
         draftTripAssumptionsWindCondition = tripEstimateWindCondition
+        draftTripAssumptionsTrailerTowModeEnabled = tripEstimateTrailerTowModeEnabled
+        draftTripAssumptionsTrailerWeightKg = tripEstimateTrailerWeightKg
+        draftTripAssumptionsBoxyTrailerEnabled = tripEstimateBoxyTrailerEnabled
+        draftTripAssumptionsRoofBoxMode = tripEstimateRoofBoxMode
+        draftTripAssumptionsTyreSet = tripEstimateTyreSet
+        draftTripAssumptionsRollingResistanceClass = tripEstimateRollingResistanceClass
+        draftTripAssumptionsAirConditioningMode = tripEstimateAirConditioningMode
         isTripAssumptionsEditorPresented = true
     }
 
@@ -4071,6 +4330,13 @@ struct ContentView: View {
         tripEstimateMotorwaySpeed = draftTripAssumptionsMotorwaySpeedBinding.wrappedValue
         tripEstimateRoadSurface = draftTripAssumptionsRoadSurface
         tripEstimateWindCondition = draftTripAssumptionsWindCondition
+        tripEstimateTrailerTowModeEnabled = draftTripAssumptionsTrailerTowModeEnabled
+        tripEstimateTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(draftTripAssumptionsTrailerWeightKg)
+        tripEstimateBoxyTrailerEnabled = draftTripAssumptionsBoxyTrailerEnabled
+        tripEstimateRoofBoxMode = draftTripAssumptionsRoofBoxMode
+        tripEstimateTyreSet = draftTripAssumptionsTyreSet
+        tripEstimateRollingResistanceClass = draftTripAssumptionsRollingResistanceClass
+        tripEstimateAirConditioningMode = draftTripAssumptionsAirConditioningMode
         hasTripEstimate = true
         isTripAssumptionsEditorPresented = false
     }
@@ -4149,6 +4415,46 @@ struct ContentView: View {
                             .onChange(of: outcomeTyreSet) { _, newValue in
                                 outcomeRollingResistanceClass = newValue == .summer ? activeSummerTyreClass : activeWinterTyreClass
                             }
+                        }
+
+                        Picker("Climate", selection: $outcomeAirConditioningMode) {
+                            ForEach(AirConditioningMode.allCases) { mode in
+                                Text(mode.label).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+
+                        Toggle("Trailer / tow", isOn: $outcomeTrailerTowModeEnabled)
+                            .font(.subheadline.weight(.semibold))
+                            .tint(rangePilotAccentColor)
+
+                        if outcomeTrailerTowModeEnabled {
+                            sliderSection(
+                                title: "Trailer weight",
+                                value: displayedOutcomeTrailerWeightBinding,
+                                range: displayedTrailerWeightRange,
+                                step: displayedTrailerWeightStep,
+                                displayValue: weightUnits.formattedWeight(
+                                    MiniConsumptionDefaults.normalizedTrailerWeightKg(outcomeTrailerWeightKg)
+                                ),
+                                showsPrecisionButtons: true
+                            )
+
+                            Toggle("Boxy trailer / caravan", isOn: $outcomeBoxyTrailerEnabled)
+                                .font(.subheadline.weight(.semibold))
+                                .tint(rangePilotAccentColor)
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Roof box")
+                                .font(.subheadline.weight(.semibold))
+
+                            Picker("Roof box", selection: $outcomeRoofBoxMode) {
+                                ForEach(RoofBoxMode.allCases) { mode in
+                                    Text(mode.label).tag(mode as RoofBoxMode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
                         }
 
                         TextField("Optional note", text: $outcomeNote, axis: .vertical)
@@ -4422,6 +4728,63 @@ struct ContentView: View {
                                 windCondition: $draftTripDetailsWindCondition,
                                 rollingResistanceClass: $draftTripDetailsRollingResistanceClass
                             )
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Tyre set")
+                                    .font(.subheadline.weight(.semibold))
+
+                                Picker("Tyre set", selection: $draftTripDetailsTyreSet) {
+                                    ForEach(TyreSet.allCases) { tyreSet in
+                                        Text(tyreSet.label).tag(tyreSet as TyreSet)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .onChange(of: draftTripDetailsTyreSet) { _, newValue in
+                                    draftTripDetailsRollingResistanceClass = newValue == .summer
+                                        ? activeSummerTyreClass
+                                        : activeWinterTyreClass
+                                }
+                            }
+
+                            Picker("Climate", selection: $draftTripDetailsAirConditioningMode) {
+                                ForEach(AirConditioningMode.allCases) { mode in
+                                    Text(mode.label).tag(mode)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            Toggle("Trailer / tow", isOn: $draftTripDetailsTrailerTowModeEnabled)
+                                .font(.subheadline.weight(.semibold))
+                                .tint(rangePilotAccentColor)
+
+                            if draftTripDetailsTrailerTowModeEnabled {
+                                sliderSection(
+                                    title: "Trailer weight",
+                                    value: displayedDraftTripDetailsTrailerWeightBinding,
+                                    range: displayedTrailerWeightRange,
+                                    step: displayedTrailerWeightStep,
+                                    displayValue: weightUnits.formattedWeight(
+                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(draftTripDetailsTrailerWeightKg)
+                                    ),
+                                    showsPrecisionButtons: true
+                                )
+
+                                Toggle("Boxy trailer / caravan", isOn: $draftTripDetailsBoxyTrailerEnabled)
+                                    .font(.subheadline.weight(.semibold))
+                                    .tint(rangePilotAccentColor)
+                            }
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Roof box")
+                                    .font(.subheadline.weight(.semibold))
+
+                                Picker("Roof box", selection: $draftTripDetailsRoofBoxMode) {
+                                    ForEach(RoofBoxMode.allCases) { mode in
+                                        Text(mode.label).tag(mode as RoofBoxMode)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                            }
 
                             if draftTripDetailsDistanceKm != nil {
                                 sliderSection(
@@ -5030,11 +5393,14 @@ struct ContentView: View {
             roadSurface: outcomeRoadSurface,
             windCondition: outcomeWindCondition,
             planningMode: nil,
-            airConditioningMode: activeAirConditioningMode,
+            airConditioningMode: outcomeAirConditioningMode,
             tyreSet: outcomeTyreSet,
             rollingResistanceClass: outcomeRollingResistanceClass,
             winterTyres: outcomeTyreSet == .winter,
-            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerTowModeEnabled: outcomeTrailerTowModeEnabled,
+            trailerWeightKg: outcomeTrailerTowModeEnabled ? outcomeTrailerWeightKg : nil,
+            boxyTrailerEnabled: outcomeBoxyTrailerEnabled,
+            roofBoxMode: outcomeRoofBoxMode,
             calibrationBaselinePredictedConsumptionKWhPer100Km: calibrationBaselineForecast.finalKWhPer100km,
             note: outcomeNote.trimmingCharacters(in: .whitespacesAndNewlines)
         )
@@ -5059,7 +5425,7 @@ struct ContentView: View {
             windCondition: outcomeWindCondition,
             planningMode: .normal,
             rollingResistanceClass: outcomeRollingResistanceClass,
-            airConditioningMode: activeAirConditioningMode,
+            airConditioningMode: .on,
             usesCustomVehicleProfile: isCustomVehicleProfileSelected,
             usableBatteryKWh: rangeUsableBatteryKWh
         )
@@ -5067,7 +5433,10 @@ struct ContentView: View {
         return applyingTrailerConsumptionAdjustment(
             to: ruleBasedForecast,
             roadTypeProfile: outcomeRoadTypeProfile,
-            motorwaySpeed: outcomeMotorwaySpeed
+            motorwaySpeed: outcomeMotorwaySpeed,
+            trailerTowModeEnabled: outcomeTrailerTowModeEnabled,
+            trailerWeightKg: outcomeTrailerWeightKg,
+            boxyTrailerEnabled: outcomeBoxyTrailerEnabled
         )
     }
 
@@ -5120,6 +5489,11 @@ struct ContentView: View {
         outcomeMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed)
         outcomeTyreSet = activeSelectedTyreSet
         outcomeRollingResistanceClass = activeRollingResistanceClass
+        outcomeAirConditioningMode = activeAirConditioningMode
+        outcomeTrailerTowModeEnabled = trailerTowModeEnabled
+        outcomeTrailerWeightKg = normalizedTrailerWeightKg
+        outcomeBoxyTrailerEnabled = boxyTrailerEnabled
+        outcomeRoofBoxMode = roofBoxMode
     }
 
 #if canImport(MapKit)
@@ -5352,6 +5726,13 @@ struct ContentView: View {
         tripEstimateRoadSurface = roadSurface.segmentedEquivalent
         tripEstimateWindCondition = windCondition
         tripEstimatePlanningMode = tripPlanningStrategy
+        tripEstimateTrailerTowModeEnabled = trailerTowModeEnabled
+        tripEstimateTrailerWeightKg = normalizedTrailerWeightKg
+        tripEstimateBoxyTrailerEnabled = boxyTrailerEnabled
+        tripEstimateRoofBoxMode = roofBoxMode
+        tripEstimateTyreSet = activeSelectedTyreSet
+        tripEstimateRollingResistanceClass = activeRollingResistanceClass
+        tripEstimateAirConditioningMode = activeAirConditioningMode
         tripEstimateArrivalBatteryTargetPercent = min(
             max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound),
             ChargingWindow.arrivalBatteryTargetBounds.upperBound
@@ -5499,7 +5880,13 @@ struct ContentView: View {
         draftTripDetailsWindCondition = outcome.windCondition
         draftTripDetailsRoadTypeProfile = outcome.roadTypeProfile
         draftTripDetailsMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(outcome.motorwaySpeedKmh)
+        draftTripDetailsTyreSet = outcome.resolvedTyreSet
         draftTripDetailsRollingResistanceClass = outcome.rollingResistanceClass ?? .b
+        draftTripDetailsAirConditioningMode = outcome.airConditioningMode ?? .on
+        draftTripDetailsTrailerTowModeEnabled = outcome.trailerTowModeEnabled
+        draftTripDetailsTrailerWeightKg = outcome.trailerWeightKg ?? MiniConsumptionDefaults.trailerWeightKg
+        draftTripDetailsBoxyTrailerEnabled = outcome.boxyTrailerEnabled
+        draftTripDetailsRoofBoxMode = outcome.roofBoxMode ?? .off
         draftTripDetailsDistanceKm = outcome.editableLoggedDistanceKm
         draftTripDetailsNote = outcome.note
         selectedTripOutcomeForDetails = outcome
@@ -5521,7 +5908,13 @@ struct ContentView: View {
             windCondition: draftTripDetailsWindCondition,
             roadTypeProfile: draftTripDetailsRoadTypeProfile,
             motorwaySpeedKmh: draftTripDetailsMotorwaySpeed,
+            tyreSet: draftTripDetailsTyreSet,
             rollingResistanceClass: draftTripDetailsRollingResistanceClass,
+            airConditioningMode: draftTripDetailsAirConditioningMode,
+            trailerTowModeEnabled: draftTripDetailsTrailerTowModeEnabled,
+            trailerWeightKg: draftTripDetailsTrailerTowModeEnabled ? draftTripDetailsTrailerWeightKg : nil,
+            boxyTrailerEnabled: draftTripDetailsBoxyTrailerEnabled,
+            roofBoxMode: draftTripDetailsRoofBoxMode,
             storedDistanceKm: draftTripDetailsDistanceKm,
             note: draftTripDetailsNote.trimmingCharacters(in: .whitespacesAndNewlines)
         )
@@ -5627,6 +6020,7 @@ struct ContentView: View {
             displayUnits.formattedDistance($0)
         } ?? "Distance not saved"
         let tyreClassText = (outcome.rollingResistanceClass ?? .b).label
+        let climateText = "Climate \((outcome.airConditioningMode ?? .on).label)"
 
         var details = [
             distanceText,
@@ -5634,10 +6028,18 @@ struct ContentView: View {
             outcome.roadSurface.label,
             "\(outcome.windCondition.label) wind",
             outcome.roadTypeProfile.label,
-            "Tyres \(tyreClassText)"
+            "\(outcome.resolvedTyreSet.label) tyres \(tyreClassText)",
+            climateText
         ]
         if outcome.trailerTowModeEnabled {
-            details.append("Trailer / tow")
+            let trailerWeightText = outcome.trailerWeightKg.map(weightUnits.formattedWeight) ?? "weight not saved"
+            details.append("Trailer / tow \(trailerWeightText)")
+            if outcome.boxyTrailerEnabled {
+                details.append("Boxy trailer")
+            }
+        }
+        if let roofBoxMode = outcome.roofBoxMode, roofBoxMode != .off {
+            details.append("\(roofBoxMode.label) roof box")
         }
 
         return details.joined(separator: " • ")
@@ -7351,6 +7753,9 @@ struct TripOutcome: Codable, Identifiable {
     let rollingResistanceClass: RollingResistanceClass?
     let winterTyres: Bool
     let trailerTowModeEnabled: Bool
+    let trailerWeightKg: Double?
+    let boxyTrailerEnabled: Bool
+    let roofBoxMode: RoofBoxMode?
     let calibrationBaselinePredictedConsumptionKWhPer100Km: Double?
     let note: String
 
@@ -7380,6 +7785,9 @@ struct TripOutcome: Codable, Identifiable {
         rollingResistanceClass: RollingResistanceClass?,
         winterTyres: Bool,
         trailerTowModeEnabled: Bool = false,
+        trailerWeightKg: Double? = nil,
+        boxyTrailerEnabled: Bool = false,
+        roofBoxMode: RoofBoxMode? = nil,
         calibrationBaselinePredictedConsumptionKWhPer100Km: Double? = nil,
         note: String
     ) {
@@ -7408,6 +7816,9 @@ struct TripOutcome: Codable, Identifiable {
         self.rollingResistanceClass = rollingResistanceClass
         self.winterTyres = winterTyres
         self.trailerTowModeEnabled = trailerTowModeEnabled
+        self.trailerWeightKg = trailerWeightKg.map(MiniConsumptionDefaults.normalizedTrailerWeightKg)
+        self.boxyTrailerEnabled = boxyTrailerEnabled
+        self.roofBoxMode = roofBoxMode
         self.calibrationBaselinePredictedConsumptionKWhPer100Km = calibrationBaselinePredictedConsumptionKWhPer100Km
         self.note = note
     }
@@ -7438,6 +7849,9 @@ struct TripOutcome: Codable, Identifiable {
         case rollingResistanceClass
         case winterTyres
         case trailerTowModeEnabled
+        case trailerWeightKg
+        case boxyTrailerEnabled
+        case roofBoxMode
         case calibrationBaselinePredictedConsumptionKWhPer100Km
         case note
     }
@@ -7476,6 +7890,9 @@ struct TripOutcome: Codable, Identifiable {
             rollingResistanceClass: try container.decodeIfPresent(RollingResistanceClass.self, forKey: .rollingResistanceClass),
             winterTyres: try container.decodeIfPresent(Bool.self, forKey: .winterTyres) ?? false,
             trailerTowModeEnabled: try container.decodeIfPresent(Bool.self, forKey: .trailerTowModeEnabled) ?? false,
+            trailerWeightKg: try container.decodeIfPresent(Double.self, forKey: .trailerWeightKg),
+            boxyTrailerEnabled: try container.decodeIfPresent(Bool.self, forKey: .boxyTrailerEnabled) ?? false,
+            roofBoxMode: try container.decodeIfPresent(RoofBoxMode.self, forKey: .roofBoxMode),
             calibrationBaselinePredictedConsumptionKWhPer100Km: try container.decodeIfPresent(Double.self, forKey: .calibrationBaselinePredictedConsumptionKWhPer100Km),
             note: try container.decodeIfPresent(String.self, forKey: .note) ?? ""
         )
@@ -7507,6 +7924,9 @@ struct TripOutcome: Codable, Identifiable {
         try container.encodeIfPresent(rollingResistanceClass, forKey: .rollingResistanceClass)
         try container.encode(winterTyres, forKey: .winterTyres)
         try container.encode(trailerTowModeEnabled, forKey: .trailerTowModeEnabled)
+        try container.encodeIfPresent(trailerWeightKg, forKey: .trailerWeightKg)
+        try container.encode(boxyTrailerEnabled, forKey: .boxyTrailerEnabled)
+        try container.encodeIfPresent(roofBoxMode, forKey: .roofBoxMode)
         try container.encodeIfPresent(calibrationBaselinePredictedConsumptionKWhPer100Km, forKey: .calibrationBaselinePredictedConsumptionKWhPer100Km)
         try container.encode(note, forKey: .note)
     }
@@ -7537,6 +7957,19 @@ struct TripOutcome: Codable, Identifiable {
         return actualKWhUsed / distanceKm * 100
     }
 
+    nonisolated var calibrationActualConsumptionKWhPer100Km: Double? {
+        guard let actualConsumptionKWhPer100Km = resolvedActualConsumptionKWhPer100Km else {
+            return nil
+        }
+
+        let normalizedConsumption = actualConsumptionKWhPer100Km
+            - modeledTemporaryCalibrationAdjustmentKWhPer100Km
+        return max(
+            CalibrationTripEligibility.plausibleConsumptionRange.lowerBound,
+            normalizedConsumption
+        )
+    }
+
     nonisolated var calibrationDistanceKm: Double? {
         actualDistanceKm ?? distanceKm
     }
@@ -7565,8 +7998,27 @@ struct TripOutcome: Codable, Identifiable {
 
     nonisolated var fixedCalibrationBaselinePredictedConsumptionKWhPer100Km: Double? {
         if trailerTowModeEnabled {
-            return calibrationBaselinePredictedConsumptionKWhPer100Km
-                ?? predictedConsumptionKWhPer100Km
+            guard let calibrationDistanceKm else {
+                return nil
+            }
+
+            guard let trailerWeightKg else {
+                let storedBaseline = calibrationBaselinePredictedConsumptionKWhPer100Km
+                    ?? predictedConsumptionKWhPer100Km
+                return max(0, storedBaseline - modeledTemporaryCalibrationAdjustmentKWhPer100Km)
+            }
+
+            return trailerCalibrationBaselinePredictedConsumption(
+                distanceKm: calibrationDistanceKm,
+                temperatureC: temperatureC,
+                roadSurface: roadSurface,
+                windCondition: windCondition,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeedKmh: motorwaySpeedKmh,
+                rollingResistanceClass: rollingResistanceClass ?? .b,
+                trailerWeightKg: trailerWeightKg,
+                boxyTrailerEnabled: boxyTrailerEnabled
+            )
         }
 
         guard let calibrationDistanceKm else {
@@ -7582,7 +8034,8 @@ struct TripOutcome: Codable, Identifiable {
             roadSurface: roadSurface,
             windCondition: windCondition,
             planningMode: .normal,
-            rollingResistanceClass: rollingResistanceClass ?? .b
+            rollingResistanceClass: rollingResistanceClass ?? .b,
+            airConditioningMode: .on
         )
         .finalKWhPer100km
     }
@@ -7596,26 +8049,89 @@ struct TripOutcome: Codable, Identifiable {
         }
     }
 
+    private nonisolated var modeledTemporaryCalibrationAdjustmentKWhPer100Km: Double {
+        modeledClimateCalibrationAdjustmentKWhPer100Km
+            + modeledRoofBoxCalibrationAdjustmentKWhPer100Km
+    }
+
+    private nonisolated var modeledClimateCalibrationAdjustmentKWhPer100Km: Double {
+        guard let calibrationDistanceKm else {
+            return 0
+        }
+
+        let forecast = MiniConsumptionCalculator.calculateForecast(
+            referenceConsumption: fixedCalibrationBaselineReferenceConsumptionKWhPer100Km,
+            distance: calibrationDistanceKm,
+            temperature: temperatureC,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeedKmh,
+            roadSurface: roadSurface,
+            windCondition: windCondition,
+            planningMode: .normal,
+            rollingResistanceClass: rollingResistanceClass ?? .b,
+            airConditioningMode: airConditioningMode ?? .on
+        )
+
+        return forecast.airConditioningAdjustmentKWhPer100km
+    }
+
+    private nonisolated var modeledRoofBoxCalibrationAdjustmentKWhPer100Km: Double {
+        guard let roofBoxMode, roofBoxMode != .off else {
+            return 0
+        }
+
+        let speedKmh = Self.loadAerodynamicSpeedKmh(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeedKmh: motorwaySpeedKmh
+        )
+        return roofBoxMode.aerodynamicCoefficient * pow(speedKmh / 100.0, 2)
+    }
+
+    private nonisolated static func loadAerodynamicSpeedKmh(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeedKmh: Double
+    ) -> Double {
+        switch roadTypeProfile {
+        case .cityMix:
+            return 50
+        case .countryside:
+            return 80
+        case .motorwayMix, .motorway:
+            return MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeedKmh)
+        }
+    }
+
     func updatingEditableAssumptions(
         temperatureC: Double,
         roadSurface: RoadSurface,
         windCondition: WindCondition,
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeedKmh: Double,
+        tyreSet: TyreSet,
         rollingResistanceClass: RollingResistanceClass,
+        airConditioningMode: AirConditioningMode,
+        trailerTowModeEnabled: Bool,
+        trailerWeightKg: Double?,
+        boxyTrailerEnabled: Bool,
+        roofBoxMode: RoofBoxMode?,
         storedDistanceKm: Double?,
         note: String
     ) -> TripOutcome {
         let updatedLoggedDistanceKm = loggedOutcomeDistanceKm == nil ? nil : storedDistanceKm
-        let updatedCalibrationBaseline = updatedTrailerCalibrationBaselinePredictedConsumption(
-            temperatureC: temperatureC,
-            roadSurface: roadSurface,
-            windCondition: windCondition,
-            roadTypeProfile: roadTypeProfile,
-            motorwaySpeedKmh: motorwaySpeedKmh,
-            rollingResistanceClass: rollingResistanceClass,
-            distanceKm: updatedLoggedDistanceKm
-        ) ?? calibrationBaselinePredictedConsumptionKWhPer100Km
+        let updatedCalibrationBaseline = trailerTowModeEnabled
+            ? updatedTrailerCalibrationBaselinePredictedConsumption(
+                temperatureC: temperatureC,
+                roadSurface: roadSurface,
+                windCondition: windCondition,
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeedKmh: motorwaySpeedKmh,
+                rollingResistanceClass: rollingResistanceClass,
+                trailerTowModeEnabled: trailerTowModeEnabled,
+                trailerWeightKg: trailerWeightKg,
+                boxyTrailerEnabled: boxyTrailerEnabled,
+                distanceKm: updatedLoggedDistanceKm
+            ) ?? calibrationBaselinePredictedConsumptionKWhPer100Km
+            : nil
 
         return TripOutcome(
             id: id,
@@ -7641,8 +8157,11 @@ struct TripOutcome: Codable, Identifiable {
             airConditioningMode: airConditioningMode,
             tyreSet: tyreSet,
             rollingResistanceClass: rollingResistanceClass,
-            winterTyres: winterTyres,
+            winterTyres: tyreSet == .winter,
             trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled,
+            roofBoxMode: roofBoxMode,
             calibrationBaselinePredictedConsumptionKWhPer100Km: updatedCalibrationBaseline,
             note: note
         )
@@ -7655,49 +8174,42 @@ struct TripOutcome: Codable, Identifiable {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeedKmh: Double,
         rollingResistanceClass: RollingResistanceClass,
+        trailerTowModeEnabled: Bool,
+        trailerWeightKg: Double?,
+        boxyTrailerEnabled: Bool,
         distanceKm: Double?
     ) -> Double? {
         guard trailerTowModeEnabled,
-              let originalDistanceKm = calibrationDistanceKm,
+              let trailerWeightKg,
               let updatedDistanceKm = distanceKm else {
             return nil
         }
 
-        let originalRuleBasedBaseline = ruleBasedCalibrationBaselinePredictedConsumption(
-            distanceKm: originalDistanceKm,
-            temperatureC: self.temperatureC,
-            roadSurface: self.roadSurface,
-            windCondition: self.windCondition,
-            roadTypeProfile: self.roadTypeProfile,
-            motorwaySpeedKmh: self.motorwaySpeedKmh,
-            rollingResistanceClass: self.rollingResistanceClass ?? .b
-        )
-        let storedTrailerBaseline = calibrationBaselinePredictedConsumptionKWhPer100Km
-            ?? predictedConsumptionKWhPer100Km
-        let trailerModelAddition = max(0, storedTrailerBaseline - originalRuleBasedBaseline)
-        let updatedRuleBasedBaseline = ruleBasedCalibrationBaselinePredictedConsumption(
+        return trailerCalibrationBaselinePredictedConsumption(
             distanceKm: updatedDistanceKm,
             temperatureC: temperatureC,
             roadSurface: roadSurface,
             windCondition: windCondition,
             roadTypeProfile: roadTypeProfile,
             motorwaySpeedKmh: motorwaySpeedKmh,
-            rollingResistanceClass: rollingResistanceClass
+            rollingResistanceClass: rollingResistanceClass,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled
         )
-
-        return updatedRuleBasedBaseline + trailerModelAddition
     }
 
-    private nonisolated func ruleBasedCalibrationBaselinePredictedConsumption(
+    private nonisolated func trailerCalibrationBaselinePredictedConsumption(
         distanceKm: Double,
         temperatureC: Double,
         roadSurface: RoadSurface,
         windCondition: WindCondition,
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeedKmh: Double,
-        rollingResistanceClass: RollingResistanceClass
+        rollingResistanceClass: RollingResistanceClass,
+        trailerWeightKg: Double,
+        boxyTrailerEnabled: Bool
     ) -> Double {
-        MiniConsumptionCalculator.calculateForecast(
+        let ruleBasedBaseline = MiniConsumptionCalculator.calculateForecast(
             referenceConsumption: fixedCalibrationBaselineReferenceConsumptionKWhPer100Km,
             distance: distanceKm,
             temperature: temperatureC,
@@ -7707,9 +8219,56 @@ struct TripOutcome: Codable, Identifiable {
             windCondition: windCondition,
             planningMode: .normal,
             rollingResistanceClass: rollingResistanceClass,
-            airConditioningMode: airConditioningMode ?? .on
+            airConditioningMode: .on
         )
         .finalKWhPer100km
+
+        return ruleBasedBaseline + Self.trailerCalibrationAdditionKWhPer100Km(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeedKmh: motorwaySpeedKmh,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled
+        )
+    }
+
+    private nonisolated static func trailerCalibrationAdditionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeedKmh: Double,
+        trailerWeightKg: Double,
+        boxyTrailerEnabled: Bool
+    ) -> Double {
+        let weightExtraConsumption = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg) * 0.003
+        let aerodynamicExtraConsumption = boxyTrailerEnabled
+            ? boxyTrailerCalibrationAdditionKWhPer100Km(
+                roadTypeProfile: roadTypeProfile,
+                motorwaySpeedKmh: motorwaySpeedKmh
+            )
+            : 0
+
+        return weightExtraConsumption + aerodynamicExtraConsumption
+    }
+
+    private nonisolated static func boxyTrailerCalibrationAdditionKWhPer100Km(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeedKmh: Double
+    ) -> Double {
+        let baseExtraConsumption: Double
+        switch roadTypeProfile {
+        case .cityMix:
+            baseExtraConsumption = 0.8
+        case .countryside:
+            baseExtraConsumption = 1.2
+        case .motorwayMix:
+            baseExtraConsumption = 2.2
+        case .motorway:
+            baseExtraConsumption = 3.0
+        }
+
+        let speedFactor = pow(Self.loadAerodynamicSpeedKmh(
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeedKmh: motorwaySpeedKmh
+        ) / 100, 2)
+        return baseExtraConsumption * speedFactor
     }
 }
 
@@ -7854,6 +8413,8 @@ fileprivate struct CalibrationTripEligibilityDisplay {
 }
 
 fileprivate enum CalibrationTripEligibility {
+    nonisolated static let plausibleConsumptionRange = 4.0...45.0
+
     nonisolated static func coreExclusionReason(for outcome: TripOutcome) -> CalibrationTripExclusionReason? {
         guard let calibrationDistanceKm = outcome.calibrationDistanceKm else {
             return .missingDistance
@@ -7874,7 +8435,10 @@ fileprivate enum CalibrationTripEligibility {
             return .invalidActualConsumption
         }
 
-        guard (4...45).contains(actualConsumptionKWhPer100Km) else {
+        guard
+            let calibrationActualConsumptionKWhPer100Km = outcome.calibrationActualConsumptionKWhPer100Km,
+            plausibleConsumptionRange.contains(calibrationActualConsumptionKWhPer100Km)
+        else {
             return .unrealisticActualConsumption
         }
 
@@ -8135,14 +8699,14 @@ private struct CalibrationFactorSample {
     nonisolated init?(outcome: TripOutcome) {
         guard
             case .none = CalibrationTripEligibility.coreExclusionReason(for: outcome),
-            let actualConsumptionKWhPer100Km = outcome.resolvedActualConsumptionKWhPer100Km,
+            let calibrationActualConsumptionKWhPer100Km = outcome.calibrationActualConsumptionKWhPer100Km,
             let fixedBaseline = outcome.fixedCalibrationBaselinePredictedConsumptionKWhPer100Km,
             fixedBaseline > 0
         else {
             return nil
         }
 
-        factor = actualConsumptionKWhPer100Km / fixedBaseline
+        factor = calibrationActualConsumptionKWhPer100Km / fixedBaseline
         roadTypeProfile = outcome.roadTypeProfile
         tyreSet = outcome.resolvedTyreSet
         trailerTowModeEnabled = outcome.trailerTowModeEnabled
@@ -8232,6 +8796,10 @@ private enum TripOutcomeCSV {
         "tyreSet",
         "rollingResistanceClass",
         "winterTyres",
+        "trailerTowModeEnabled",
+        "trailerWeightKg",
+        "boxyTrailerEnabled",
+        "roofBoxMode",
         "note"
     ]
 
@@ -8265,6 +8833,10 @@ private enum TripOutcomeCSV {
             outcome.resolvedTyreSet.rawValue,
             outcome.rollingResistanceClass?.rawValue ?? "",
             String(outcome.winterTyres),
+            String(outcome.trailerTowModeEnabled),
+            optionalString(outcome.trailerWeightKg),
+            String(outcome.boxyTrailerEnabled),
+            outcome.roofBoxMode?.rawValue ?? "",
             outcome.note
         ]
         .map(escape)
