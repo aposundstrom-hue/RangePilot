@@ -2308,6 +2308,27 @@ struct ContentView: View {
         )
     }
 
+    private func defaultMinimumChargingPercent(forWLTPRangeKm wltpRangeKm: Double) -> Double {
+        guard wltpRangeKm.isFinite else {
+            return ChargingWindow.defaultMinimumPercent
+        }
+
+        switch wltpRangeKm {
+        case ..<250:
+            return 10
+        case ..<300:
+            return 9
+        case ..<350:
+            return 8
+        case ..<400:
+            return 7
+        case ..<450:
+            return 6
+        default:
+            return 5
+        }
+    }
+
     private func setNormalMinimumChargingPercent(_ value: Double, for profile: VehicleProfile) {
         let clampedValue = clampedFinite(
             value,
@@ -6246,6 +6267,10 @@ struct ContentView: View {
                 wltpRangeKm: wltpRangeKm,
                 peakDCChargingKW: peakDCChargingKW,
                 batteryDegradationPercent: batteryDegradationPercent
+            )
+            setNormalMinimumChargingPercent(
+                defaultMinimumChargingPercent(forWLTPRangeKm: profile.wltpRangeKm),
+                for: profile
             )
             customVehicleProfiles = VehicleProfileStore.loadCustomProfiles()
             selectCustomVehicleProfile(profile)
