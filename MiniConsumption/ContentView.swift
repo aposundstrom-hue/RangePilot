@@ -80,7 +80,7 @@ enum MiniConsumptionInitialSetup {
         defaults.set(MiniConsumptionDefaults.airConditioningMode.rawValue, forKey: "airConditioningMode")
         defaults.set(MiniConsumptionDefaults.selectedTyreSet.rawValue, forKey: "selectedTyreSet")
         defaults.set(false, forKey: "winterTyres")
-        defaults.set(false, forKey: "roofBoxEnabled")
+        defaults.set(RoofBoxMode.off.rawValue, forKey: "roofBoxMode")
         defaults.set(MiniConsumptionDefaults.summerTyreClass.rawValue, forKey: "summerTyreClass")
         defaults.set(MiniConsumptionDefaults.winterTyreClass.rawValue, forKey: "winterTyreClass")
         defaults.set(MiniConsumptionDefaults.summerTyreClass.rawValue, forKey: "rollingResistanceClass")
@@ -177,6 +177,36 @@ private enum RangeDisplayMode: String, CaseIterable, Identifiable {
             return "Gauge"
         case .map:
             return "Map"
+        }
+    }
+}
+
+private enum RoofBoxMode: String, CaseIterable, Identifiable {
+    case off
+    case small
+    case large
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .off:
+            return "Off"
+        case .small:
+            return "Small"
+        case .large:
+            return "Large"
+        }
+    }
+
+    var aerodynamicCoefficient: Double {
+        switch self {
+        case .off:
+            return 0
+        case .small:
+            return 0.7
+        case .large:
+            return 1.2
         }
     }
 }
@@ -371,7 +401,7 @@ struct ContentView: View {
     @AppStorage("trailerTowModeEnabled") private var trailerTowModeEnabled = false
     @AppStorage("trailerWeightKg") private var trailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
     @AppStorage("boxyTrailerEnabled") private var boxyTrailerEnabled = false
-    @AppStorage("roofBoxEnabled") private var roofBoxEnabled = false
+    @AppStorage("roofBoxMode") private var roofBoxMode = RoofBoxMode.off
     @AppStorage("planningMode") private var tripPlanningStrategy = MiniConsumptionDefaults.planningMode
     @AppStorage("currentBatteryPercent") private var startBatteryPercent = MiniConsumptionDefaults.currentBatteryPercent
     @AppStorage("rollingResistanceClass") private var rollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
@@ -952,7 +982,7 @@ struct ContentView: View {
         roadTypeProfile: RoadTypeProfile,
         motorwaySpeed: Double
     ) -> Double {
-        guard roofBoxEnabled else {
+        guard roofBoxMode != .off else {
             return 0
         }
 
@@ -960,7 +990,7 @@ struct ContentView: View {
             roadTypeProfile: roadTypeProfile,
             motorwaySpeed: motorwaySpeed
         )
-        return 1.2 * pow(speedKmh / 100.0, 2)
+        return roofBoxMode.aerodynamicCoefficient * pow(speedKmh / 100.0, 2)
     }
 
     private var trailerWeightText: String {
@@ -1936,6 +1966,23 @@ struct ContentView: View {
         }
     }
 
+    private func migrateRoofBoxModeIfNeeded(defaults: UserDefaults = .standard) {
+        if let storedValue = defaults.string(forKey: "roofBoxMode") {
+            guard RoofBoxMode(rawValue: storedValue) == nil else {
+                return
+            }
+
+            roofBoxMode = .off
+            return
+        }
+
+        guard let legacyRoofBoxEnabled = defaults.object(forKey: "roofBoxEnabled") as? Bool else {
+            return
+        }
+
+        roofBoxMode = legacyRoofBoxEnabled ? .large : .off
+    }
+
     private func normalizeTrailerWeightIfNeeded() {
         let normalizedWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg)
         if normalizedWeightKg != trailerWeightKg {
@@ -2386,6 +2433,7 @@ struct ContentView: View {
             migrateLegacyCustomEVProfileIfNeeded()
             reconcileSelectedVehicleProfile()
             expirePersistedWindConditionIfNeeded()
+            migrateRoofBoxModeIfNeeded()
             normalizeTrailerWeightIfNeeded()
             roadTypeProfile = roadTypeProfile
             roadSurface = roadSurface.segmentedEquivalent
@@ -3513,7 +3561,7 @@ struct ContentView: View {
             trailerWeightStep: displayedTrailerWeightStep,
             trailerWeightText: trailerWeightText,
             boxyTrailerEnabled: $boxyTrailerEnabled,
-            roofBoxEnabled: $roofBoxEnabled,
+            roofBoxMode: $roofBoxMode,
             selectedTyreSet: activeSelectedTyreSetBinding,
             rollingResistanceClass: activeRollingResistanceClassBinding,
             onTyreSetChanged: { newValue in
@@ -5513,7 +5561,7 @@ struct ContentView: View {
         setWindCondition(MiniConsumptionDefaults.windCondition)
         tripPlanningStrategy = MiniConsumptionDefaults.planningMode
         airConditioningMode = MiniConsumptionDefaults.airConditioningMode
-        roofBoxEnabled = false
+        roofBoxMode = .off
 
         selectedTyreSet = MiniConsumptionDefaults.selectedTyreSet
         winterTyres = false
@@ -8401,7 +8449,7 @@ private struct RangeConditionsCard: View {
     let trailerWeightStep: Double
     let trailerWeightText: String
     @Binding var boxyTrailerEnabled: Bool
-    @Binding var roofBoxEnabled: Bool
+    @Binding var roofBoxMode: RoofBoxMode
     @Binding var selectedTyreSet: TyreSet
     let rollingResistanceClass: Binding<RollingResistanceClass>
     let onTyreSetChanged: (TyreSet) -> Void
@@ -8426,7 +8474,7 @@ private struct RangeConditionsCard: View {
             trailerWeightStep: trailerWeightStep,
             trailerWeightText: trailerWeightText,
             boxyTrailerEnabled: $boxyTrailerEnabled,
-            roofBoxEnabled: $roofBoxEnabled,
+            roofBoxMode: $roofBoxMode,
             selectedTyreSet: $selectedTyreSet,
             rollingResistanceClass: rollingResistanceClass,
             onTyreSetChanged: onTyreSetChanged
@@ -8457,7 +8505,7 @@ private struct RangeDrivingConditionsControlsView: View {
     let trailerWeightStep: Double
     let trailerWeightText: String
     @Binding var boxyTrailerEnabled: Bool
-    @Binding var roofBoxEnabled: Bool
+    @Binding var roofBoxMode: RoofBoxMode
     @Binding var selectedTyreSet: TyreSet
     let rollingResistanceClass: Binding<RollingResistanceClass>
     let onTyreSetChanged: (TyreSet) -> Void
@@ -8501,7 +8549,7 @@ private struct RangeDrivingConditionsControlsView: View {
                         weightStep: trailerWeightStep,
                         weightText: trailerWeightText,
                         boxyTrailerEnabled: $boxyTrailerEnabled,
-                        roofBoxEnabled: $roofBoxEnabled
+                        roofBoxMode: $roofBoxMode
                     )
 
                     RangeTyreSection(
@@ -8647,7 +8695,7 @@ private struct RangeTrailerTowSection: View {
     let weightStep: Double
     let weightText: String
     @Binding var boxyTrailerEnabled: Bool
-    @Binding var roofBoxEnabled: Bool
+    @Binding var roofBoxMode: RoofBoxMode
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -8681,10 +8729,18 @@ private struct RangeTrailerTowSection: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Toggle("Roof box", isOn: $roofBoxEnabled)
-                .font(.subheadline.weight(.semibold))
-                .tint(rangePilotAccentColor)
-                .padding(.top, isEnabled ? 8 : 2)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Roof box")
+                    .font(.subheadline.weight(.semibold))
+
+                Picker("Roof box", selection: $roofBoxMode) {
+                    ForEach(RoofBoxMode.allCases) { mode in
+                        Text(mode.label).tag(mode as RoofBoxMode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            .padding(.top, isEnabled ? 8 : 2)
         }
     }
 }
