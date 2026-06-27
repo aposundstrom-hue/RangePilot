@@ -1,0 +1,179 @@
+{
+  "" : {
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilot-primary.dia",
+    "emit-module-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilot-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilot-primary-emit-module.dia",
+    "pch" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilot-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilot-primary.swiftdeps"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/AppleMapsHandoff.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/AppleMapsHandoff~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/ContentView.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/ContentView~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/EntitlementManager.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/EntitlementManager~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionCalculator.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionCalculator~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionFormatting.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionFormatting~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionIntents.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionIntents~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionRangeModels~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionSettingsSnapshot.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/MiniConsumptionSettingsSnapshot~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/NaturalLanguageTripParser.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/NaturalLanguageTripParser~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/PaywallView.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/PaywallView~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/RangePilotApp.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RangePilotApp~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/RouteDistanceService.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/RouteDistanceService~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/TripChargingPresentation.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/TripChargingPresentation~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/VehicleProfile.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfile~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/VehicleProfileTemplates.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/VehicleProfileTemplates~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/WatchRangeStateSnapshot.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/WatchRangeStateSnapshot~partial.swiftmodule"
+  },
+  "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/build/RangePilot.build/Debug-iphonesimulator/RangePilot.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

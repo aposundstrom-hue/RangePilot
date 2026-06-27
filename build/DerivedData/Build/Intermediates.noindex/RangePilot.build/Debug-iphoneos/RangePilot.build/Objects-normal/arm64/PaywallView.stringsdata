@@ -1,0 +1,80 @@
+{
+  "source": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/PaywallView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Loading purchase options...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "RangePilot",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 14
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your 14-day free trial has ended.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 17
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlock RangePilot with a one-time purchase.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "No subscription.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore Purchases",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Activation code",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Activation code",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "Redeem",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 78
+        }
+      }
+    ]
+  },
+  "version": 1
+}

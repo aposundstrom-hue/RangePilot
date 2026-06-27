@@ -1,0 +1,493 @@
+[
+  {
+    "typeName": "RangePilot.RoadTypeProfile",
+    "mangledTypeName": "10RangePilot15RoadTypeProfileO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 171,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.RawRepresentable",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "AppIntents.CaseDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      }
+    ],
+    "properties": []
+  },
+  {
+    "typeName": "RangePilot.RoadSurface",
+    "mangledTypeName": "10RangePilot11RoadSurfaceO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 67,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "Swift.RawRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.CaseDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      }
+    ],
+    "properties": []
+  },
+  {
+    "typeName": "RangePilot.WindCondition",
+    "mangledTypeName": "10RangePilot13WindConditionO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 308,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "Swift.RawRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.CaseDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      }
+    ],
+    "properties": []
+  },
+  {
+    "typeName": "RangePilot.PlanningMode",
+    "mangledTypeName": "10RangePilot12PlanningModeO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 387,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "Swift.RawRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "AppIntents.CaseDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      }
+    ],
+    "properties": []
+  }
+]

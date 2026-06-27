@@ -1,0 +1,367 @@
+{
+  "source" : "\/Users\/andreas\/Documents\/* Ontography AB\/app_dev\/RangePilot\/MiniConsumption\/MiniConsumptionIntents.swift",
+  "version" : 2,
+  "tables" : {
+    "AppShortcuts" : [
+      {
+        "values" : [
+          "Estimate range in ${applicationName}",
+          "Estimate current range in ${applicationName}",
+          "Estimate range with battery in ${applicationName}",
+          "Check my RangePilot range in ${applicationName}",
+          "How far can I drive in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Estimate range in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Estimate Current Range",
+            "actionIdentifier" : "EstimateCurrentRangeIntent",
+            "index" : 0,
+            "parameterDisplayRepresentations" : {
+              "RoadTypeProfile" : [
+                "City mix",
+                "Calm roads",
+                "Motorway mix",
+                "Motorway"
+              ],
+              "DrivingPreset" : [
+                "Current Settings",
+                "Winter",
+                "Motorway",
+                "City"
+              ]
+            },
+            "parameterTypes" : {
+              "preset" : "DrivingPreset",
+              "roadProfile" : "RoadTypeProfile"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Estimate winter range in ${applicationName}",
+          "How far can I drive in winter in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Estimate winter range in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Estimate Current Range",
+            "actionIdentifier" : "EstimateCurrentRangeIntent",
+            "index" : 1,
+            "parameterDisplayRepresentations" : {
+              "RoadTypeProfile" : [
+                "City mix",
+                "Calm roads",
+                "Motorway mix",
+                "Motorway"
+              ],
+              "DrivingPreset" : [
+                "Current Settings",
+                "Winter",
+                "Motorway",
+                "City"
+              ]
+            },
+            "parameterTypes" : {
+              "preset" : "DrivingPreset",
+              "roadProfile" : "RoadTypeProfile"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Plan trip charging in ${applicationName}",
+          "Check trip charging in ${applicationName}",
+          "Plan a trip in ${applicationName}",
+          "Do I need to charge in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Plan trip charging in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Plan Trip Charging",
+            "actionIdentifier" : "PlanTripChargingIntent",
+            "index" : 2,
+            "parameterDisplayRepresentations" : {
+              "PlanningMode" : [
+                "Cautious",
+                "Normal",
+                "Optimistic"
+              ],
+              "DrivingPreset" : [
+                "Current Settings",
+                "Winter",
+                "Motorway",
+                "City"
+              ]
+            },
+            "parameterTypes" : {
+              "preset" : "DrivingPreset",
+              "planningMode" : "PlanningMode"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Plan a motorway trip in ${applicationName}",
+          "Do I need to charge on the motorway in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Plan a motorway trip in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Plan Trip Charging",
+            "actionIdentifier" : "PlanTripChargingIntent",
+            "index" : 3,
+            "parameterDisplayRepresentations" : {
+              "PlanningMode" : [
+                "Cautious",
+                "Normal",
+                "Optimistic"
+              ],
+              "DrivingPreset" : [
+                "Current Settings",
+                "Winter",
+                "Motorway",
+                "City"
+              ]
+            },
+            "parameterTypes" : {
+              "preset" : "DrivingPreset",
+              "planningMode" : "PlanningMode"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Plan a RangePilot trip in ${applicationName}",
+          "Plan a trip in ${applicationName}",
+          "Plan my RangePilot trip in ${applicationName}",
+          "Estimate a RangePilot trip in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Plan a RangePilot trip in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Plan RangePilot Trip",
+            "actionIdentifier" : "PlanMiniRangeTripIntent",
+            "index" : 4,
+            "parameterDisplayRepresentations" : {
+              "WindCondition" : [
+                "Tailwind",
+                "Normal",
+                "Headwind"
+              ],
+              "RoadSurface" : [
+                "Dry",
+                "Damp",
+                "Wet",
+                "Heavy rain",
+                "Snow or slush"
+              ],
+              "PlanningMode" : [
+                "Cautious",
+                "Normal",
+                "Optimistic"
+              ]
+            },
+            "parameterTypes" : {
+              "wind" : "WindCondition",
+              "roadSurface" : "RoadSurface",
+              "planningMode" : "PlanningMode"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Check if I can drive in ${applicationName}",
+          "Can I drive in ${applicationName}",
+          "Check a RangePilot trip in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Check if I can drive in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Check RangePilot Trip",
+            "actionIdentifier" : "CheckMiniRangeTripIntent",
+            "index" : 5,
+            "parameterDisplayRepresentations" : {
+              "PlanningMode" : [
+                "Cautious",
+                "Normal",
+                "Optimistic"
+              ]
+            },
+            "parameterTypes" : {
+              "planningMode" : "PlanningMode"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "How much battery do I need in ${applicationName}",
+          "How much battery do I need for a trip in ${applicationName}",
+          "Estimate required battery in ${applicationName}",
+          "Battery needed for a trip in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "How much battery do I need in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Required Battery for Trip",
+            "actionIdentifier" : "RequiredBatteryForTripIntent",
+            "index" : 6,
+            "parameterDisplayRepresentations" : {
+              "PlanningMode" : [
+                "Cautious",
+                "Normal",
+                "Optimistic"
+              ]
+            },
+            "parameterTypes" : {
+              "planningMode" : "PlanningMode"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Find chargers near my limit in ${applicationName}",
+          "Find chargers on my way in ${applicationName}",
+          "Search chargers before my battery limit in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Find chargers near my limit in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Find Chargers Near Limit",
+            "actionIdentifier" : "FindChargersNearLimitIntent",
+            "index" : 7,
+            "parameterDisplayRepresentations" : {
+              "PlanningMode" : [
+                "Cautious",
+                "Normal",
+                "Optimistic"
+              ]
+            },
+            "parameterTypes" : {
+              "planningMode" : "PlanningMode"
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Describe a trip in ${applicationName}",
+          "Estimate a described trip in ${applicationName}"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Describe a trip in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Describe Trip",
+            "actionIdentifier" : "DescribeTripIntent",
+            "index" : 8,
+            "parameterDisplayRepresentations" : {
+
+            },
+            "parameterTypes" : {
+
+            }
+          }
+        ]
+      },
+      {
+        "values" : [
+          "Ask Trip Assistant in ${applicationName}",
+          "Ask ${applicationName} about my trip",
+          "Tell ${applicationName} about my trip",
+          "Tell ${applicationName} I'm driving",
+          "Ask ${applicationName} about driving",
+          "Ask ${applicationName} how far I can drive before twenty percent",
+          "Ask ${applicationName} how many times I need to charge",
+          "Ask ${applicationName} how far between charging stops"
+        ],
+        "location" : {
+          "startingLine" : 1049,
+          "startingColumn" : 0
+        },
+        "key" : "Ask Trip Assistant in ${applicationName}",
+        "appShortcutMetadata" : [
+          {
+            "title" : "Ask Trip Assistant",
+            "actionIdentifier" : "AskTripAssistantIntent",
+            "index" : 9,
+            "parameterDisplayRepresentations" : {
+
+            },
+            "parameterTypes" : {
+
+            }
+          }
+        ]
+      }
+    ],
+    "Localizable" : [
+      {
+        "key" : "Ask about ${tripMessage}"
+      },
+      {
+        "key" : "Battery needed for ${naturalLanguageTripDescription}"
+      },
+      {
+        "key" : "Check trip from ${naturalLanguageTripDescription} with ${batteryPercentage} percent battery"
+      },
+      {
+        "key" : "Estimate range with ${batteryPercentage} percent battery"
+      },
+      {
+        "key" : "Estimate trip from ${tripDescription}"
+      },
+      {
+        "key" : "Find chargers toward ${directionOrDestination}"
+      },
+      {
+        "key" : "Plan RangePilot trip from ${naturalLanguageTripDescription}"
+      },
+      {
+        "key" : "Plan a trip"
+      }
+    ]
+  }
+}

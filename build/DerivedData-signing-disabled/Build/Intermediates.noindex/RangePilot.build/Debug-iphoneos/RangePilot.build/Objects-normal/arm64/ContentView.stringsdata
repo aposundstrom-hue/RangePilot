@@ -1,0 +1,1872 @@
+{
+  "source": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Reset all settings to defaults?",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 2396
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear calibration trip data?",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 2404
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete profile?",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 2412
+        }
+      },
+      {
+        "comment": "",
+        "key": "Range",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 2306
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 2314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 2322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2397
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset to app defaults",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2398
+        }
+      },
+      {
+        "comment": "",
+        "key": "This restores adjustable settings to app defaults. Trip logs and saved trip outcomes are not deleted.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2402
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2405
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear data",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2406
+        }
+      },
+      {
+        "comment": "",
+        "key": "This deletes logged trips used for continuous calibration.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2413
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2416
+        }
+      },
+      {
+        "comment": "",
+        "key": "This deletes the custom profile. Mini Cooper SE will remain available.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2420
+        }
+      },
+      {
+        "comment": "",
+        "key": "RangePilot",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2534
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick trip",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2626
+        }
+      },
+      {
+        "comment": "",
+        "key": "Charging assumptions",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 2615
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2630
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip assumptions",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2705
+        }
+      },
+      {
+        "comment": "",
+        "key": "Driving mode",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 2645
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road surface",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 2686
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 2693
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2709
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apply",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2715
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens app information",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4584
+        }
+      },
+      {
+        "comment": "",
+        "key": "RangePilot",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2763
+        }
+      },
+      {
+        "comment": "",
+        "key": "Vehicle profile",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 2925
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens vehicle profile settings",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2927
+        }
+      },
+      {
+        "comment": "",
+        "key": "Range display mode",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 2891
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ trip",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 3050
+        }
+      },
+      {
+        "comment": "",
+        "key": "Opens quick trip estimate",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3052
+        }
+      },
+      {
+        "comment": "",
+        "key": "Recenter map",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 2943
+        }
+      },
+      {
+        "comment": "",
+        "key": "Charging buffer",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 2954
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shown",
+        "location": {
+          "startingColumn": 71,
+          "startingLine": 2955
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hidden",
+        "location": {
+          "startingColumn": 81,
+          "startingLine": 2955
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap to show or hide the charging buffer area. Long press for details.",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 2956
+        }
+      },
+      {
+        "comment": "",
+        "key": "Charging buffer",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 2961
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 2962
+        }
+      },
+      {
+        "comment": "",
+        "key": "Vehicle profile",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 3006
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ • %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 3009
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ trip",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3030
+        }
+      },
+      {
+        "comment": "",
+        "key": "Calibration based on logged trips",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3067
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lower values increase estimated range. Higher values reduce estimated range.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3094
+        }
+      },
+      {
+        "comment": "",
+        "key": "Default: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset to default",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 3106
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose vehicle",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Vehicle profile",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 3205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 3302
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add new profile...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 3190
+        }
+      },
+      {
+        "comment": "",
+        "key": "Vehicle setup",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3294
+        }
+      },
+      {
+        "comment": "",
+        "key": "A vehicle profile is required before RangePilot can estimate range or charging needs.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3257
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome to RangePilot",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3228
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose a vehicle profile to get started. RangePilot uses your vehicle profile to estimate range, charging needs, and trip margins.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3233
+        }
+      },
+      {
+        "comment": "",
+        "key": "Browse vehicle templates",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 3243
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create custom vehicle",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 3251
+        }
+      },
+      {
+        "comment": "",
+        "key": "Existing profiles",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 3266
+        }
+      },
+      {
+        "comment": "",
+        "key": "Custom EV estimates are approximate at first. RangePilot was originally modelled on the MINI Cooper SE, but trip logging can calibrate estimates to your vehicle after at least three logged trips in a driving mode.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 3334
+        }
+      },
+      {
+        "comment": "",
+        "key": "Can't find your exact vehicle? Choose the closest model and adjust the values as needed.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3377
+        }
+      },
+      {
+        "comment": "",
+        "key": "Vehicle brand",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 3359
+        }
+      },
+      {
+        "comment": "",
+        "key": "Model",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 3369
+        }
+      },
+      {
+        "comment": "",
+        "key": "Custom Profile",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 3360
+        }
+      },
+      {
+        "comment": "",
+        "key": "Profile name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 3385
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Profile",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 3412
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3423
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3429
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery capacity may gradually decrease over time, often around 1–2% per year.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 3466
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery degradation",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 3453
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery degradation",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 3458
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3460
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery capacity may gradually decrease over time, often around 1–2% per year.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 3490
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery degradation",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3477
+        }
+      },
+      {
+        "comment": "",
+        "key": "Battery degradation",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3482
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 3484
+        }
+      },
+      {
+        "comment": "",
+        "key": "Distance and consumption",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3502
+        }
+      },
+      {
+        "comment": "",
+        "key": "Units",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3507
+        }
+      },
+      {
+        "comment": "",
+        "key": "km",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3508
+        }
+      },
+      {
+        "comment": "",
+        "key": "mi",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3509
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3517
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3522
+        }
+      },
+      {
+        "comment": "",
+        "key": "C",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3523
+        }
+      },
+      {
+        "comment": "",
+        "key": "F",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3524
+        }
+      },
+      {
+        "comment": "",
+        "key": "Weight unit",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3532
+        }
+      },
+      {
+        "comment": "",
+        "key": "Weight unit",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3537
+        }
+      },
+      {
+        "comment": "",
+        "key": "kg",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3538
+        }
+      },
+      {
+        "comment": "",
+        "key": "lbs",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3539
+        }
+      },
+      {
+        "comment": "",
+        "key": "View logged trips",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 3585
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export trip history",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 3594
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear calibration data",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 3603
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip logs and saved trip outcomes are not deleted.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 3624
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset all settings to defaults",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 3618
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fast-charging planning settings",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 3634
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preferred low level before charging",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3640
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3643
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preferred fast-charging target level",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3657
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3660
+        }
+      },
+      {
+        "comment": "",
+        "key": "Charging setup time",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 3676
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ min",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 3679
+        }
+      },
+      {
+        "comment": "",
+        "key": "Used as the average charging power up to 80%. This should reflect a normal fast-charge session, not the brief peak.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3709
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset to default",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 3714
+        }
+      },
+      {
+        "comment": "",
+        "key": "Average fast-charging speed",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 3694
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ kW",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 3697
+        }
+      },
+      {
+        "comment": "",
+        "key": "Advanced settings",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 3723
+        }
+      },
+      {
+        "comment": "",
+        "key": "Planning mode",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3757
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate charging plan",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 3772
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust trip assumptions",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 3784
+        }
+      },
+      {
+        "comment": "",
+        "key": "No saved destinations",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 3803
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manage favorites...",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 3814
+        }
+      },
+      {
+        "comment": "",
+        "key": "Favorites",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 3818
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save destination",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3883
+        }
+      },
+      {
+        "comment": "",
+        "key": "Destination name",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 3829
+        }
+      },
+      {
+        "comment": "",
+        "key": "Destination name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 3832
+        }
+      },
+      {
+        "comment": "",
+        "key": "Saved destinations",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3847
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete %@",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 3871
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3887
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3893
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save destination",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 3954
+        }
+      },
+      {
+        "comment": "",
+        "key": "Between charges",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 3983
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3987
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 3993
+        }
+      },
+      {
+        "comment": "",
+        "key": "Arrival reserve",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 4019
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4023
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4029
+        }
+      },
+      {
+        "comment": "",
+        "key": "Log trip with these conditions",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 4090
+        }
+      },
+      {
+        "comment": "",
+        "key": "Optional note",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 4154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tyre set",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 4140
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tyre set",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 4143
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4164
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4170
+        }
+      },
+      {
+        "comment": "",
+        "key": "This outcome will calibrate this profile only.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 4187
+        }
+      },
+      {
+        "comment": "",
+        "key": "Route profile",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 4209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road surface condition",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 4235
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road surface condition",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 4238
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 4247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 4250
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rolling resistance",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 4259
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rolling resistance",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 4262
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actual average",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 4274
+        }
+      },
+      {
+        "comment": "",
+        "key": "Distance",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 4293
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 4295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit trip data",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 4341
+        }
+      },
+      {
+        "comment": "",
+        "key": "Recorded trips will appear here after you save trip outcomes.",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 4325
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Trip Data",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 4323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 4369
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 4369
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld recorded %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 4360
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trip details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 4454
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete trip",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4445
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 4439
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4458
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save changes",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 4464
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete all",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 4475
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 4483
+        }
+      },
+      {
+        "comment": "",
+        "key": "Custom profile",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 4552
+        }
+      },
+      {
+        "comment": "",
+        "key": "About the app",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 4568
+        }
+      },
+      {
+        "comment": "",
+        "key": "Decrease %@",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 4637
+        }
+      },
+      {
+        "comment": "",
+        "key": "Increase %@",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 4648
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show route in Maps",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 5136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Find charger for next stop",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 5153
+        }
+      },
+      {
+        "comment": "",
+        "key": "Map point",
+        "location": {
+          "startingColumn": 13,
+          "startingLine": 6093
+        }
+      },
+      {
+        "comment": "",
+        "key": "Route preview",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 6077
+        }
+      },
+      {
+        "comment": "",
+        "key": "New trip to this point",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6097
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add waypoint (coming soon)",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6110
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search chargers nearby",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6122
+        }
+      },
+      {
+        "comment": "",
+        "key": "Collapse route preview map",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 6159
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expand route preview map",
+        "location": {
+          "startingColumn": 85,
+          "startingLine": 6159
+        }
+      },
+      {
+        "comment": "",
+        "key": "Toggles the route preview map height.",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 6160
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 6309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Map point",
+        "location": {
+          "startingColumn": 13,
+          "startingLine": 6565
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable location access to see your estimated range area.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 6608
+        }
+      },
+      {
+        "comment": "",
+        "key": "Decrease current battery level",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 6536
+        }
+      },
+      {
+        "comment": "",
+        "key": "Increase current battery level",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 6545
+        }
+      },
+      {
+        "comment": "",
+        "key": "New trip to this point",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6569
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add waypoint (coming soon)",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6579
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search chargers nearby",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6582
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 6591
+        }
+      },
+      {
+        "comment": "",
+        "key": "Range gauge",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 6923
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tap or drag the gauge arc to adjust the battery level needed for a target range.",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 6924
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cautious %@, normal %@, optimistic %@",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 6926
+        }
+      },
+      {
+        "comment": "",
+        "key": "Target range",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 6946
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjusts the current battery level required for the selected range.",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 6947
+        }
+      },
+      {
+        "comment": "",
+        "key": "WLTP",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 6888
+        }
+      },
+      {
+        "comment": "",
+        "key": "Decrease current battery level",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 6954
+        }
+      },
+      {
+        "comment": "",
+        "key": "Increase current battery level",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 6963
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current battery level",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 7204
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ percent",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 7205
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 7184
+        }
+      },
+      {
+        "comment": "",
+        "key": "About the app",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 8392
+        }
+      },
+      {
+        "comment": "",
+        "key": "RangePilot helps electric vehicle drivers estimate real-world range and charging needs.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 8381
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust battery level and driving conditions to see how temperature, speed, wind, road surface, tyres, and other factors affect expected range.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 8382
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create custom vehicle profiles, log trips, and optionally calibrate estimates to match your own vehicle and driving habits over time.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 8383
+        }
+      },
+      {
+        "comment": "",
+        "key": "The app focuses on quick, understandable estimates for everyday driving and simpler trip planning. It is intentionally lighter and simpler than full route-planning tools.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 8384
+        }
+      },
+      {
+        "comment": "",
+        "key": "All data remains stored locally on your device.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 8385
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 8396
+        }
+      },
+      {
+        "comment": "",
+        "key": "Website",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 8406
+        }
+      },
+      {
+        "comment": "",
+        "key": "FAQ",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 8407
+        }
+      },
+      {
+        "comment": "",
+        "key": "Additional settings",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8574
+        }
+      },
+      {
+        "comment": "",
+        "key": "Road surface condition",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8656
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 8671
+        }
+      },
+      {
+        "comment": "",
+        "key": "Wind",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8674
+        }
+      },
+      {
+        "comment": "",
+        "key": "Air conditioning",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 8689
+        }
+      },
+      {
+        "comment": "",
+        "key": "Air conditioning",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8692
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adds an estimated consumption penalty when driving with a trailer.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 8717
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adds an extra aerodynamic penalty for enclosed trailers and caravans.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8737
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trailer / tow mode",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8713
+        }
+      },
+      {
+        "comment": "",
+        "key": "Boxy trailer / caravan",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8732
+        }
+      },
+      {
+        "comment": "",
+        "key": "Roof box",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8744
+        }
+      },
+      {
+        "comment": "",
+        "key": "Roof box",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8747
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tyre set",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8767
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tyre set",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8770
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rolling resistance",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8782
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rolling resistance",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8785
+        }
+      },
+      {
+        "comment": "",
+        "key": "Got it",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8811
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8802
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome to RangePilot\n\nDrag the battery slider to see the estimated range.\n\nChange vehicle profile and driving conditions to explore different range scenarios.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8805
+        }
+      },
+      {
+        "comment": "",
+        "key": "Log actual consumption",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8834
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan a trip",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8847
+        }
+      },
+      {
+        "comment": "",
+        "key": "Custom profile",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 8862
+        }
+      },
+      {
+        "comment": "",
+        "key": "Got it!",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8835
+        }
+      },
+      {
+        "comment": "",
+        "key": "Log examples of your car's actual consumption to calibrate the app to your car and your real-world driving.\n\nCalibration becomes active after at least 3 logged trips.\n\nYou can turn calibration on or off at any time in Settings.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8839
+        }
+      },
+      {
+        "comment": "",
+        "key": "Got it!",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8848
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter a destination, address, or place name.\n\nYou can also describe a trip in your own words.\n\nExample:\n\n\"From San Francisco to Santa Cruz\"",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8852
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8863
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8867
+        }
+      },
+      {
+        "comment": "",
+        "key": "RangePilot was originally modelled on the MINI Cooper SE 2019–2023.\n\nCustom profiles allow you to use the app with other electric vehicles by entering battery capacity, WLTP range, and charging speed.\n\nCustom EV estimates are approximate at first. Trip logging can calibrate estimates to your vehicle after at least three logged trips in a driving mode.\n\nIf you want to use the app for your MINI Cooper SE again, select the built-in MINI profile.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 8871
+        }
+      },
+      {
+        "comment": "",
+        "key": "Where are you going?",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 8894
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear destination",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 8912
+        }
+      },
+      {
+        "comment": "",
+        "key": "Starts a new trip planning session.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 8913
+        }
+      },
+      {
+        "comment": "",
+        "key": "Voice entry",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 8920
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use keyboard dictation from the focused trip description field.",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 8921
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 8928
+        }
+      }
+    ]
+  },
+  "version": 1
+}

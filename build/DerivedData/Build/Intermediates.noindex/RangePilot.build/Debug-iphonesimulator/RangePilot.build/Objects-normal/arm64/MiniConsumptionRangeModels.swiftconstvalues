@@ -1,0 +1,1055 @@
+[
+  {
+    "typeName": "RangePilot.RoadSurface",
+    "mangledTypeName": "10RangePilot11RoadSurfaceO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 67,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "Swift.RawRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.CaseDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "AllCases",
+        "substitutedTypeName": "Swift.Array<RangePilot.RoadSurface>",
+        "substitutedMangledTypeName": "Say10RangePilot11RoadSurfaceOG"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "RangePilot.RoadSurface",
+        "substitutedMangledTypeName": "10RangePilot11RoadSurfaceO"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "RangePilot.RoadSurface",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 74,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "segmentedCases",
+        "type": "Swift.Array<RangePilot.RoadSurface>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 76,
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "snowSlush"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "wet"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "dry"
+            }
+          }
+        ]
+      },
+      {
+        "label": "segmentedEquivalent",
+        "type": "RangePilot.RoadSurface",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 80,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "label",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 91,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "adjustment",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 106,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "addsExtraHighRange",
+        "type": "Swift.Bool",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 121,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "allCases",
+        "type": "Swift.Array<RangePilot.RoadSurface>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "dry"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "damp"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "wet"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "heavyRain"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "snowSlush"
+            }
+          }
+        ]
+      },
+      {
+        "label": "rawValue",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "valueKind": "Runtime"
+      }
+    ],
+    "cases": [
+      {
+        "name": "dry",
+        "rawValue": "dry"
+      },
+      {
+        "name": "damp",
+        "rawValue": "damp"
+      },
+      {
+        "name": "wet",
+        "rawValue": "wet"
+      },
+      {
+        "name": "heavyRain",
+        "rawValue": "heavyRain"
+      },
+      {
+        "name": "snowSlush",
+        "rawValue": "snowSlush"
+      }
+    ]
+  },
+  {
+    "typeName": "RangePilot.RoadTypeProfile",
+    "mangledTypeName": "10RangePilot15RoadTypeProfileO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 171,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.RawRepresentable",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "AppIntents.CaseDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "AllCases",
+        "substitutedTypeName": "Swift.Array<RangePilot.RoadTypeProfile>",
+        "substitutedMangledTypeName": "Say10RangePilot15RoadTypeProfileOG"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "RangePilot.RoadTypeProfile",
+        "substitutedMangledTypeName": "10RangePilot15RoadTypeProfileO"
+      },
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "RangePilot.RoadTypeProfile",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 177,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "rawValue",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 194,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "label",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 207,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "assumptionLabel",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 220,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "routeProfile",
+        "type": "RangePilot.RouteProfile",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 233,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "consumptionFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 272,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "windScalingFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 276,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "motorwaySpeedScalingFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 280,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "winterScalingFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 284,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "legacyMotorwayShare",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 288,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "allCases",
+        "type": "Swift.Array<RangePilot.RoadTypeProfile>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "cityMix"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "countryside"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "motorwayMix"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "motorway"
+            }
+          }
+        ]
+      }
+    ],
+    "cases": [
+      {
+        "name": "cityMix"
+      },
+      {
+        "name": "countryside"
+      },
+      {
+        "name": "motorwayMix"
+      },
+      {
+        "name": "motorway"
+      }
+    ]
+  },
+  {
+    "typeName": "RangePilot.WindCondition",
+    "mangledTypeName": "10RangePilot13WindConditionO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 308,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "Swift.RawRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "Swift.Sendable",
+      "AppIntents.CaseDisplayRepresentable",
+      "Swift.SendableMetatype",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "AllCases",
+        "substitutedTypeName": "Swift.Array<RangePilot.WindCondition>",
+        "substitutedMangledTypeName": "Say10RangePilot13WindConditionOG"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "RangePilot.WindCondition",
+        "substitutedMangledTypeName": "10RangePilot13WindConditionO"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "RangePilot.WindCondition",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 313,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "rangeOrderedCases",
+        "type": "Swift.Array<RangePilot.WindCondition>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 315,
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "headwind"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "normal"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "tailwind"
+            }
+          }
+        ]
+      },
+      {
+        "label": "label",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 319,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "adjustment",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 330,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "addsExtraHighRange",
+        "type": "Swift.Bool",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 341,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "allCases",
+        "type": "Swift.Array<RangePilot.WindCondition>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "tailwind"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "normal"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "headwind"
+            }
+          }
+        ]
+      },
+      {
+        "label": "rawValue",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "valueKind": "Runtime"
+      }
+    ],
+    "cases": [
+      {
+        "name": "tailwind",
+        "rawValue": "tailwind"
+      },
+      {
+        "name": "normal",
+        "rawValue": "normal"
+      },
+      {
+        "name": "headwind",
+        "rawValue": "headwind"
+      }
+    ]
+  },
+  {
+    "typeName": "RangePilot.PlanningMode",
+    "mangledTypeName": "10RangePilot12PlanningModeO",
+    "kind": "enum",
+    "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+    "line": 387,
+    "conformances": [
+      "Swift.Equatable",
+      "Swift.Hashable",
+      "Swift.RawRepresentable",
+      "Swift.Decodable",
+      "Swift.Encodable",
+      "Swift.CaseIterable",
+      "Swift.Identifiable",
+      "Swift.Sendable",
+      "Swift.SendableMetatype",
+      "Swift.BitwiseCopyable",
+      "AppIntents.AppEnum",
+      "AppIntents.AppValue",
+      "AppIntents.StaticDisplayRepresentable",
+      "Swift.RawRepresentable",
+      "AppIntents.PersistentlyIdentifiable",
+      "AppIntents.TypeDisplayRepresentable",
+      "AppIntents._IntentValue",
+      "AppIntents.CaseDisplayRepresentable",
+      "Foundation.CustomLocalizedStringResourceConvertible",
+      "Swift.Hashable",
+      "Swift.Equatable"
+    ],
+    "allConformances": [
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Decodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Encodable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.CaseIterable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Identifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Sendable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.SendableMetatype",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.BitwiseCopyable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppEnum",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.AppValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.StaticDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.RawRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.PersistentlyIdentifiable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.TypeDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents._IntentValue",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "AppIntents.CaseDisplayRepresentable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Foundation.CustomLocalizedStringResourceConvertible",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Hashable",
+        "conformanceDefiningModule": "RangePilot"
+      },
+      {
+        "protocolName": "Swift.Equatable",
+        "conformanceDefiningModule": "RangePilot"
+      }
+    ],
+    "associatedTypeAliases": [
+      {
+        "typeAliasName": "RawValue",
+        "substitutedTypeName": "Swift.String",
+        "substitutedMangledTypeName": "SS"
+      },
+      {
+        "typeAliasName": "AllCases",
+        "substitutedTypeName": "Swift.Array<RangePilot.PlanningMode>",
+        "substitutedMangledTypeName": "Say10RangePilot12PlanningModeOG"
+      },
+      {
+        "typeAliasName": "ID",
+        "substitutedTypeName": "RangePilot.PlanningMode",
+        "substitutedMangledTypeName": "10RangePilot12PlanningModeO"
+      }
+    ],
+    "properties": [
+      {
+        "label": "id",
+        "type": "RangePilot.PlanningMode",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 392,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "label",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 394,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "adjustmentFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 405,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "lowRangeFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 416,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "highRangeFactor",
+        "type": "Swift.Double",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "file": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/MiniConsumption/MiniConsumptionRangeModels.swift",
+        "line": 427,
+        "valueKind": "Runtime"
+      },
+      {
+        "label": "allCases",
+        "type": "Swift.Array<RangePilot.PlanningMode>",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "true",
+        "isComputed": "true",
+        "valueKind": "Array",
+        "value": [
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "conservative"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "normal"
+            }
+          },
+          {
+            "valueKind": "Enum",
+            "value": {
+              "name": "optimistic"
+            }
+          }
+        ]
+      },
+      {
+        "label": "rawValue",
+        "type": "Swift.String",
+        "mangledTypeName": "n/a - deprecated",
+        "isStatic": "false",
+        "isComputed": "true",
+        "valueKind": "Runtime"
+      }
+    ],
+    "cases": [
+      {
+        "name": "conservative",
+        "rawValue": "conservative"
+      },
+      {
+        "name": "normal",
+        "rawValue": "normal"
+      },
+      {
+        "name": "optimistic",
+        "rawValue": "optimistic"
+      }
+    ]
+  }
+]

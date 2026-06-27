@@ -2858,6 +2858,11 @@ struct ContentView: View {
             batteryPercent: $startBatteryPercent,
             onPlanRouteToDestination: { coordinate in
                 planTripToSelectedMapCoordinate(coordinate)
+            },
+            onSearchChargersNearby: { coordinate in
+                Task {
+                    await AppleMapsHandoff.openChargingSearch(centeredAt: coordinate)
+                }
             }
         )
         .frame(maxWidth: .infinity)
@@ -6406,12 +6411,14 @@ struct RangeMapView: View {
     let showsChargingThresholdCircle: Bool
     @Binding var batteryPercent: Double
     let onPlanRouteToDestination: (CLLocationCoordinate2D) -> Void
+    let onSearchChargersNearby: (CLLocationCoordinate2D) -> Void
 
     @State private var mapPosition: MapCameraPosition = .automatic
     @State private var isManualCamera = false
     @State private var isApplyingAutofit = false
     @State private var hasFittedInitialCamera = false
-    @State private var selectedDestinationCoordinate: CLLocationCoordinate2D?
+    @State private var selectedContextCoordinate: CLLocationCoordinate2D?
+    @State private var isContextDialogPresented = false
     @State private var latestMapTouchPoint: CGPoint?
 
     private let batteryPercentRange = 0.0...100.0
@@ -6472,10 +6479,11 @@ struct RangeMapView: View {
                         MapCircle(center: coordinate, radius: rangeHaloRadiusMeters)
                             .foregroundStyle(rangePilotAccentColor.opacity(0.13))
 
-                        if let chargingThresholdRadiusMeters {
-                            MapCircle(center: coordinate, radius: chargingThresholdRadiusMeters)
-                                .foregroundStyle(rangePilotAccentColor.opacity(0.16))
+                        MapCircle(center: coordinate, radius: rangeRadiusMeters)
+                            .foregroundStyle(rangePilotAccentColor.opacity(0.11))
+                            .stroke(rangePilotAccentColor.opacity(0.30), lineWidth: 2)
 
+                        if let chargingThresholdRadiusMeters {
                             if let reserveZonePolygon = reserveZonePolygon(
                                 center: coordinate,
                                 thresholdRadiusMeters: chargingThresholdRadiusMeters
@@ -6483,19 +6491,6 @@ struct RangeMapView: View {
                                 MapPolygon(reserveZonePolygon)
                                     .foregroundStyle(Color.secondary.opacity(0.11))
                             }
-
-                            MapCircle(center: coordinate, radius: rangeRadiusMeters)
-                                .foregroundStyle(Color.clear)
-                                .stroke(rangePilotAccentColor.opacity(0.30), lineWidth: 2)
-                        } else {
-                            MapCircle(center: coordinate, radius: rangeRadiusMeters)
-                                .foregroundStyle(rangePilotAccentColor.opacity(0.16))
-                                .stroke(rangePilotAccentColor.opacity(0.30), lineWidth: 2)
-                        }
-
-                        if let selectedDestinationCoordinate {
-                            Marker("Destination", systemImage: "mappin", coordinate: selectedDestinationCoordinate)
-                                .tint(rangePilotAccentColor)
                         }
 
                         UserAnnotation()
@@ -6511,12 +6506,13 @@ struct RangeMapView: View {
                             .onEnded { completed in
                                 guard completed,
                                       let point = latestMapTouchPoint,
-                                      let destination = mapProxy.convert(point, from: .local),
-                                      Self.isValid(destination) else {
+                                      let coordinate = mapProxy.convert(point, from: .local),
+                                      Self.isValid(coordinate) else {
                                     return
                                 }
 
-                                selectedDestinationCoordinate = destination
+                                selectedContextCoordinate = coordinate
+                                isContextDialogPresented = true
                             }
                     )
                     .onMapCameraChange(frequency: .onEnd) { _ in
@@ -6532,13 +6528,6 @@ struct RangeMapView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .overlay(alignment: .bottom) {
-            if selectedDestinationCoordinate != nil {
-                destinationSelectionCallout
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 64)
-            }
-        }
         .overlay(alignment: .bottom) {
             HStack(spacing: 8) {
                 PrecisionNudgeButton(symbol: "−") {
@@ -6557,7 +6546,6 @@ struct RangeMapView: View {
                 .offset(y: 0)
             }
                 .padding(.bottom, 14)
-                .allowsHitTesting(selectedDestinationCoordinate == nil)
         }
         .onAppear {
             locationProvider.activateIfNeeded()
@@ -6573,27 +6561,41 @@ struct RangeMapView: View {
             isManualCamera = false
             fitCamera()
         }
-    }
-
-    private var destinationSelectionCallout: some View {
-        HStack(spacing: 8) {
-            Button("Plan route to this place") {
-                if let selectedDestinationCoordinate {
-                    onPlanRouteToDestination(selectedDestinationCoordinate)
-                    self.selectedDestinationCoordinate = nil
+        .confirmationDialog(
+            "Map point",
+            isPresented: $isContextDialogPresented,
+            titleVisibility: .visible
+        ) {
+            Button("New trip to this point") {
+                guard let selectedContextCoordinate else {
+                    return
                 }
-            }
-            .buttonStyle(.borderedProminent)
 
-            Button("Cancel") {
-                selectedDestinationCoordinate = nil
+                onPlanRouteToDestination(selectedContextCoordinate)
+                self.selectedContextCoordinate = nil
             }
-            .buttonStyle(.bordered)
+
+            // TODO: Enable once trip planning supports intermediate MKDirections stops.
+            Button("Add waypoint (coming soon)") {}
+                .disabled(true)
+
+            Button("Search chargers nearby") {
+                guard let selectedContextCoordinate else {
+                    return
+                }
+
+                onSearchChargersNearby(selectedContextCoordinate)
+                self.selectedContextCoordinate = nil
+            }
+
+            Button("Cancel", role: .cancel) {
+                selectedContextCoordinate = nil
+            }
+        } message: {
+            if let selectedContextCoordinate {
+                Text(Self.coordinateDestinationLabel(for: selectedContextCoordinate))
+            }
         }
-        .font(.caption.weight(.medium))
-        .controlSize(.small)
-        .padding(8)
-        .background(.thinMaterial, in: Capsule())
     }
 
     private func clampedBatteryPercent(_ value: Double) -> Double {
@@ -6650,6 +6652,15 @@ struct RangeMapView: View {
         CLLocationCoordinate2DIsValid(coordinate)
             && coordinate.latitude.isFinite
             && coordinate.longitude.isFinite
+    }
+
+    private static func coordinateDestinationLabel(for coordinate: CLLocationCoordinate2D) -> String {
+        String(
+            format: "%.5f, %.5f",
+            locale: Locale(identifier: "en_US_POSIX"),
+            coordinate.latitude,
+            coordinate.longitude
+        )
     }
 
     private static func circularBandPolygon(

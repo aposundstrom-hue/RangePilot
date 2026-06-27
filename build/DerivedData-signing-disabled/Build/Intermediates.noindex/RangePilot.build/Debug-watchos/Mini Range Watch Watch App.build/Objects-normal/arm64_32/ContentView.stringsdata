@@ -1,0 +1,72 @@
+{
+  "source": "/Users/andreas/Documents/* Ontography AB/app_dev/RangePilot/Mini Range Watch Watch App/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Remaining range %lld %@, battery %lld percent, %@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 251
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 311
+        }
+      },
+      {
+        "comment": "",
+        "key": "Refresh iPhone values",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "Temperature",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 871
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 876
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 886
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 895
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,182 @@
+apiVersion: ssu/v1
+nlu:
+  shortcuts:
+    bundleIdentifier: com.ontographist.MiniConsumption
+    intents:
+    - metadata:
+        name: EstimateCurrentRangeIntent_0
+        title: Estimate Current Range
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Estimate range in ${+applicationName}'
+          - '{${+prefix} }Estimate current range in ${+applicationName}'
+          - '{${+prefix} }Estimate range with battery in ${+applicationName}'
+          - '{${+prefix} }Check my RangePilot range in ${+applicationName}'
+          - '{${+prefix} }How far can I drive in ${+applicationName}'
+    - metadata:
+        name: EstimateCurrentRangeIntent_1
+        title: Estimate Current Range
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Estimate winter range in ${+applicationName}'
+          - '{${+prefix} }How far can I drive in winter in ${+applicationName}'
+    - metadata:
+        name: PlanTripChargingIntent_2
+        title: Plan Trip Charging
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Plan trip charging in ${+applicationName}'
+          - '{${+prefix} }Check trip charging in ${+applicationName}'
+          - '{${+prefix} }Plan a trip in ${+applicationName}'
+          - '{${+prefix} }Do I need to charge in ${+applicationName}'
+    - metadata:
+        name: PlanTripChargingIntent_3
+        title: Plan Trip Charging
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Plan a motorway trip in ${+applicationName}'
+          - '{${+prefix} }Do I need to charge on the motorway in ${+applicationName}'
+    - metadata:
+        name: PlanMiniRangeTripIntent_4
+        title: Plan RangePilot Trip
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Plan a RangePilot trip in ${+applicationName}'
+          - '{${+prefix} }Plan a trip in ${+applicationName}'
+          - '{${+prefix} }Plan my RangePilot trip in ${+applicationName}'
+          - '{${+prefix} }Estimate a RangePilot trip in ${+applicationName}'
+    - metadata:
+        name: CheckMiniRangeTripIntent_5
+        title: Check RangePilot Trip
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Check if I can drive in ${+applicationName}'
+          - '{${+prefix} }Can I drive in ${+applicationName}'
+          - '{${+prefix} }Check a RangePilot trip in ${+applicationName}'
+    - metadata:
+        name: RequiredBatteryForTripIntent_6
+        title: Required Battery for Trip
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }How much battery do I need in ${+applicationName}'
+          - '{${+prefix} }How much battery do I need for a trip in ${+applicationName}'
+          - '{${+prefix} }Estimate required battery in ${+applicationName}'
+          - '{${+prefix} }Battery needed for a trip in ${+applicationName}'
+    - metadata:
+        name: FindChargersNearLimitIntent_7
+        title: Find Chargers Near Limit
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Find chargers near my limit in ${+applicationName}'
+          - '{${+prefix} }Find chargers on my way in ${+applicationName}'
+          - '{${+prefix} }Search chargers before my battery limit in ${+applicationName}'
+    - metadata:
+        name: DescribeTripIntent_8
+        title: Describe Trip
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Describe a trip in ${+applicationName}'
+          - '{${+prefix} }Estimate a described trip in ${+applicationName}'
+    - metadata:
+        name: AskTripAssistantIntent_9
+        title: Ask Trip Assistant
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }Ask Trip Assistant in ${+applicationName}'
+          - '{${+prefix} }Ask ${+applicationName} about my trip'
+          - '{${+prefix} }Tell ${+applicationName} about my trip'
+          - '{${+prefix} }Tell ${+applicationName} I''m driving'
+          - '{${+prefix} }Ask ${+applicationName} about driving'
+          - '{${+prefix} }Ask ${+applicationName} how far I can drive before twenty percent'
+          - '{${+prefix} }Ask ${+applicationName} how many times I need to charge'
+          - '{${+prefix} }Ask ${+applicationName} how far between charging stops'
+    - metadata:
+        name: +negative
+      corpuses:
+        training:
+        - locale: en
+          utterances:
+          - '{${+prefix} }${+standardAppShortcutNegatives}'
+variables:
+- name: +applicationName
+  type: ssu/expansion
+  definitions:
+  - locale: en
+    synomyms:
+    - RangePilot
+- name: DrivingPreset
+  type: ssu/parameter
+  definitions:
+  - locale: en
+    synomyms:
+    - Current Settings
+    - Winter
+    - Motorway
+    - City
+- name: RoadSurface
+  type: ssu/parameter
+  definitions:
+  - locale: en
+    synomyms:
+    - Dry
+    - Damp
+    - Wet
+    - Heavy rain
+    - Snow or slush
+- name: WindCondition
+  type: ssu/parameter
+  definitions:
+  - locale: en
+    synomyms:
+    - Tailwind
+    - Normal
+    - Headwind
+- name: RoadTypeProfile
+  type: ssu/parameter
+  definitions:
+  - locale: en
+    synomyms:
+    - City mix
+    - Calm roads
+    - Motorway mix
+    - Motorway
+- name: PlanningMode
+  type: ssu/parameter
+  definitions:
+  - locale: en
+    synomyms:
+    - Cautious
+    - Normal
+    - Optimistic
+- name: +prefix
+  type: ssu/expansion
+  definitions:
+  - locale: en
+    synomyms:
+      $ref: ssu://Resources/prefix/en.yaml
+- name: +standardAppShortcutNegatives
+  type: ssu/expansion
+  definitions:
+  - locale: en
+    synomyms:
+      $ref: ssu://Resources/standardAppShortcutNegatives/en.yaml

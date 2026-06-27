@@ -1,0 +1,1 @@
+@rpath/Mini Range Watch Watch App.debug.dylib
