@@ -557,7 +557,8 @@ struct ContentView: View {
     @State private var isTripAssistantRouteLookupPending = false
     @State private var isAboutAppGuidePresented = false
     @State private var isResetAllSettingsConfirmationPresented = false
-    @State private var isAdditionalSettingsExpanded = false
+    @State private var isDrivingConditionsExpanded = false
+    @State private var isVehicleSetupExpanded = false
     @State private var isTripAdvancedChargingSettingsExpanded = false
     @State private var shouldScrollToVehicleProfileCard = false
     @State private var profileEditorMode: VehicleProfileEditorMode?
@@ -3827,7 +3828,8 @@ struct ContentView: View {
             temperatureText: temperatureUnits.formattedTemperature(temperature),
             roadSurface: segmentedRoadSurface,
             windCondition: rangeWindConditionBinding,
-            isAdditionalSettingsExpanded: $isAdditionalSettingsExpanded,
+            isDrivingConditionsExpanded: $isDrivingConditionsExpanded,
+            isVehicleSetupExpanded: $isVehicleSetupExpanded,
             motorwaySpeed: motorwaySpeedBinding,
             motorwaySpeedRange: displayedMotorwaySpeedRange,
             motorwaySpeedText: formattedMotorwaySpeed(activeMotorwaySpeed),
@@ -9046,7 +9048,8 @@ private struct RangeConditionsCard: View {
     let temperatureText: String
     let roadSurface: Binding<RoadSurface>
     @Binding var windCondition: WindCondition
-    @Binding var isAdditionalSettingsExpanded: Bool
+    @Binding var isDrivingConditionsExpanded: Bool
+    @Binding var isVehicleSetupExpanded: Bool
     let motorwaySpeed: Binding<Double>
     let motorwaySpeedRange: ClosedRange<Double>
     let motorwaySpeedText: String
@@ -9071,7 +9074,8 @@ private struct RangeConditionsCard: View {
             temperatureText: temperatureText,
             roadSurface: roadSurface,
             windCondition: $windCondition,
-            isAdditionalSettingsExpanded: $isAdditionalSettingsExpanded,
+            isDrivingConditionsExpanded: $isDrivingConditionsExpanded,
+            isVehicleSetupExpanded: $isVehicleSetupExpanded,
             motorwaySpeed: motorwaySpeed,
             motorwaySpeedRange: motorwaySpeedRange,
             motorwaySpeedText: motorwaySpeedText,
@@ -9102,7 +9106,8 @@ private struct RangeDrivingConditionsControlsView: View {
     let temperatureText: String
     let roadSurface: Binding<RoadSurface>
     @Binding var windCondition: WindCondition
-    @Binding var isAdditionalSettingsExpanded: Bool
+    @Binding var isDrivingConditionsExpanded: Bool
+    @Binding var isVehicleSetupExpanded: Bool
     let motorwaySpeed: Binding<Double>
     let motorwaySpeedRange: ClosedRange<Double>
     let motorwaySpeedText: String
@@ -9135,7 +9140,7 @@ private struct RangeDrivingConditionsControlsView: View {
 
             Divider()
 
-            DisclosureGroup(isExpanded: $isAdditionalSettingsExpanded) {
+            DisclosureGroup(isExpanded: $isDrivingConditionsExpanded) {
                 VStack(alignment: .leading, spacing: 12) {
                     RangeSliderSection(
                         title: "Motorway speed",
@@ -9150,6 +9155,17 @@ private struct RangeDrivingConditionsControlsView: View {
                     RangeWindSection(windCondition: $windCondition)
 
                     RangeAirConditioningSection(airConditioningMode: $airConditioningMode)
+                }
+                .padding(.top, 8)
+            } label: {
+                Text("Driving conditions")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+            }
+            .tint(.secondary)
+
+            DisclosureGroup(isExpanded: $isVehicleSetupExpanded) {
+                VStack(alignment: .leading, spacing: 12) {
 
                     RangeTrailerTowSection(
                         isEnabled: $trailerTowModeEnabled,
@@ -9169,7 +9185,7 @@ private struct RangeDrivingConditionsControlsView: View {
                 }
                 .padding(.top, 8)
             } label: {
-                Text("Additional settings")
+                Text("Vehicle setup")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
             }
@@ -9358,36 +9374,80 @@ private struct RangeTyreSection: View {
     @Binding var selectedTyreSet: TyreSet
     let rollingResistanceClass: Binding<RollingResistanceClass>
     let onTyreSetChanged: (TyreSet) -> Void
+    @State private var isTyreEditorPresented = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 8) {
+        Button {
+            isTyreEditorPresented = true
+        } label: {
+            HStack(alignment: .center, spacing: 12) {
                 Text("Tyre set")
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
 
-                Picker("Tyre set", selection: $selectedTyreSet) {
-                    ForEach(TyreSet.allCases) { tyreSet in
-                        Text(tyreSet.label).tag(tyreSet as TyreSet)
+                Spacer()
+
+                Text(selectedTyreSet.label)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $isTyreEditorPresented) {
+            RangeTyreEditorSheet(
+                selectedTyreSet: $selectedTyreSet,
+                rollingResistanceClass: rollingResistanceClass,
+                onTyreSetChanged: onTyreSetChanged
+            )
+        }
+    }
+}
+
+private struct RangeTyreEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedTyreSet: TyreSet
+    let rollingResistanceClass: Binding<RollingResistanceClass>
+    let onTyreSetChanged: (TyreSet) -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Picker("Current tyre set", selection: $selectedTyreSet) {
+                        ForEach(TyreSet.allCases) { tyreSet in
+                            Text(tyreSet.label).tag(tyreSet as TyreSet)
+                        }
                     }
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: selectedTyreSet) { _, newValue in
-                    onTyreSetChanged(newValue)
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedTyreSet) { _, newValue in
+                        onTyreSetChanged(newValue)
+                    }
+
+                    Picker("Tyre efficiency", selection: rollingResistanceClass) {
+                        ForEach(RollingResistanceClass.rangeOrderedCases) { resistanceClass in
+                            Text(resistanceClass.label).tag(resistanceClass as RollingResistanceClass)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                 }
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Rolling resistance")
-                    .font(.subheadline.weight(.semibold))
-
-                Picker("Rolling resistance", selection: rollingResistanceClass) {
-                    ForEach(RollingResistanceClass.rangeOrderedCases) { resistanceClass in
-                        Text(resistanceClass.label).tag(resistanceClass as RollingResistanceClass)
+            .navigationTitle("Tyres")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
                     }
                 }
-                .pickerStyle(.segmented)
             }
         }
+        .presentationDetents([.height(260), .medium])
+        .presentationDragIndicator(.visible)
     }
 }
 
