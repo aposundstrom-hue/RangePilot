@@ -5658,7 +5658,7 @@ struct ContentView: View {
         fallbackDistanceKm: Double?,
         preservesCurrentTripAssumptions: Bool
     ) {
-        if preservesCurrentTripAssumptions == false {
+        if preservesCurrentTripAssumptions == false || hasTripEstimate == false {
             resetTripEstimateAssumptionsFromCurrentSettings()
         }
 
@@ -9142,6 +9142,10 @@ private struct RangeDrivingConditionsControlsView: View {
 
             DisclosureGroup(isExpanded: $isDrivingConditionsExpanded) {
                 VStack(alignment: .leading, spacing: 12) {
+                    RangeWindSection(windCondition: $windCondition)
+
+                    RangeAirConditioningSection(airConditioningMode: $airConditioningMode)
+
                     RangeSliderSection(
                         title: "Motorway speed",
                         value: motorwaySpeed,
@@ -9151,16 +9155,12 @@ private struct RangeDrivingConditionsControlsView: View {
                     )
                     .disabled(motorwaySpeedDisabled)
                     .opacity(motorwaySpeedDisabled ? 0.45 : 1)
-
-                    RangeWindSection(windCondition: $windCondition)
-
-                    RangeAirConditioningSection(airConditioningMode: $airConditioningMode)
                 }
                 .padding(.top, 8)
             } label: {
-                Text("Driving conditions")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
+                disclosureSummaryLabel(title: "Driving conditions", isExpanded: isDrivingConditionsExpanded) {
+                    drivingConditionsSummary
+                }
             }
             .tint(.secondary)
 
@@ -9185,12 +9185,112 @@ private struct RangeDrivingConditionsControlsView: View {
                 }
                 .padding(.top, 8)
             } label: {
-                Text("Vehicle setup")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
+                disclosureSummaryLabel(title: "Vehicle setup", isExpanded: isVehicleSetupExpanded) {
+                    vehicleSetupSummary
+                }
             }
             .tint(.secondary)
         }
+    }
+
+    private func disclosureSummaryLabel<Summary: View>(
+        title: String,
+        isExpanded: Bool,
+        @ViewBuilder summary: () -> Summary
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Spacer(minLength: 8)
+
+            if isExpanded == false {
+                summary()
+            }
+        }
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private var drivingConditionsSummary: some View {
+        HStack(spacing: 6) {
+            if windCondition != .normal {
+                RangeDisclosureSummaryIcon(systemName: "wind", accessibilityLabel: windCondition.label)
+            }
+
+            if airConditioningMode == .off {
+                RangeDisclosureSummaryChip(text: "A/C Off")
+            }
+
+            RangeDisclosureSummaryChip(text: motorwaySpeedText)
+        }
+    }
+
+    @ViewBuilder
+    private var vehicleSetupSummary: some View {
+        HStack(spacing: 6) {
+            if roofBoxMode != .off {
+                RangeDisclosureSummaryIcon(systemName: "shippingbox", accessibilityLabel: "\(roofBoxMode.label) roof box")
+            }
+
+            if trailerTowModeEnabled {
+                RangeTrailerSummaryIcon()
+                    .accessibilityLabel("Trailer tow mode")
+            }
+
+            if selectedTyreSet == .winter {
+                RangeDisclosureSummaryChip(text: "Winter")
+            }
+        }
+    }
+}
+
+private struct RangeDisclosureSummaryChip: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(.quaternary, in: Capsule())
+            .accessibilityLabel(text)
+    }
+}
+
+private struct RangeDisclosureSummaryIcon: View {
+    let systemName: String
+    let accessibilityLabel: String
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .frame(width: 22, height: 18)
+            .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+private struct RangeTrailerSummaryIcon: View {
+    var body: some View {
+        HStack(spacing: 1) {
+            RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                .frame(width: 12, height: 8)
+                .overlay(alignment: .bottomLeading) {
+                    Circle()
+                        .frame(width: 3.5, height: 3.5)
+                        .offset(x: 2, y: 2.5)
+                }
+
+            Rectangle()
+                .frame(width: 5, height: 1)
+                .offset(y: 2)
+        }
+        .foregroundStyle(.secondary)
+        .frame(width: 22, height: 18)
     }
 }
 
@@ -9324,14 +9424,22 @@ private struct RangeTrailerTowSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Roof box")
+                    .font(.subheadline.weight(.semibold))
+
+                Picker("Roof box", selection: $roofBoxMode) {
+                    ForEach(RoofBoxMode.allCases) { mode in
+                        Text(mode.label).tag(mode as RoofBoxMode)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+
             Toggle("Trailer / tow mode", isOn: $isEnabled)
                 .font(.subheadline.weight(.semibold))
                 .tint(rangePilotAccentColor)
-
-            Text("Adds an estimated consumption penalty when driving with a trailer.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 8)
 
             if isEnabled {
                 RangeSliderSection(
@@ -9353,19 +9461,6 @@ private struct RangeTrailerTowSection: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Roof box")
-                    .font(.subheadline.weight(.semibold))
-
-                Picker("Roof box", selection: $roofBoxMode) {
-                    ForEach(RoofBoxMode.allCases) { mode in
-                        Text(mode.label).tag(mode as RoofBoxMode)
-                    }
-                }
-                .pickerStyle(.segmented)
-            }
-            .padding(.top, isEnabled ? 8 : 2)
         }
     }
 }
