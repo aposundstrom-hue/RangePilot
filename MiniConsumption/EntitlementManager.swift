@@ -19,6 +19,7 @@ final class EntitlementManager: ObservableObject {
     private static let firstFreemiumVersion = "1.2"
     private static let firstLaunchDateKey = "miniRangeTrialFirstLaunchDate"
     private static let manualUnlockKey = "hasManualActivation"
+    private static let legacyUnlockKey = "legacyPrePaywallUnlocked"
     private static let trialLengthDays = 14
     // Manual activation codes for reviewer/support use.
     // Intentionally offline and not intended as a general licensing system.
@@ -57,12 +58,15 @@ final class EntitlementManager: ObservableObject {
         self.calendar = calendar
 
         let firstLaunchDate = Self.firstLaunchDate(defaults: defaults)
+        let hasLegacyUnlock = defaults.bool(forKey: Self.legacyUnlockKey)
         let hasManualActivation = defaults.bool(forKey: Self.manualUnlockKey)
+        self.hasLegacyUnlock = hasLegacyUnlock
         self.hasManualActivation = hasManualActivation
-        isUnlocked = hasManualActivation
+        let isInitiallyUnlocked = hasLegacyUnlock || hasManualActivation
+        isUnlocked = isInitiallyUnlocked
         let initialAccessState = Self.accessState(
             firstLaunchDate: firstLaunchDate,
-            isUnlocked: hasManualActivation,
+            isUnlocked: isInitiallyUnlocked,
             calendar: calendar
         )
         accessState = initialAccessState
@@ -189,7 +193,7 @@ final class EntitlementManager: ObservableObject {
     }
 
     private func refreshPurchasedUnlock() async {
-        let hasLegacyUnlock = await hasLegacyOriginalAppVersionUnlock()
+        let hasLegacyUnlock = await hasLegacyUnlock()
         var hasPurchasedUnlock = false
 
         for await entitlement in Transaction.currentEntitlements {
@@ -209,6 +213,19 @@ final class EntitlementManager: ObservableObject {
         isUnlocked = hasLegacyUnlock || hasPurchasedUnlock || hasManualActivation
         hasCheckedPurchasedUnlock = true
         updateAccessState()
+    }
+
+    private func hasLegacyUnlock() async -> Bool {
+        if defaults.bool(forKey: Self.legacyUnlockKey) {
+            return true
+        }
+
+        guard await hasLegacyOriginalAppVersionUnlock() else {
+            return false
+        }
+
+        defaults.set(true, forKey: Self.legacyUnlockKey)
+        return true
     }
 
     private func updateAccessState() {
@@ -257,8 +274,11 @@ final class EntitlementManager: ObservableObject {
     }
 
     private static func compareVersion(_ version: String, isEarlierThan otherVersion: String) -> Bool {
-        let lhsComponents = numericVersionComponents(from: version)
-        let rhsComponents = numericVersionComponents(from: otherVersion)
+        guard let lhsComponents = numericVersionComponents(from: version),
+              let rhsComponents = numericVersionComponents(from: otherVersion) else {
+            return false
+        }
+
         let componentCount = max(lhsComponents.count, rhsComponents.count)
 
         for index in 0..<componentCount {
@@ -277,10 +297,22 @@ final class EntitlementManager: ObservableObject {
         return false
     }
 
-    private static func numericVersionComponents(from version: String) -> [Int] {
-        version
-            .split(separator: ".")
-            .map { Int($0) ?? 0 }
+    private static func numericVersionComponents(from version: String) -> [Int]? {
+        let components = version.split(separator: ".", omittingEmptySubsequences: false)
+        guard components.isEmpty == false else {
+            return nil
+        }
+
+        var values: [Int] = []
+        for component in components {
+            guard let value = Int(component), value >= 0 else {
+                return nil
+            }
+
+            values.append(value)
+        }
+
+        return values
     }
 
     private static func firstLaunchDate(defaults: UserDefaults) -> Date {
