@@ -50,17 +50,20 @@ enum MiniConsumptionInitialSetup {
         "tripChargingSetupMinutes",
         "displayUnits",
         "temperatureUnits",
-        "weightUnits"
+        "weightUnits",
+        "trailerWeightKg"
     ]
 
     static func performIfNeeded(defaults: UserDefaults = .standard, locale: Locale = .current) {
         guard defaults.bool(forKey: hasCompletedInitialSetupKey) == false else {
+            seedTrailerWeightDefaultIfNeeded(defaults: defaults, locale: locale)
             normalizeMotorwaySpeedIfNeeded(defaults: defaults)
             expireWindConditionIfNeeded(defaults: defaults)
             return
         }
 
         guard isFreshInstall(defaults: defaults) else {
+            seedTrailerWeightDefaultIfNeeded(defaults: defaults, locale: locale)
             normalizeMotorwaySpeedIfNeeded(defaults: defaults)
             expireWindConditionIfNeeded(defaults: defaults)
             migrateUnselectedExistingMiniInstallIfNeeded(defaults: defaults)
@@ -91,6 +94,10 @@ enum MiniConsumptionInitialSetup {
         defaults.set(inferredUnits.displayUnits.rawValue, forKey: "displayUnits")
         defaults.set(inferredUnits.temperatureUnits.rawValue, forKey: "temperatureUnits")
         defaults.set(inferredUnits.weightUnits.rawValue, forKey: "weightUnits")
+        defaults.set(
+            MiniConsumptionDefaults.defaultTrailerWeightKg(usesPounds: inferredUnits.weightUnits == .pounds),
+            forKey: "trailerWeightKg"
+        )
         defaults.set(true, forKey: hasCompletedInitialSetupKey)
     }
 
@@ -131,6 +138,19 @@ enum MiniConsumptionInitialSetup {
         }
 
         VehicleProfileStore.setSelectedProfileID(VehicleProfileResolver.builtInMiniProfileID, defaults: defaults)
+    }
+
+    private static func seedTrailerWeightDefaultIfNeeded(defaults: UserDefaults, locale: Locale) {
+        guard defaults.object(forKey: "trailerWeightKg") == nil else {
+            return
+        }
+
+        let rawWeightUnits = defaults.string(forKey: "weightUnits")
+        let weightUnits = rawWeightUnits.flatMap(WeightUnits.init(rawValue:)) ?? inferredUnits(for: locale).weightUnits
+        defaults.set(
+            MiniConsumptionDefaults.defaultTrailerWeightKg(usesPounds: weightUnits == .pounds),
+            forKey: "trailerWeightKg"
+        )
     }
 
     private static func normalizeMotorwaySpeedIfNeeded(defaults: UserDefaults) {
@@ -1104,7 +1124,7 @@ struct ContentView: View {
     }
 
     private var trailerWeightText: String {
-        weightUnits.formattedWeight(normalizedTrailerWeightKg)
+        weightUnits.formattedWeight(MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds))
     }
 
     private func applyingTrailerConsumptionAdjustment(
@@ -1532,8 +1552,17 @@ struct ContentView: View {
 
     private var trailerWeightBinding: Binding<Double> {
         Binding(
-            get: { weightUnits.displayWeight(fromKg: normalizedTrailerWeightKg) },
-            set: { trailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(weightUnits.storedWeightKg(fromDisplayed: $0)) }
+            get: {
+                weightUnits.displayWeight(
+                    fromKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds)
+                )
+            },
+            set: {
+                trailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                    weightUnits.storedWeightKg(fromDisplayed: $0),
+                    usesPounds: weightUnits == .pounds
+                )
+            }
         )
     }
 
@@ -1557,12 +1586,13 @@ struct ContentView: View {
         Binding(
             get: {
                 weightUnits.displayWeight(
-                    fromKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(storedWeightKg.wrappedValue)
+                    fromKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(storedWeightKg.wrappedValue, usesPounds: weightUnits == .pounds)
                 )
             },
             set: {
                 storedWeightKg.wrappedValue = MiniConsumptionDefaults.normalizedTrailerWeightKg(
-                    weightUnits.storedWeightKg(fromDisplayed: $0)
+                    weightUnits.storedWeightKg(fromDisplayed: $0),
+                    usesPounds: weightUnits == .pounds
                 )
             }
         )
@@ -1573,7 +1603,7 @@ struct ContentView: View {
         case .kilograms:
             MiniConsumptionDefaults.trailerWeightRangeKg
         case .pounds:
-            400...3300
+            MiniConsumptionDefaults.trailerWeightRangePounds
         }
     }
 
@@ -1582,7 +1612,7 @@ struct ContentView: View {
         case .kilograms:
             MiniConsumptionDefaults.trailerWeightStepKg
         case .pounds:
-            100
+            MiniConsumptionDefaults.trailerWeightStepPounds
         }
     }
 
@@ -2192,10 +2222,11 @@ struct ContentView: View {
     }
 
     private func normalizeTrailerWeightIfNeeded() {
-        let normalizedWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg)
-        if normalizedWeightKg != trailerWeightKg {
-            trailerWeightKg = normalizedWeightKg
+        guard trailerWeightKg.isFinite == false else {
+            return
         }
+
+        trailerWeightKg = MiniConsumptionDefaults.defaultTrailerWeightKg(usesPounds: weightUnits == .pounds)
     }
 
     private func airConditioningMode(for profile: VehicleProfile) -> AirConditioningMode {
@@ -2949,7 +2980,10 @@ struct ContentView: View {
                                     range: displayedTrailerWeightRange,
                                     step: displayedTrailerWeightStep,
                                     displayValue: weightUnits.formattedWeight(
-                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(draftTripAssumptionsTrailerWeightKg)
+                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                                            draftTripAssumptionsTrailerWeightKg,
+                                            usesPounds: weightUnits == .pounds
+                                        )
                                     ),
                                     showsPrecisionButtons: true
                                 )
@@ -4354,7 +4388,10 @@ struct ContentView: View {
         tripEstimateRoadSurface = draftTripAssumptionsRoadSurface
         tripEstimateWindCondition = draftTripAssumptionsWindCondition
         tripEstimateTrailerTowModeEnabled = draftTripAssumptionsTrailerTowModeEnabled
-        tripEstimateTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(draftTripAssumptionsTrailerWeightKg)
+        tripEstimateTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(
+            draftTripAssumptionsTrailerWeightKg,
+            usesPounds: weightUnits == .pounds
+        )
         tripEstimateBoxyTrailerEnabled = draftTripAssumptionsBoxyTrailerEnabled
         tripEstimateRoofBoxMode = draftTripAssumptionsRoofBoxMode
         tripEstimateTyreSet = draftTripAssumptionsTyreSet
@@ -4458,7 +4495,10 @@ struct ContentView: View {
                                 range: displayedTrailerWeightRange,
                                 step: displayedTrailerWeightStep,
                                 displayValue: weightUnits.formattedWeight(
-                                    MiniConsumptionDefaults.normalizedTrailerWeightKg(outcomeTrailerWeightKg)
+                                    MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                                        outcomeTrailerWeightKg,
+                                        usesPounds: weightUnits == .pounds
+                                    )
                                 ),
                                 showsPrecisionButtons: true
                             )
@@ -4787,7 +4827,10 @@ struct ContentView: View {
                                     range: displayedTrailerWeightRange,
                                     step: displayedTrailerWeightStep,
                                     displayValue: weightUnits.formattedWeight(
-                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(draftTripDetailsTrailerWeightKg)
+                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                                            draftTripDetailsTrailerWeightKg,
+                                            usesPounds: weightUnits == .pounds
+                                        )
                                     ),
                                     showsPrecisionButtons: true
                                 )
@@ -5514,7 +5557,7 @@ struct ContentView: View {
         outcomeRollingResistanceClass = activeRollingResistanceClass
         outcomeAirConditioningMode = activeAirConditioningMode
         outcomeTrailerTowModeEnabled = trailerTowModeEnabled
-        outcomeTrailerWeightKg = normalizedTrailerWeightKg
+        outcomeTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds)
         outcomeBoxyTrailerEnabled = boxyTrailerEnabled
         outcomeRoofBoxMode = roofBoxMode
     }
@@ -5750,7 +5793,7 @@ struct ContentView: View {
         tripEstimateWindCondition = windCondition
         tripEstimatePlanningMode = tripPlanningStrategy
         tripEstimateTrailerTowModeEnabled = trailerTowModeEnabled
-        tripEstimateTrailerWeightKg = normalizedTrailerWeightKg
+        tripEstimateTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds)
         tripEstimateBoxyTrailerEnabled = boxyTrailerEnabled
         tripEstimateRoofBoxMode = roofBoxMode
         tripEstimateTyreSet = activeSelectedTyreSet
@@ -9136,13 +9179,13 @@ private struct RangeDrivingConditionsControlsView: View {
                 displayValue: temperatureText
             )
 
-            RangeRoadSurfaceSection(roadSurface: roadSurface)
-
             Divider()
 
             DisclosureGroup(isExpanded: $isDrivingConditionsExpanded) {
                 VStack(alignment: .leading, spacing: 12) {
                     RangeWindSection(windCondition: $windCondition)
+
+                    RangeRoadSurfaceSection(roadSurface: roadSurface)
 
                     RangeAirConditioningSection(airConditioningMode: $airConditioningMode)
 
@@ -9369,10 +9412,23 @@ private struct RangeRoadSurfaceSection: View {
         VStack(alignment: .leading, spacing: 8) {
             Picker("Road surface condition", selection: roadSurface) {
                 ForEach(RoadSurface.segmentedCases) { surface in
-                    Text(surface.label).tag(surface as RoadSurface)
+                    roadSurfaceLabel(for: surface)
+                        .tag(surface as RoadSurface)
                 }
             }
             .pickerStyle(.segmented)
+        }
+    }
+
+    @ViewBuilder
+    private func roadSurfaceLabel(for surface: RoadSurface) -> some View {
+        switch surface {
+        case .wet:
+            Label(surface.label, systemImage: "cloud.rain")
+        case .snowSlush:
+            Label(surface.label, systemImage: "snowflake")
+        default:
+            Text(surface.label)
         }
     }
 }
