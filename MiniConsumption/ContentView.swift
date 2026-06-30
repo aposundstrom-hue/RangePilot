@@ -513,7 +513,7 @@ struct ContentView: View {
     @State private var draftTripDetailsTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
     @State private var draftTripDetailsBoxyTrailerEnabled = false
     @State private var draftTripDetailsRoofBoxMode = RoofBoxMode.off
-    @State private var draftTripDetailsDistanceKm: Double?
+    @State private var draftTripDetailsDistanceDisplayValue: Int?
     @State private var draftTripDetailsNote = ""
     @State private var isDeleteAllTripDataConfirmationPresented = false
     @State private var isLogActualConsumptionInfoPresented = false
@@ -579,6 +579,8 @@ struct ContentView: View {
     @State private var isResetAllSettingsConfirmationPresented = false
     @State private var isDrivingConditionsExpanded = false
     @State private var isVehicleSetupExpanded = false
+    @State private var isLoggedTripDrivingConditionsExpanded = false
+    @State private var isLoggedTripVehicleSetupExpanded = false
     @State private var isTripAdvancedChargingSettingsExpanded = false
     @State private var shouldScrollToVehicleProfileCard = false
     @State private var profileEditorMode: VehicleProfileEditorMode?
@@ -1623,13 +1625,6 @@ struct ContentView: View {
 
     private var displayedTripDistanceRange: ClosedRange<Double> {
         displayRange(forStoredDistanceRange: 1...1000)
-    }
-
-    private var displayedDraftTripDetailsDistanceBinding: Binding<Double> {
-        Binding(
-            get: { displayUnits.displayDistance(fromKm: draftTripDetailsDistanceKm ?? 1) },
-            set: { draftTripDetailsDistanceKm = min(max(displayUnits.storedDistance(fromDisplayed: $0), 1), 1000) }
-        )
     }
 
     private var displayedTemperatureRange: ClosedRange<Double> {
@@ -4438,91 +4433,65 @@ struct ContentView: View {
     private var tripOutcomeCard: some View {
         card(title: "Log actual outcome", footnote: "Save the actual average consumption for a drive using the currently set conditions.") {
             VStack(alignment: .leading, spacing: 12) {
+                loggedTripSectionHeader("Trip details")
+
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    actualConsumptionPicker
                     actualDistancePicker
+                    actualConsumptionPicker
                 }
 
                 Divider()
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
-                        if isCustomVehicleProfileSelected {
-                            customEVOutcomeIndicator
-                        }
+                        loggedTripVehicleSection(
+                            profileText: activeVehicleProfile.profile.displayName,
+                            footnote: isCustomVehicleProfileSelected
+                                ? "This outcome will calibrate this profile only."
+                                : nil
+                        )
 
-                        loggedTripConditionFields(
+                        loggedTripDrivingSection(
                             roadTypeProfile: $outcomeRoadTypeProfile,
-                            motorwaySpeed: displayedOutcomeMotorwaySpeedBinding,
-                            motorwaySpeedKmh: outcomeMotorwaySpeed,
                             temperature: displayedOutcomeTemperatureBinding,
-                            temperatureC: outcomeTemperature,
+                            temperatureC: outcomeTemperature
+                        )
+
+                        loggedTripDrivingConditionsSection(
+                            isExpanded: $isLoggedTripDrivingConditionsExpanded,
                             roadSurface: outcomeRoadSurfaceBinding,
                             windCondition: $outcomeWindCondition,
-                            rollingResistanceClass: $outcomeRollingResistanceClass
+                            airConditioningMode: $outcomeAirConditioningMode,
+                            motorwaySpeed: displayedOutcomeMotorwaySpeedBinding,
+                            motorwaySpeedKmh: outcomeMotorwaySpeed,
+                            motorwaySpeedDisabled: outcomeRoadTypeProfile.motorwaySpeedScalingFactor == 0
+                        )
+
+                        loggedTripVehicleSetupSection(
+                            isExpanded: $isLoggedTripVehicleSetupExpanded,
+                            trailerTowModeEnabled: $outcomeTrailerTowModeEnabled,
+                            trailerWeightKg: displayedOutcomeTrailerWeightBinding,
+                            trailerWeightText: weightUnits.formattedWeight(
+                                MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                                    outcomeTrailerWeightKg,
+                                    usesPounds: weightUnits == .pounds
+                                )
+                            ),
+                            boxyTrailerEnabled: $outcomeBoxyTrailerEnabled,
+                            roofBoxMode: $outcomeRoofBoxMode,
+                            selectedTyreSet: $outcomeTyreSet,
+                            rollingResistanceClass: $outcomeRollingResistanceClass,
+                            onTyreSetChanged: { newValue in
+                                outcomeRollingResistanceClass = newValue == .summer ? activeSummerTyreClass : activeWinterTyreClass
+                            }
                         )
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Tyre set")
-                                .font(.subheadline.weight(.semibold))
-
-                            Picker("Tyre set", selection: $outcomeTyreSet) {
-                                ForEach(TyreSet.allCases) { tyreSet in
-                                    Text(tyreSet.label).tag(tyreSet as TyreSet)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .onChange(of: outcomeTyreSet) { _, newValue in
-                                outcomeRollingResistanceClass = newValue == .summer ? activeSummerTyreClass : activeWinterTyreClass
-                            }
+                            loggedTripSectionHeader("Notes")
+                            TextField("Optional note", text: $outcomeNote, axis: .vertical)
+                                .textFieldStyle(.roundedBorder)
+                                .lineLimit(1...4)
                         }
-
-                        Picker("Climate", selection: $outcomeAirConditioningMode) {
-                            ForEach(AirConditioningMode.segmentedCases) { mode in
-                                Text(mode.label).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-
-                        Toggle("Trailer / tow", isOn: $outcomeTrailerTowModeEnabled)
-                            .font(.subheadline.weight(.semibold))
-                            .tint(rangePilotAccentColor)
-
-                        if outcomeTrailerTowModeEnabled {
-                            sliderSection(
-                                title: "Trailer weight",
-                                value: displayedOutcomeTrailerWeightBinding,
-                                range: displayedTrailerWeightRange,
-                                step: displayedTrailerWeightStep,
-                                displayValue: weightUnits.formattedWeight(
-                                    MiniConsumptionDefaults.normalizedTrailerWeightKg(
-                                        outcomeTrailerWeightKg,
-                                        usesPounds: weightUnits == .pounds
-                                    )
-                                ),
-                                showsPrecisionButtons: true
-                            )
-
-                            Toggle("Boxy trailer / caravan", isOn: $outcomeBoxyTrailerEnabled)
-                                .font(.subheadline.weight(.semibold))
-                                .tint(rangePilotAccentColor)
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Roof box")
-                                .font(.subheadline.weight(.semibold))
-
-                            Picker("Roof box", selection: $outcomeRoofBoxMode) {
-                                ForEach(RoofBoxMode.allCases) { mode in
-                                    Text(mode.label).tag(mode as RoofBoxMode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                        }
-
-                        TextField("Optional note", text: $outcomeNote, axis: .vertical)
-                            .textFieldStyle(.roundedBorder)
-                            .lineLimit(1...4)
                     }
                     .padding(.top, 2)
                     .padding(.bottom, 28)
@@ -4547,93 +4516,234 @@ struct ContentView: View {
         .shadow(color: .black.opacity(0.18), radius: 24, y: 10)
     }
 
-    private var customEVOutcomeIndicator: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(activeVehicleProfile.profile.displayName)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(rangePilotAccentColor)
+    private func loggedTripSectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+    }
 
-            Text("This outcome will calibrate this profile only.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    private func loggedTripVehicleSection(profileText: String, footnote: String? = nil) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            Text("Vehicle")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(profileText)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                if let footnote {
+                    Text(footnote)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(rangePilotAccentColor.opacity(0.10))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 
-    private func loggedTripConditionFields(
+    private func loggedTripDrivingSection(
         roadTypeProfile: Binding<RoadTypeProfile>,
-        motorwaySpeed: Binding<Double>,
-        motorwaySpeedKmh: Double,
         temperature: Binding<Double>,
-        temperatureC: Double,
-        roadSurface: Binding<RoadSurface>,
-        windCondition: Binding<WindCondition>,
-        rollingResistanceClass: Binding<RollingResistanceClass>
+        temperatureC: Double
     ) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            Picker("Route profile", selection: roadTypeProfile) {
-                ForEach([RoadTypeProfile.countryside, .cityMix, .motorwayMix, .motorway]) { profile in
-                    Text(profile.label).tag(profile)
-                }
-            }
-            .pickerStyle(.segmented)
+            loggedTripSectionHeader("Driving")
 
-            sliderSection(
-                title: "Motorway speed",
-                value: motorwaySpeed,
-                range: displayedMotorwaySpeedRange,
-                step: 1,
-                displayValue: formattedMotorwaySpeed(motorwaySpeedKmh)
-            )
-            .disabled(roadTypeProfile.wrappedValue.motorwaySpeedScalingFactor == 0)
-            .opacity(roadTypeProfile.wrappedValue.motorwaySpeedScalingFactor == 0 ? 0.45 : 1)
+            RangeRouteTypeSection(roadTypeProfile: roadTypeProfile)
 
-            sliderSection(
+            RangeSliderSection(
                 title: "Outdoor temperature",
                 value: temperature,
                 range: displayedTemperatureRange,
                 step: 1,
                 displayValue: temperatureUnits.formattedTemperature(temperatureC)
             )
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Road surface condition")
-                    .font(.subheadline.weight(.semibold))
+    private func loggedTripDrivingConditionsSection(
+        isExpanded: Binding<Bool>,
+        roadSurface: Binding<RoadSurface>,
+        windCondition: Binding<WindCondition>,
+        airConditioningMode: Binding<AirConditioningMode>,
+        motorwaySpeed: Binding<Double>,
+        motorwaySpeedKmh: Double,
+        motorwaySpeedDisabled: Bool
+    ) -> some View {
+        DisclosureGroup(isExpanded: isExpanded) {
+            VStack(alignment: .leading, spacing: 12) {
+                RangeWindSection(windCondition: windCondition)
 
-                Picker("Road surface condition", selection: roadSurface) {
-                    ForEach(RoadSurface.segmentedCases) { surface in
-                        Text(surface.label).tag(surface as RoadSurface)
+                RangeRoadSurfaceSection(roadSurface: roadSurface)
+
+                RangeAirConditioningSection(airConditioningMode: airConditioningMode)
+
+                RangeSliderSection(
+                    title: "Motorway speed",
+                    value: motorwaySpeed,
+                    range: displayedMotorwaySpeedRange,
+                    step: 1,
+                    displayValue: formattedMotorwaySpeed(motorwaySpeedKmh)
+                )
+                .disabled(motorwaySpeedDisabled)
+                .opacity(motorwaySpeedDisabled ? 0.45 : 1)
+            }
+            .padding(.top, 8)
+        } label: {
+            loggedTripDisclosureSummaryLabel(title: "Driving conditions", isExpanded: isExpanded.wrappedValue) {
+                loggedTripDrivingConditionsSummary(
+                    roadSurface: roadSurface.wrappedValue,
+                    windCondition: windCondition.wrappedValue,
+                    airConditioningMode: airConditioningMode.wrappedValue,
+                    motorwaySpeedText: formattedMotorwaySpeed(motorwaySpeedKmh)
+                )
+            }
+        }
+        .tint(.secondary)
+    }
+
+    private func loggedTripVehicleSetupSection(
+        isExpanded: Binding<Bool>,
+        trailerTowModeEnabled: Binding<Bool>,
+        trailerWeightKg: Binding<Double>,
+        trailerWeightText: String,
+        boxyTrailerEnabled: Binding<Bool>,
+        roofBoxMode: Binding<RoofBoxMode>,
+        selectedTyreSet: Binding<TyreSet>,
+        rollingResistanceClass: Binding<RollingResistanceClass>,
+        onTyreSetChanged: @escaping (TyreSet) -> Void
+    ) -> some View {
+        DisclosureGroup(isExpanded: isExpanded) {
+            VStack(alignment: .leading, spacing: 12) {
+                RangeTrailerTowSection(
+                    isEnabled: trailerTowModeEnabled,
+                    weightKg: trailerWeightKg,
+                    weightRange: displayedTrailerWeightRange,
+                    weightStep: displayedTrailerWeightStep,
+                    weightText: trailerWeightText,
+                    boxyTrailerEnabled: boxyTrailerEnabled,
+                    roofBoxMode: roofBoxMode
+                )
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Tyres")
+                        .font(.subheadline.weight(.semibold))
+
+                    Picker("Tyres", selection: selectedTyreSet) {
+                        ForEach(TyreSet.allCases) { tyreSet in
+                            Text(tyreSet.label).tag(tyreSet as TyreSet)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedTyreSet.wrappedValue) { _, newValue in
+                        onTyreSetChanged(newValue)
                     }
                 }
-                .pickerStyle(.segmented)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rolling resistance")
+                        .font(.subheadline.weight(.semibold))
+
+                    Picker("Rolling resistance", selection: rollingResistanceClass) {
+                        ForEach(RollingResistanceClass.rangeOrderedCases) { tyreClass in
+                            Text(tyreClass.label).tag(tyreClass as RollingResistanceClass)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+            }
+            .padding(.top, 8)
+        } label: {
+            loggedTripDisclosureSummaryLabel(title: "Vehicle setup", isExpanded: isExpanded.wrappedValue) {
+                loggedTripVehicleSetupSummary(
+                    roofBoxMode: roofBoxMode.wrappedValue,
+                    trailerTowModeEnabled: trailerTowModeEnabled.wrappedValue,
+                    selectedTyreSet: selectedTyreSet.wrappedValue
+                )
+            }
+        }
+        .tint(.secondary)
+    }
+
+    private func loggedTripDisclosureSummaryLabel<Summary: View>(
+        title: String,
+        isExpanded: Bool,
+        @ViewBuilder summary: () -> Summary
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Spacer(minLength: 8)
+
+            if isExpanded == false {
+                summary()
+            }
+        }
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private func loggedTripDrivingConditionsSummary(
+        roadSurface: RoadSurface,
+        windCondition: WindCondition,
+        airConditioningMode: AirConditioningMode,
+        motorwaySpeedText: String
+    ) -> some View {
+        HStack(spacing: 6) {
+            if windCondition != .normal {
+                RangeDisclosureSummaryIcon(systemName: "wind", accessibilityLabel: windCondition.label)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Wind")
-                    .font(.subheadline.weight(.semibold))
-
-                Picker("Wind", selection: windCondition) {
-                    ForEach(WindCondition.rangeOrderedCases) { wind in
-                        Text(wind.label).tag(wind as WindCondition)
-                    }
-                }
-                .pickerStyle(.segmented)
+            if let roadSurfaceSummaryIconName = loggedTripRoadSurfaceSummaryIconName(for: roadSurface) {
+                RangeDisclosureSummaryIcon(systemName: roadSurfaceSummaryIconName, accessibilityLabel: roadSurface.label)
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Rolling resistance")
-                    .font(.subheadline.weight(.semibold))
+            if airConditioningMode == .off {
+                RangeDisclosureSummaryChip(text: "A/C Off")
+            }
 
-                Picker("Rolling resistance", selection: rollingResistanceClass) {
-                    ForEach(RollingResistanceClass.rangeOrderedCases) { tyreClass in
-                        Text(tyreClass.label).tag(tyreClass as RollingResistanceClass)
-                    }
-                }
-                .pickerStyle(.segmented)
+            RangeDisclosureSummaryChip(text: motorwaySpeedText)
+        }
+    }
+
+    private func loggedTripRoadSurfaceSummaryIconName(for roadSurface: RoadSurface) -> String? {
+        switch roadSurface.segmentedEquivalent {
+        case .wet:
+            return "cloud.rain"
+        case .snowSlush:
+            return "snowflake"
+        case .dry:
+            return nil
+        default:
+            return nil
+        }
+    }
+
+    @ViewBuilder
+    private func loggedTripVehicleSetupSummary(
+        roofBoxMode: RoofBoxMode,
+        trailerTowModeEnabled: Bool,
+        selectedTyreSet: TyreSet
+    ) -> some View {
+        HStack(spacing: 6) {
+            if roofBoxMode != .off {
+                RangeDisclosureSummaryIcon(systemName: "shippingbox", accessibilityLabel: "\(roofBoxMode.label) roof box")
+            }
+
+            if trailerTowModeEnabled {
+                RangeTrailerSummaryIcon()
+                    .accessibilityLabel("Trailer tow mode")
+            }
+
+            if selectedTyreSet == .winter {
+                RangeDisclosureSummaryChip(text: "Winter")
             }
         }
     }
@@ -4658,8 +4768,15 @@ struct ContentView: View {
     }
 
     private var actualDistancePicker: some View {
+        loggedTripDistancePicker(
+            title: actualDistancePickerTitle,
+            selection: $outcomeDistanceKm
+        )
+    }
+
+    private func loggedTripDistancePicker(title: String, selection: Binding<Int>) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Picker("Distance", selection: $outcomeDistanceKm) {
+            Picker("Distance", selection: selection) {
                 ForEach(outcomeDistanceDisplayValues, id: \.self) { distance in
                     Text("\(distance)")
                         .tag(distance)
@@ -4669,7 +4786,7 @@ struct ContentView: View {
             .frame(height: 104)
             .clipped()
 
-            Text(actualDistancePickerTitle)
+            Text(title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -4751,16 +4868,44 @@ struct ContentView: View {
         return "\(continuousCalibrationSummary.validTripCount) eligible for calibration. Only eligible trips are used to improve the forecast."
     }
 
+    private func tripOutcomeVehicleProfileText(for outcome: TripOutcome) -> String {
+        if let vehicleProfileName = outcome.vehicleProfileName {
+            return vehicleProfileName
+        }
+
+        if let vehicleProfileID = outcome.vehicleProfileID,
+           let profile = availableWatchVehicleProfiles.first(where: { $0.id == vehicleProfileID }) {
+            return profile.displayName
+        }
+
+        switch outcome.vehicleProfileKind {
+        case .customEV:
+            return "Custom profile"
+        case .mini:
+            return VehicleProfileResolver.builtInMiniName
+        }
+    }
+
+    private func tripOutcomeVehicleProfileFallbackText(for outcome: TripOutcome) -> String? {
+        outcome.vehicleProfileKind == .customEV && outcome.vehicleProfileName == nil && outcome.vehicleProfileID == nil
+            ? "Profile name not recorded"
+            : nil
+    }
+
     private func tripOutcomeDetailsSheet(for outcome: TripOutcome) -> some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     card(title: "Trip details") {
                         VStack(alignment: .leading, spacing: 14) {
-                            resultRow(
-                                title: "Date",
-                                value: outcome.date.formatted(date: .abbreviated, time: .shortened)
-                            )
+                            if let distanceDisplayValue = Binding($draftTripDetailsDistanceDisplayValue) {
+                                loggedTripDistancePicker(
+                                    title: actualDistancePickerTitle,
+                                    selection: distanceDisplayValue
+                                )
+                            } else {
+                                resultRow(title: "Distance", value: "Not recorded")
+                            }
 
                             resultRow(
                                 title: "Actual consumption",
@@ -4768,106 +4913,65 @@ struct ContentView: View {
                             )
 
                             resultRow(
+                                title: "Date",
+                                value: outcome.date.formatted(date: .abbreviated, time: .shortened)
+                            )
+
+                            resultRow(
                                 title: "Calibration",
                                 value: tripOutcomeCalibrationEligibilityText(for: outcome)
                             )
 
-                            if outcome.vehicleProfileKind == .customEV {
-                                resultRow(
-                                    title: "Profile",
-                                    value: "Custom profile"
-                                )
-                            }
-
                             Divider()
 
-                            loggedTripConditionFields(
-                                roadTypeProfile: $draftTripDetailsRoadTypeProfile,
-                                motorwaySpeed: displayedDraftTripDetailsMotorwaySpeedBinding,
-                                motorwaySpeedKmh: draftTripDetailsMotorwaySpeed,
-                                temperature: displayedDraftTripDetailsTemperatureBinding,
-                                temperatureC: draftTripDetailsTemperature,
-                                roadSurface: draftTripDetailsRoadSurfaceBinding,
-                                windCondition: $draftTripDetailsWindCondition,
-                                rollingResistanceClass: $draftTripDetailsRollingResistanceClass
+                            loggedTripVehicleSection(
+                                profileText: tripOutcomeVehicleProfileText(for: outcome),
+                                footnote: tripOutcomeVehicleProfileFallbackText(for: outcome)
                             )
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Tyre set")
-                                    .font(.subheadline.weight(.semibold))
+                            loggedTripDrivingSection(
+                                roadTypeProfile: $draftTripDetailsRoadTypeProfile,
+                                temperature: displayedDraftTripDetailsTemperatureBinding,
+                                temperatureC: draftTripDetailsTemperature
+                            )
 
-                                Picker("Tyre set", selection: $draftTripDetailsTyreSet) {
-                                    ForEach(TyreSet.allCases) { tyreSet in
-                                        Text(tyreSet.label).tag(tyreSet as TyreSet)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                                .onChange(of: draftTripDetailsTyreSet) { _, newValue in
+                            loggedTripDrivingConditionsSection(
+                                isExpanded: $isLoggedTripDrivingConditionsExpanded,
+                                roadSurface: draftTripDetailsRoadSurfaceBinding,
+                                windCondition: $draftTripDetailsWindCondition,
+                                airConditioningMode: $draftTripDetailsAirConditioningMode,
+                                motorwaySpeed: displayedDraftTripDetailsMotorwaySpeedBinding,
+                                motorwaySpeedKmh: draftTripDetailsMotorwaySpeed,
+                                motorwaySpeedDisabled: draftTripDetailsRoadTypeProfile.motorwaySpeedScalingFactor == 0
+                            )
+
+                            loggedTripVehicleSetupSection(
+                                isExpanded: $isLoggedTripVehicleSetupExpanded,
+                                trailerTowModeEnabled: $draftTripDetailsTrailerTowModeEnabled,
+                                trailerWeightKg: displayedDraftTripDetailsTrailerWeightBinding,
+                                trailerWeightText: weightUnits.formattedWeight(
+                                    MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                                        draftTripDetailsTrailerWeightKg,
+                                        usesPounds: weightUnits == .pounds
+                                    )
+                                ),
+                                boxyTrailerEnabled: $draftTripDetailsBoxyTrailerEnabled,
+                                roofBoxMode: $draftTripDetailsRoofBoxMode,
+                                selectedTyreSet: $draftTripDetailsTyreSet,
+                                rollingResistanceClass: $draftTripDetailsRollingResistanceClass,
+                                onTyreSetChanged: { newValue in
                                     draftTripDetailsRollingResistanceClass = newValue == .summer
                                         ? activeSummerTyreClass
                                         : activeWinterTyreClass
                                 }
-                            }
-
-                            Picker("Climate", selection: $draftTripDetailsAirConditioningMode) {
-                                ForEach(AirConditioningMode.segmentedCases) { mode in
-                                    Text(mode.label).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-
-                            Toggle("Trailer / tow", isOn: $draftTripDetailsTrailerTowModeEnabled)
-                                .font(.subheadline.weight(.semibold))
-                                .tint(rangePilotAccentColor)
-
-                            if draftTripDetailsTrailerTowModeEnabled {
-                                sliderSection(
-                                    title: "Trailer weight",
-                                    value: displayedDraftTripDetailsTrailerWeightBinding,
-                                    range: displayedTrailerWeightRange,
-                                    step: displayedTrailerWeightStep,
-                                    displayValue: weightUnits.formattedWeight(
-                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(
-                                            draftTripDetailsTrailerWeightKg,
-                                            usesPounds: weightUnits == .pounds
-                                        )
-                                    ),
-                                    showsPrecisionButtons: true
-                                )
-
-                                Toggle("Boxy trailer / caravan", isOn: $draftTripDetailsBoxyTrailerEnabled)
-                                    .font(.subheadline.weight(.semibold))
-                                    .tint(rangePilotAccentColor)
-                            }
+                            )
 
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Roof box")
-                                    .font(.subheadline.weight(.semibold))
-
-                                Picker("Roof box", selection: $draftTripDetailsRoofBoxMode) {
-                                    ForEach(RoofBoxMode.allCases) { mode in
-                                        Text(mode.label).tag(mode as RoofBoxMode)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
+                                loggedTripSectionHeader("Notes")
+                                TextField("Notes", text: $draftTripDetailsNote, axis: .vertical)
+                                    .textFieldStyle(.roundedBorder)
+                                    .lineLimit(1...4)
                             }
-
-                            if draftTripDetailsDistanceKm != nil {
-                                sliderSection(
-                                    title: "Distance",
-                                    value: displayedDraftTripDetailsDistanceBinding,
-                                    range: displayedTripDistanceRange,
-                                    step: 1,
-                                    displayValue: displayUnits.formattedDistance(draftTripDetailsDistanceKm ?? 0),
-                                    showsPrecisionButtons: true
-                                )
-                            } else {
-                                resultRow(title: "Distance", value: "Distance not saved")
-                            }
-
-                            TextField("Notes", text: $draftTripDetailsNote, axis: .vertical)
-                                .textFieldStyle(.roundedBorder)
-                                .lineLimit(1...4)
                         }
                     }
 
@@ -4945,7 +5049,7 @@ struct ContentView: View {
                                 .foregroundStyle(.primary)
 
                             if outcome.vehicleProfileKind == .customEV {
-                                customEVTripBadge
+                                tripProfileBadge(for: outcome)
                             }
                         }
 
@@ -4977,10 +5081,11 @@ struct ContentView: View {
         .buttonStyle(.plain)
     }
 
-    private var customEVTripBadge: some View {
-        Text("Custom profile")
+    private func tripProfileBadge(for outcome: TripOutcome) -> some View {
+        Text(tripOutcomeVehicleProfileText(for: outcome))
             .font(.caption2.weight(.semibold))
             .foregroundStyle(rangePilotAccentColor)
+            .lineLimit(1)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(rangePilotAccentColor.opacity(0.12), in: Capsule())
@@ -5272,6 +5377,21 @@ struct ContentView: View {
         }
     }
 
+    private var defaultLoggedTripDistanceDisplayValue: Int {
+        displayUnits == .metric ? 15 : 10
+    }
+
+    private func storedLoggedTripDistanceKm(fromDisplayedDistance displayedDistance: Int) -> Double {
+        displayUnits.storedDistance(fromDisplayed: Double(displayedDistance))
+    }
+
+    private func loggedTripDistanceDisplayValue(fromStoredDistanceKm storedDistanceKm: Double) -> Int {
+        let displayedDistance = Int(displayUnits.displayDistance(fromKm: storedDistanceKm).rounded())
+        return outcomeDistanceDisplayValues.min { first, second in
+            abs(first - displayedDistance) < abs(second - displayedDistance)
+        } ?? displayedDistance
+    }
+
     private func displayRange(forStoredDistanceRange range: ClosedRange<Double>) -> ClosedRange<Double> {
         let lower = displayUnits.displayDistance(fromKm: range.lowerBound)
         let upper = displayUnits.displayDistance(fromKm: range.upperBound)
@@ -5433,7 +5553,10 @@ struct ContentView: View {
     private var validOutcomeInput: TripOutcomeInput? {
         let displayedConsumption = Double(outcomeActualConsumptionTenths) / 10
         let actualConsumptionKWhPer100Km = displayUnits.storedConsumption(fromDisplayed: displayedConsumption)
-        let actualDistanceKm = displayUnits.storedDistance(fromDisplayed: Double(outcomeDistanceKm))
+        let displayedDistance = outcomeDistanceDisplayValues.contains(outcomeDistanceKm)
+            ? outcomeDistanceKm
+            : defaultLoggedTripDistanceDisplayValue
+        let actualDistanceKm = storedLoggedTripDistanceKm(fromDisplayedDistance: displayedDistance)
 
         return TripOutcomeInput(
             actualConsumptionKWhPer100Km: actualConsumptionKWhPer100Km,
@@ -5447,11 +5570,13 @@ struct ContentView: View {
         }
 
         let calibrationBaselineForecast = outcomeCalibrationBaselineForecast(
-            distanceKm: input.actualDistanceKm ?? distance
+            distanceKm: input.actualDistanceKm
         )
         let outcome = TripOutcome(
             date: Date(),
             vehicleProfileKind: activeVehicleProfileKind,
+            vehicleProfileID: activeVehicleProfile.profile.id,
+            vehicleProfileName: activeVehicleProfile.profile.displayName,
             predictedRangeKm: outcomeLogRemainingRange.rangeKm,
             predictedConsumptionKWhPer100Km: outcomeLogForecast.finalKWhPer100km,
             actualConsumptionKWhPer100Km: input.actualConsumptionKWhPer100Km,
@@ -5520,6 +5645,7 @@ struct ContentView: View {
 
     private func presentTripOutcomeCard() {
         resetTripOutcomeInput()
+        resetLoggedTripCollapsedSections()
         withAnimation(.snappy) {
             isTripOutcomeCardPresented = true
         }
@@ -5558,7 +5684,7 @@ struct ContentView: View {
             max(forecastConsumptionTenths, outcomeConsumptionTenthsRange.lowerBound),
             outcomeConsumptionTenthsRange.upperBound
         )
-        outcomeDistanceKm = displayUnits == .metric ? 15 : 10
+        outcomeDistanceKm = defaultLoggedTripDistanceDisplayValue
         outcomeNote = ""
         outcomeTemperature = temperature
         outcomeRoadSurface = roadSurface
@@ -5953,6 +6079,7 @@ struct ContentView: View {
     }
 
     private func presentTripOutcomeDetails(for outcome: TripOutcome) {
+        resetLoggedTripCollapsedSections()
         draftTripDetailsTemperature = outcome.temperatureC
         draftTripDetailsRoadSurface = outcome.roadSurface
         draftTripDetailsWindCondition = outcome.windCondition
@@ -5965,9 +6092,14 @@ struct ContentView: View {
         draftTripDetailsTrailerWeightKg = outcome.trailerWeightKg ?? MiniConsumptionDefaults.trailerWeightKg
         draftTripDetailsBoxyTrailerEnabled = outcome.boxyTrailerEnabled
         draftTripDetailsRoofBoxMode = outcome.roofBoxMode ?? .off
-        draftTripDetailsDistanceKm = outcome.editableLoggedDistanceKm
+        draftTripDetailsDistanceDisplayValue = outcome.editableLoggedDistanceKm.map(loggedTripDistanceDisplayValue)
         draftTripDetailsNote = outcome.note
         selectedTripOutcomeForDetails = outcome
+    }
+
+    private func resetLoggedTripCollapsedSections() {
+        isLoggedTripDrivingConditionsExpanded = false
+        isLoggedTripVehicleSetupExpanded = false
     }
 
     private func cancelTripOutcomeDetails() {
@@ -5993,7 +6125,7 @@ struct ContentView: View {
             trailerWeightKg: draftTripDetailsTrailerTowModeEnabled ? draftTripDetailsTrailerWeightKg : nil,
             boxyTrailerEnabled: draftTripDetailsBoxyTrailerEnabled,
             roofBoxMode: draftTripDetailsRoofBoxMode,
-            storedDistanceKm: draftTripDetailsDistanceKm,
+            storedDistanceKm: draftTripDetailsDistanceDisplayValue.map(storedLoggedTripDistanceKm),
             note: draftTripDetailsNote.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         TripOutcomeStore.save(outcomes)
@@ -6096,7 +6228,7 @@ struct ContentView: View {
     private func tripOutcomeDetailText(for outcome: TripOutcome) -> String {
         let distanceText = outcome.loggedOutcomeDistanceKm.map {
             displayUnits.formattedDistance($0)
-        } ?? "Distance not saved"
+        } ?? "Distance not recorded"
         let tyreClassText = (outcome.rollingResistanceClass ?? .b).label
         let climateText = "Climate \((outcome.airConditioningMode ?? .on).label)"
 
@@ -7810,9 +7942,16 @@ struct NeedleShape: Shape {
 struct TripOutcome: Codable, Identifiable {
     private nonisolated static let legacyBatteryCapacityKWh = 26.0
 
+    private nonisolated static func cleanedOptionalString(_ value: String?) -> String? {
+        let trimmedValue = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmedValue.isEmpty ? nil : trimmedValue
+    }
+
     var id = UUID()
     let date: Date
     let vehicleProfileKind: VehicleProfileKind
+    let vehicleProfileID: String?
+    let vehicleProfileName: String?
     let predictedRangeKm: Double
     let predictedConsumptionKWhPer100Km: Double
     let actualConsumptionKWhPer100Km: Double?
@@ -7845,6 +7984,8 @@ struct TripOutcome: Codable, Identifiable {
         id: UUID = UUID(),
         date: Date,
         vehicleProfileKind: VehicleProfileKind = .mini,
+        vehicleProfileID: String? = nil,
+        vehicleProfileName: String? = nil,
         predictedRangeKm: Double,
         predictedConsumptionKWhPer100Km: Double,
         actualConsumptionKWhPer100Km: Double?,
@@ -7876,6 +8017,8 @@ struct TripOutcome: Codable, Identifiable {
         self.id = id
         self.date = date
         self.vehicleProfileKind = vehicleProfileKind
+        self.vehicleProfileID = Self.cleanedOptionalString(vehicleProfileID)
+        self.vehicleProfileName = Self.cleanedOptionalString(vehicleProfileName)
         self.predictedRangeKm = predictedRangeKm
         self.predictedConsumptionKWhPer100Km = predictedConsumptionKWhPer100Km
         self.actualConsumptionKWhPer100Km = actualConsumptionKWhPer100Km
@@ -7909,6 +8052,8 @@ struct TripOutcome: Codable, Identifiable {
         case id
         case date
         case vehicleProfileKind
+        case vehicleProfileID
+        case vehicleProfileName
         case predictedRangeKm
         case predictedConsumptionKWhPer100Km
         case actualConsumptionKWhPer100Km
@@ -7950,6 +8095,8 @@ struct TripOutcome: Codable, Identifiable {
             id: try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID(),
             date: try container.decode(Date.self, forKey: .date),
             vehicleProfileKind: try container.decodeIfPresent(VehicleProfileKind.self, forKey: .vehicleProfileKind) ?? .mini,
+            vehicleProfileID: try container.decodeIfPresent(String.self, forKey: .vehicleProfileID),
+            vehicleProfileName: try container.decodeIfPresent(String.self, forKey: .vehicleProfileName),
             predictedRangeKm: try container.decode(Double.self, forKey: .predictedRangeKm),
             predictedConsumptionKWhPer100Km: try container.decode(Double.self, forKey: .predictedConsumptionKWhPer100Km),
             actualConsumptionKWhPer100Km: try container.decodeIfPresent(Double.self, forKey: .actualConsumptionKWhPer100Km),
@@ -7985,6 +8132,8 @@ struct TripOutcome: Codable, Identifiable {
         try container.encode(id, forKey: .id)
         try container.encode(date, forKey: .date)
         try container.encode(vehicleProfileKind, forKey: .vehicleProfileKind)
+        try container.encodeIfPresent(vehicleProfileID, forKey: .vehicleProfileID)
+        try container.encodeIfPresent(vehicleProfileName, forKey: .vehicleProfileName)
         try container.encode(predictedRangeKm, forKey: .predictedRangeKm)
         try container.encode(predictedConsumptionKWhPer100Km, forKey: .predictedConsumptionKWhPer100Km)
         try container.encodeIfPresent(actualConsumptionKWhPer100Km, forKey: .actualConsumptionKWhPer100Km)
@@ -8219,6 +8368,8 @@ struct TripOutcome: Codable, Identifiable {
             id: id,
             date: date,
             vehicleProfileKind: vehicleProfileKind,
+            vehicleProfileID: vehicleProfileID,
+            vehicleProfileName: vehicleProfileName,
             predictedRangeKm: predictedRangeKm,
             predictedConsumptionKWhPer100Km: predictedConsumptionKWhPer100Km,
             actualConsumptionKWhPer100Km: actualConsumptionKWhPer100Km,
@@ -8356,7 +8507,7 @@ struct TripOutcome: Codable, Identifiable {
 
 private struct TripOutcomeInput {
     let actualConsumptionKWhPer100Km: Double
-    let actualDistanceKm: Double?
+    let actualDistanceKm: Double
 }
 
 struct CalibrationPredictionContext {
