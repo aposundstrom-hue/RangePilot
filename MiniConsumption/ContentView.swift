@@ -3453,10 +3453,6 @@ struct ContentView: View {
 
                 if let selectedVehicleProfile {
                     if selectedVehicleProfile.kind == .custom {
-                        customVehicleProfileEditAction
-                    }
-
-                    if selectedVehicleProfile.kind == .custom {
                         customVehicleProfileDetails
                     } else {
                         miniVehicleProfileDetails
@@ -3608,28 +3604,12 @@ struct ContentView: View {
         .presentationDragIndicator(.hidden)
     }
 
-    private var customVehicleProfileEditAction: some View {
-        Button {
-            presentEditVehicleProfileSheet(activeVehicleProfile.profile)
-        } label: {
-            HStack(spacing: 4) {
-                Text("Edit profile")
-
-                Image(systemName: "chevron.right")
-                    .font(.caption2.weight(.semibold))
-            }
-        }
-        .font(.subheadline.weight(.medium))
-        .foregroundStyle(rangePilotAccentColor)
-        .buttonStyle(.plain)
-    }
-
     private var miniVehicleProfileDetails: some View {
         Text(
             vehicleProfileDetailText(
-                    usableBatteryKWh: MiniConsumptionCalculator.nominalUsableBatteryKWh,
-                    wltpRangeKm: VehicleProfileResolver.builtInMiniWLTPRangeKm,
-                    peakDCChargingKW: VehicleProfileResolver.builtInMiniPeakDCChargingKW
+                usableBatteryKWh: MiniConsumptionCalculator.nominalUsableBatteryKWh,
+                wltpRangeKm: VehicleProfileResolver.builtInMiniWLTPRangeKm,
+                peakDCChargingKW: VehicleProfileResolver.builtInMiniPeakDCChargingKW
             )
         )
         .font(.subheadline)
@@ -3638,23 +3618,38 @@ struct ContentView: View {
     }
 
     private var customVehicleProfileDetails: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(
-                vehicleProfileDetailText(
-                    usableBatteryKWh: activeVehicleProfile.profile.usableBatteryKWh,
-                    wltpRangeKm: activeVehicleProfile.profile.wltpRangeKm,
-                    peakDCChargingKW: activeVehicleProfile.profile.peakDCChargingKW
+        Button {
+            presentEditVehicleProfileSheet(activeVehicleProfile.profile)
+        } label: {
+            HStack(spacing: 6) {
+                Text(
+                    vehicleProfileDetailText(
+                        usableBatteryKWh: activeVehicleProfile.profile.usableBatteryKWh,
+                        wltpRangeKm: activeVehicleProfile.profile.wltpRangeKm,
+                        peakDCChargingKW: activeVehicleProfile.profile.peakDCChargingKW
+                    )
                 )
-            )
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-
-            Text("Custom EV estimates are approximate at first. RangePilot was originally modelled on the MINI Cooper SE, but trip logging can calibrate estimates to your vehicle after at least three logged trips in a driving mode.")
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Edit vehicle specifications")
+        .accessibilityValue(
+            vehicleProfileDetailText(
+                usableBatteryKWh: activeVehicleProfile.profile.usableBatteryKWh,
+                wltpRangeKm: activeVehicleProfile.profile.wltpRangeKm,
+                peakDCChargingKW: activeVehicleProfile.profile.peakDCChargingKW
+            )
+        )
     }
 
     private func vehicleProfileDetailText(
@@ -3667,7 +3662,7 @@ struct ContentView: View {
         let peakChargingText = peakDCChargingKW
             .formatted(.number.precision(.fractionLength(0)))
 
-        return "\(usableBatteryText) kWh • \(displayUnits.formattedDistance(wltpRangeKm)) WLTP • \(peakChargingText) kW peak DC"
+        return "\(usableBatteryText) kWh • \(displayUnits.formattedDistance(wltpRangeKm)) WLTP • \(peakChargingText) kW DC"
     }
 
     private func vehicleProfileEditorSheet(mode: VehicleProfileEditorMode) -> some View {
@@ -3691,9 +3686,10 @@ struct ContentView: View {
                                 }
                             }
                             .pickerStyle(.menu)
+                            .id(selectedVehicleProfileTemplateBrand)
                         }
 
-                        Text("Can't find your exact vehicle? Choose the closest model and adjust the values as needed.")
+                        Text("Choose a brand, then select a model to prefill the values. You can adjust the values before saving.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
