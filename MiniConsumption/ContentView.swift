@@ -3365,8 +3365,8 @@ struct ContentView: View {
 
     private var calibrationCard: some View {
         card(title: "Calibration") {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     Toggle("Calibration based on logged trips", isOn: $useContinuousCalibration)
                         .font(.subheadline.weight(.semibold))
                         .tint(rangePilotAccentColor)
@@ -3383,7 +3383,7 @@ struct ContentView: View {
 
                 Divider()
 
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     sliderSection(
                         title: "Manual overall calibration",
                         value: displayedReferenceConsumptionBinding,
@@ -3410,6 +3410,7 @@ struct ContentView: View {
                             resetManualReferenceConsumptionForActiveProfile()
                         }
                         .buttonStyle(.bordered)
+                        .controlSize(.small)
                         .disabled(abs(activeVehicleProfileManualReferenceConsumption - activeVehicleProfileDefaultReferenceConsumption) < 0.001 || isManualReferenceInactive)
                     }
                 }
@@ -3428,24 +3429,32 @@ struct ContentView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 
     private var vehicleProfileCard: some View {
         card(title: "Vehicle profile") {
-            VStack(alignment: .leading, spacing: 12) {
-                vehicleProfileSelectorRow
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 10) {
+                    vehicleProfileSelectorRow
+
+                    Button {
+                        presentCreateVehicleProfileSheet()
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(width: 32, height: 32)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .accessibilityLabel("Add vehicle profile")
+                }
 
                 if let selectedVehicleProfile {
                     if selectedVehicleProfile.kind == .custom {
                         customVehicleProfileEditAction
                     }
-
-                    Divider()
 
                     if selectedVehicleProfile.kind == .custom {
                         customVehicleProfileDetails
@@ -3484,24 +3493,22 @@ struct ContentView: View {
                     )
                 }
             }
-
-            Divider()
-
-            Button {
-                presentCreateVehicleProfileSheet()
-            } label: {
-                Text("Add new profile...")
-            }
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 6) {
                 Text(selectedVehicleProfileDisplayName)
                     .font(.subheadline.weight(.medium))
                     .multilineTextAlignment(.leading)
+                    .lineLimit(1)
 
-                Image(systemName: "chevron.up.chevron.down")
+                Image(systemName: "chevron.down")
                     .font(.caption2.weight(.semibold))
             }
             .foregroundStyle(rangePilotAccentColor)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.tertiarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -3602,37 +3609,46 @@ struct ContentView: View {
     }
 
     private var customVehicleProfileEditAction: some View {
-        Button("Edit") {
+        Button {
             presentEditVehicleProfileSheet(activeVehicleProfile.profile)
+        } label: {
+            HStack(spacing: 4) {
+                Text("Edit profile")
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+            }
         }
-        .font(.caption)
+        .font(.subheadline.weight(.medium))
         .foregroundStyle(rangePilotAccentColor)
         .buttonStyle(.plain)
     }
 
     private var miniVehicleProfileDetails: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            secondaryResultRow(
-                title: "Details",
-                value: vehicleProfileDetailText(
+        Text(
+            vehicleProfileDetailText(
                     usableBatteryKWh: MiniConsumptionCalculator.nominalUsableBatteryKWh,
                     wltpRangeKm: VehicleProfileResolver.builtInMiniWLTPRangeKm,
                     peakDCChargingKW: VehicleProfileResolver.builtInMiniPeakDCChargingKW
-                )
             )
-        }
+        )
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var customVehicleProfileDetails: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            secondaryResultRow(
-                title: "Details",
-                value: vehicleProfileDetailText(
+        VStack(alignment: .leading, spacing: 6) {
+            Text(
+                vehicleProfileDetailText(
                     usableBatteryKWh: activeVehicleProfile.profile.usableBatteryKWh,
                     wltpRangeKm: activeVehicleProfile.profile.wltpRangeKm,
                     peakDCChargingKW: activeVehicleProfile.profile.peakDCChargingKW
                 )
             )
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
 
             Text("Custom EV estimates are approximate at first. RangePilot was originally modelled on the MINI Cooper SE, but trip logging can calibrate estimates to your vehicle after at least three logged trips in a driving mode.")
                 .font(.caption)
@@ -3886,7 +3902,7 @@ struct ContentView: View {
                 Button {
                     isTripDataEditorPresented = true
                 } label: {
-                    Label("View logged trips", systemImage: "list.bullet.rectangle")
+                    Label("Logged trips", systemImage: "list.bullet.rectangle")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -3934,106 +3950,100 @@ struct ContentView: View {
     }
 
     private var chargingSettingsCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Fast-charging planning settings")
-                .font(.headline)
-                .foregroundStyle(.primary)
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Preferred low level before charging")
-                        .font(.subheadline.weight(.semibold))
-                    Spacer()
-                    Text("\(rounded(normalMinimumChargingPercentBinding.wrappedValue))%")
-                        .foregroundStyle(.secondary)
-                }
-
-                Slider(
-                    value: normalMinimumChargingPercentBinding,
-                    in: ChargingWindow.minimumBounds,
-                    step: 1
-                )
-                .tint(rangePilotAccentColor)
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Preferred fast-charging target level")
-                        .font(.subheadline.weight(.semibold))
-                    Spacer()
-                    Text("\(rounded(normalFastChargeTargetPercentBinding.wrappedValue))%")
-                        .foregroundStyle(.secondary)
-                }
-
-                Slider(
-                    value: normalFastChargeTargetPercentBinding,
-                    in: ChargingWindow.targetBounds,
-                    step: 1
-                )
-                .tint(rangePilotAccentColor)
-            }
-
-            DisclosureGroup(isExpanded: $isTripAdvancedChargingSettingsExpanded) {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Charging setup time")
-                                .font(.subheadline.weight(.semibold))
-                            Spacer()
-                            Text("\(rounded(tripChargingSetupMinutesBinding.wrappedValue)) min")
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Slider(
-                            value: tripChargingSetupMinutesBinding,
-                            in: 0...5,
-                            step: 1
-                        )
-                        .tint(rangePilotAccentColor)
+        card(title: "Charging") {
+            VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Preferred low level before charging")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text("\(rounded(normalMinimumChargingPercentBinding.wrappedValue))%")
+                            .foregroundStyle(.secondary)
                     }
 
-                    VStack(alignment: .leading, spacing: 10) {
+                    Slider(
+                        value: normalMinimumChargingPercentBinding,
+                        in: ChargingWindow.minimumBounds,
+                        step: 1
+                    )
+                    .tint(rangePilotAccentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Preferred fast-charging target level")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text("\(rounded(normalFastChargeTargetPercentBinding.wrappedValue))%")
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Slider(
+                        value: normalFastChargeTargetPercentBinding,
+                        in: ChargingWindow.targetBounds,
+                        step: 1
+                    )
+                    .tint(rangePilotAccentColor)
+                }
+
+                DisclosureGroup(isExpanded: $isTripAdvancedChargingSettingsExpanded) {
+                    VStack(alignment: .leading, spacing: 16) {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text("Average fast-charging speed")
+                                Text("Charging setup time")
                                     .font(.subheadline.weight(.semibold))
                                 Spacer()
-                                Text("\(rounded(averageChargingSpeedKWBinding.wrappedValue)) kW")
+                                Text("\(rounded(tripChargingSetupMinutesBinding.wrappedValue)) min")
                                     .foregroundStyle(.secondary)
                             }
 
                             Slider(
-                                value: averageChargingSpeedKWBinding,
-                                in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
-                                step: MiniConsumptionCalculator.averageChargingSpeedStepKW
+                                value: tripChargingSetupMinutesBinding,
+                                in: 0...5,
+                                step: 1
                             )
                             .tint(rangePilotAccentColor)
                         }
 
-                        Text("Used as the average charging power up to 80%. This should reflect a normal fast-charge session, not the brief peak.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text("Average fast-charging speed")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text("\(rounded(averageChargingSpeedKWBinding.wrappedValue)) kW")
+                                        .foregroundStyle(.secondary)
+                                }
 
-                        Button("Reset to default") {
-                            resetAverageChargingSpeedForActiveProfile()
+                                Slider(
+                                    value: averageChargingSpeedKWBinding,
+                                    in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
+                                    step: MiniConsumptionCalculator.averageChargingSpeedStepKW
+                                )
+                                .tint(rangePilotAccentColor)
+                            }
+
+                            Text("Used as the average charging power up to 80%. This should reflect a normal fast-charge session, not the brief peak.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Button("Reset to default") {
+                                resetAverageChargingSpeedForActiveProfile()
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(abs(averageChargingSpeedKWBinding.wrappedValue - activeAverageChargingSpeedDefaultKW) < 0.001)
                         }
-                        .buttonStyle(.bordered)
-                        .disabled(abs(averageChargingSpeedKWBinding.wrappedValue - activeAverageChargingSpeedDefaultKW) < 0.001)
                     }
+                    .padding(.top, 8)
+                } label: {
+                    Text("Advanced settings")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
                 }
-                .padding(.top, 8)
-            } label: {
-                Text("Advanced settings")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
+                .tint(.secondary)
             }
-            .tint(.secondary)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var describeTripCard: some View {
@@ -6948,13 +6958,16 @@ private struct TripRouteStopAnnotation: Identifiable {
 final class RangeMapLocationProvider: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published private(set) var coordinate: CLLocationCoordinate2D?
     @Published private(set) var authorizationStatus: CLAuthorizationStatus
+    @Published private(set) var hasLocationPermission: Bool
     @Published private(set) var didFailLocation = false
 
     private let manager = CLLocationManager()
     private var didRequestAuthorization = false
 
     override init() {
-        authorizationStatus = manager.authorizationStatus
+        let currentAuthorizationStatus = manager.authorizationStatus
+        authorizationStatus = currentAuthorizationStatus
+        hasLocationPermission = Self.hasLocationPermission(for: currentAuthorizationStatus)
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
@@ -6999,6 +7012,7 @@ final class RangeMapLocationProvider: NSObject, ObservableObject, CLLocationMana
 
     private func handleAuthorizationStatus(_ status: CLAuthorizationStatus) {
         authorizationStatus = status
+        hasLocationPermission = Self.hasLocationPermission(for: status)
 
         switch status {
         case .notDetermined:
@@ -7009,12 +7023,24 @@ final class RangeMapLocationProvider: NSObject, ObservableObject, CLLocationMana
             didRequestAuthorization = true
             manager.requestWhenInUseAuthorization()
         case .authorizedAlways, .authorizedWhenInUse:
+            didFailLocation = false
             manager.requestLocation()
         case .denied, .restricted:
             coordinate = nil
         @unknown default:
             coordinate = nil
             didFailLocation = true
+        }
+    }
+
+    private static func hasLocationPermission(for status: CLAuthorizationStatus) -> Bool {
+        switch status {
+        case .authorizedAlways, .authorizedWhenInUse:
+            return true
+        case .denied, .notDetermined, .restricted:
+            return false
+        @unknown default:
+            return false
         }
     }
 }
