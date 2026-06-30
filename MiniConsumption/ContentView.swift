@@ -2934,7 +2934,7 @@ struct ContentView: View {
                             .pickerStyle(.segmented)
 
                             Picker("Climate", selection: $draftTripAssumptionsAirConditioningMode) {
-                                ForEach(AirConditioningMode.allCases) { mode in
+                                ForEach(AirConditioningMode.segmentedCases) { mode in
                                     Text(mode.label).tag(mode)
                                 }
                             }
@@ -4478,7 +4478,7 @@ struct ContentView: View {
                         }
 
                         Picker("Climate", selection: $outcomeAirConditioningMode) {
-                            ForEach(AirConditioningMode.allCases) { mode in
+                            ForEach(AirConditioningMode.segmentedCases) { mode in
                                 Text(mode.label).tag(mode)
                             }
                         }
@@ -4660,7 +4660,7 @@ struct ContentView: View {
     private var actualDistancePicker: some View {
         VStack(alignment: .leading, spacing: 6) {
             Picker("Distance", selection: $outcomeDistanceKm) {
-                ForEach(outcomeDistanceDisplayRange, id: \.self) { distance in
+                ForEach(outcomeDistanceDisplayValues, id: \.self) { distance in
                     Text("\(distance)")
                         .tag(distance)
                 }
@@ -4810,7 +4810,7 @@ struct ContentView: View {
                             }
 
                             Picker("Climate", selection: $draftTripDetailsAirConditioningMode) {
-                                ForEach(AirConditioningMode.allCases) { mode in
+                                ForEach(AirConditioningMode.segmentedCases) { mode in
                                     Text(mode.label).tag(mode)
                                 }
                             }
@@ -5251,12 +5251,24 @@ struct ContentView: View {
         }
     }
 
-    private var outcomeDistanceDisplayRange: ClosedRange<Int> {
+    private var outcomeDistanceDisplayValues: [Int] {
         switch displayUnits {
         case .metric:
-            5...300
+            [
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                15, 20, 25, 30, 35, 40, 45, 50,
+                60, 70, 80, 90, 100,
+                150, 200, 250, 300, 350, 400, 450, 500,
+                600, 700, 800, 900, 1000
+            ]
         case .imperial:
-            3...190
+            [
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+                15, 20, 25, 30,
+                40, 50, 60,
+                75, 100, 125, 150, 175, 200, 225, 250, 275, 300,
+                350, 400, 450, 500, 550, 600
+            ]
         }
     }
 
@@ -9262,11 +9274,28 @@ private struct RangeDrivingConditionsControlsView: View {
                 RangeDisclosureSummaryIcon(systemName: "wind", accessibilityLabel: windCondition.label)
             }
 
+            if let roadSurfaceSummaryIconName {
+                RangeDisclosureSummaryIcon(systemName: roadSurfaceSummaryIconName, accessibilityLabel: roadSurface.wrappedValue.label)
+            }
+
             if airConditioningMode == .off {
                 RangeDisclosureSummaryChip(text: "A/C Off")
             }
 
             RangeDisclosureSummaryChip(text: motorwaySpeedText)
+        }
+    }
+
+    private var roadSurfaceSummaryIconName: String? {
+        switch roadSurface.wrappedValue.segmentedEquivalent {
+        case .wet:
+            "cloud.rain"
+        case .snowSlush:
+            "snowflake"
+        case .dry:
+            nil
+        default:
+            nil
         }
     }
 
@@ -9460,7 +9489,7 @@ private struct RangeAirConditioningSection: View {
                 .font(.subheadline.weight(.semibold))
 
             Picker("Air conditioning", selection: $airConditioningMode) {
-                ForEach(AirConditioningMode.allCases) { mode in
+                ForEach(AirConditioningMode.segmentedCases) { mode in
                     Text(mode.label).tag(mode as AirConditioningMode)
                 }
             }

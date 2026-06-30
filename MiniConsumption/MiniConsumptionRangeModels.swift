@@ -19,9 +19,13 @@ enum MiniConsumptionDefaults {
     static let winterTyreClass = RollingResistanceClass.c
     static let useContinuousCalibration = true
     static let batteryDegradationPercent = 3
-    nonisolated static let trailerWeightKg = 500.0
+    nonisolated static let trailerWeightKg = 750.0
     nonisolated static let trailerWeightRangeKg = 200.0...1500.0
     static let trailerWeightStepKg = 50.0
+    nonisolated static let trailerWeightPounds = 1000.0
+    nonisolated static let trailerWeightRangePounds = 500.0...10_000.0
+    static let trailerWeightStepPounds = 100.0
+    nonisolated private static let poundsPerKilogram = 2.2046226218
 
     nonisolated static func normalizedMotorwaySpeed(_ speed: Double) -> Double {
         guard speed.isFinite else {
@@ -45,6 +49,24 @@ enum MiniConsumptionDefaults {
         }
 
         return min(max(weightKg, trailerWeightRangeKg.lowerBound), trailerWeightRangeKg.upperBound)
+    }
+
+    nonisolated static func defaultTrailerWeightKg(usesPounds: Bool) -> Double {
+        usesPounds ? trailerWeightPounds / poundsPerKilogram : trailerWeightKg
+    }
+
+    nonisolated static func normalizedTrailerWeightKg(_ weightKg: Double, usesPounds: Bool) -> Double {
+        guard weightKg.isFinite else {
+            return defaultTrailerWeightKg(usesPounds: usesPounds)
+        }
+
+        if usesPounds {
+            let lowerBoundKg = trailerWeightRangePounds.lowerBound / poundsPerKilogram
+            let upperBoundKg = trailerWeightRangePounds.upperBound / poundsPerKilogram
+            return min(max(weightKg, lowerBoundKg), upperBoundKg)
+        } else {
+            return min(max(weightKg, trailerWeightRangeKg.lowerBound), trailerWeightRangeKg.upperBound)
+        }
     }
 }
 
@@ -74,7 +96,7 @@ enum RoadSurface: String, Codable, CaseIterable, Identifiable {
     var id: Self { self }
 
     static var segmentedCases: [Self] {
-        [.snowSlush, .wet, .dry]
+        [.dry, .wet, .snowSlush]
     }
 
     var segmentedEquivalent: Self {
@@ -149,6 +171,10 @@ enum AirConditioningMode: String, Codable, CaseIterable, Identifiable {
     case off
 
     var id: Self { self }
+
+    static var segmentedCases: [Self] {
+        [.off, .on]
+    }
 
     var label: String {
         switch self {
@@ -313,7 +339,7 @@ enum WindCondition: String, Codable, CaseIterable, Identifiable {
     var id: Self { self }
 
     static var rangeOrderedCases: [Self] {
-        [.headwind, .normal, .tailwind]
+        [.tailwind, .normal, .headwind]
     }
 
     var label: String {
