@@ -8,8 +8,8 @@ enum MiniConsumptionDefaults {
     static let temperatureC = 15.0
     static let airConditioningMode = AirConditioningMode.on
     static let roadTypeProfile = RoadTypeProfile.motorwayMix
-    static let motorwaySpeedKmh = 110.0
-    static let motorwaySpeedRange = 90.0...150.0
+    nonisolated static let motorwaySpeedKmh = 110.0
+    nonisolated static let motorwaySpeedRange = 90.0...150.0
     static let roadSurface = RoadSurface.dry
     static let windCondition = WindCondition.normal
     static let planningMode = PlanningMode.normal
@@ -19,11 +19,11 @@ enum MiniConsumptionDefaults {
     static let winterTyreClass = RollingResistanceClass.c
     static let useContinuousCalibration = true
     static let batteryDegradationPercent = 3
-    static let trailerWeightKg = 500.0
-    static let trailerWeightRangeKg = 200.0...1500.0
+    nonisolated static let trailerWeightKg = 500.0
+    nonisolated static let trailerWeightRangeKg = 200.0...1500.0
     static let trailerWeightStepKg = 50.0
 
-    static func normalizedMotorwaySpeed(_ speed: Double) -> Double {
+    nonisolated static func normalizedMotorwaySpeed(_ speed: Double) -> Double {
         guard speed.isFinite else {
             return motorwaySpeedKmh
         }
@@ -39,7 +39,7 @@ enum MiniConsumptionDefaults {
         return min(max(distance, 1), 1000)
     }
 
-    static func normalizedTrailerWeightKg(_ weightKg: Double) -> Double {
+    nonisolated static func normalizedTrailerWeightKg(_ weightKg: Double) -> Double {
         guard weightKg.isFinite else {
             return trailerWeightKg
         }
