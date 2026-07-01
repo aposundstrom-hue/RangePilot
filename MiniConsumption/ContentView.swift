@@ -552,6 +552,8 @@ struct ContentView: View {
     @State private var isQuickTripChargingAssumptionsExpanded = false
     @State private var isTripChargingWindowAdjustmentPresented = false
     @State private var isTripArrivalReserveAdjustmentPresented = false
+    @State private var isTripAssumptionsDrivingConditionsExpanded = true
+    @State private var isTripAssumptionsVehicleExpanded = true
     @State private var draftMinimumChargingPercent = ChargingWindow.defaultMinimumPercent
     @State private var draftFastChargeTargetPercent = ChargingWindow.defaultTargetPercent
     @State private var draftArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
@@ -1008,6 +1010,24 @@ struct ContentView: View {
             rollingResistanceClass: tripEstimateRollingResistanceClass,
             airConditioningMode: tripEstimateAirConditioningMode
         )
+    }
+
+    private var areTripAssumptionsAdjustedForCurrentTrip: Bool {
+        abs(tripEstimateStartBatteryPercent - min(max(startBatteryPercent, 10), 100)) > 0.001
+            || abs(tripEstimateTemperature - temperature) > 0.001
+            || tripEstimateRoadTypeProfile != roadTypeProfile
+            || abs(tripEstimateMotorwaySpeed - MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed)) > 0.001
+            || tripEstimateRoadSurface != roadSurface.segmentedEquivalent
+            || tripEstimateWindCondition != windCondition
+            || tripEstimatePlanningMode != tripPlanningStrategy
+            || abs(tripEstimateArrivalBatteryTargetPercent - min(max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound), ChargingWindow.arrivalBatteryTargetBounds.upperBound)) > 0.001
+            || tripEstimateTrailerTowModeEnabled != trailerTowModeEnabled
+            || abs(tripEstimateTrailerWeightKg - MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds)) > 0.001
+            || tripEstimateBoxyTrailerEnabled != boxyTrailerEnabled
+            || tripEstimateRoofBoxMode != roofBoxMode
+            || tripEstimateTyreSet != activeSelectedTyreSet
+            || tripEstimateRollingResistanceClass != activeRollingResistanceClass
+            || tripEstimateAirConditioningMode != activeAirConditioningMode
     }
 
     private var activeAverageChargingSpeedKW: Double {
@@ -2697,6 +2717,11 @@ struct ContentView: View {
         .onChange(of: displayUnits) {
             resetTripOutcomeInput()
         }
+        .onChange(of: selectedAppTab) { oldValue, newValue in
+            if oldValue == .trip, newValue != .trip {
+                clearActiveTripSearch()
+            }
+        }
         .onChange(of: tripEstimateAssumptionsFingerprint) {
             resetTransientAlternativeTripPlanSelection()
         }
@@ -2873,14 +2898,9 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     card {
                         VStack(alignment: .leading, spacing: 16) {
-                            Picker("Driving mode", selection: $draftTripAssumptionsRoadTypeProfile) {
-                                ForEach(RoadTypeProfile.allCases) { profile in
-                                    Text(profile.label).tag(profile)
-                                }
-                            }
-                            .pickerStyle(.segmented)
+                            tripAssumptionSectionLabel("Battery", systemImage: "battery.100percent")
 
-                            sliderSection(
+                            RangeSliderSection(
                                 title: "Starting battery",
                                 value: draftTripAssumptionsStartBatteryPercentBinding,
                                 range: 10...100,
@@ -2888,15 +2908,21 @@ struct ContentView: View {
                                 displayValue: "\(rounded(draftTripAssumptionsStartBatteryPercentBinding.wrappedValue))%"
                             )
 
-                            sliderSection(
-                                title: "Arrival battery target",
+                            RangeSliderSection(
+                                title: "Arrival target",
                                 value: draftTripAssumptionsArrivalBatteryTargetPercentBinding,
                                 range: ChargingWindow.arrivalBatteryTargetBounds,
                                 step: 1,
                                 displayValue: "\(rounded(draftTripAssumptionsArrivalBatteryTargetPercentBinding.wrappedValue))%"
                             )
 
-                            sliderSection(
+                            Divider()
+
+                            tripAssumptionSectionLabel("Driving", systemImage: "car.side")
+
+                            RangeRouteTypeSection(roadTypeProfile: $draftTripAssumptionsRoadTypeProfile)
+
+                            RangeSliderSection(
                                 title: "Outdoor temperature",
                                 value: displayedDraftTripAssumptionsTemperatureBinding,
                                 range: displayedTemperatureRange,
@@ -2904,7 +2930,7 @@ struct ContentView: View {
                                 displayValue: temperatureUnits.formattedTemperature(draftTripAssumptionsTemperature)
                             )
 
-                            sliderSection(
+                            RangeSliderSection(
                                 title: "Motorway speed",
                                 value: displayedDraftTripAssumptionsMotorwaySpeedBinding,
                                 range: displayedMotorwaySpeedRange,
@@ -2914,91 +2940,75 @@ struct ContentView: View {
                             .disabled(draftTripAssumptionsRoadTypeProfile.motorwaySpeedScalingFactor == 0)
                             .opacity(draftTripAssumptionsRoadTypeProfile.motorwaySpeedScalingFactor == 0 ? 0.45 : 1)
 
-                            Picker("Road surface", selection: $draftTripAssumptionsRoadSurface) {
-                                ForEach(RoadSurface.segmentedCases) { surface in
-                                    Text(surface.label).tag(surface)
+                            Divider()
+
+                            DisclosureGroup(isExpanded: $isTripAssumptionsDrivingConditionsExpanded) {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    RangeRoadSurfaceSection(roadSurface: $draftTripAssumptionsRoadSurface)
+
+                                    RangeWindSection(windCondition: $draftTripAssumptionsWindCondition)
+
+                                    RangeAirConditioningSection(airConditioningMode: $draftTripAssumptionsAirConditioningMode)
                                 }
+                                .padding(.top, 8)
+                            } label: {
+                                tripAssumptionSectionLabel("Driving conditions", systemImage: "wind")
                             }
-                            .pickerStyle(.segmented)
+                            .tint(.secondary)
 
-                            Picker("Wind", selection: $draftTripAssumptionsWindCondition) {
-                                ForEach(WindCondition.rangeOrderedCases) { wind in
-                                    Text(wind.label).tag(wind)
-                                }
-                            }
-                            .pickerStyle(.segmented)
+                            Divider()
 
-                            Picker("Climate", selection: $draftTripAssumptionsAirConditioningMode) {
-                                ForEach(AirConditioningMode.segmentedCases) { mode in
-                                    Text(mode.label).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
+                            DisclosureGroup(isExpanded: $isTripAssumptionsVehicleExpanded) {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Tyre set")
+                                            .font(.subheadline.weight(.semibold))
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Tyre set")
-                                    .font(.subheadline.weight(.semibold))
-
-                                Picker("Tyre set", selection: $draftTripAssumptionsTyreSet) {
-                                    ForEach(TyreSet.allCases) { tyreSet in
-                                        Text(tyreSet.label).tag(tyreSet as TyreSet)
+                                        Picker("Tyre set", selection: $draftTripAssumptionsTyreSet) {
+                                            ForEach(TyreSet.allCases) { tyreSet in
+                                                Text(tyreSet.label).tag(tyreSet as TyreSet)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+                                        .onChange(of: draftTripAssumptionsTyreSet) { _, newValue in
+                                            draftTripAssumptionsRollingResistanceClass = newValue == .summer
+                                                ? activeSummerTyreClass
+                                                : activeWinterTyreClass
+                                        }
                                     }
-                                }
-                                .pickerStyle(.segmented)
-                                .onChange(of: draftTripAssumptionsTyreSet) { _, newValue in
-                                    draftTripAssumptionsRollingResistanceClass = newValue == .summer
-                                        ? activeSummerTyreClass
-                                        : activeWinterTyreClass
-                                }
-                            }
 
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Rolling resistance")
-                                    .font(.subheadline.weight(.semibold))
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Rolling resistance")
+                                            .font(.subheadline.weight(.semibold))
 
-                                Picker("Rolling resistance", selection: $draftTripAssumptionsRollingResistanceClass) {
-                                    ForEach(RollingResistanceClass.rangeOrderedCases) { tyreClass in
-                                        Text(tyreClass.label).tag(tyreClass as RollingResistanceClass)
+                                        Picker("Rolling resistance", selection: $draftTripAssumptionsRollingResistanceClass) {
+                                            ForEach(RollingResistanceClass.rangeOrderedCases) { tyreClass in
+                                                Text(tyreClass.label).tag(tyreClass as RollingResistanceClass)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
                                     }
+
+                                    RangeTrailerTowSection(
+                                        isEnabled: $draftTripAssumptionsTrailerTowModeEnabled,
+                                        weightKg: displayedDraftTripAssumptionsTrailerWeightBinding,
+                                        weightRange: displayedTrailerWeightRange,
+                                        weightStep: displayedTrailerWeightStep,
+                                        weightText: weightUnits.formattedWeight(
+                                            MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                                                draftTripAssumptionsTrailerWeightKg,
+                                                usesPounds: weightUnits == .pounds
+                                            )
+                                        ),
+                                        boxyTrailerEnabled: $draftTripAssumptionsBoxyTrailerEnabled,
+                                        roofBoxMode: $draftTripAssumptionsRoofBoxMode
+                                    )
                                 }
-                                .pickerStyle(.segmented)
+                                .padding(.top, 8)
+                            } label: {
+                                tripAssumptionSectionLabel("Vehicle", systemImage: "shippingbox")
                             }
-
-                            Toggle("Trailer / tow", isOn: $draftTripAssumptionsTrailerTowModeEnabled)
-                                .font(.subheadline.weight(.semibold))
-                                .tint(rangePilotAccentColor)
-
-                            if draftTripAssumptionsTrailerTowModeEnabled {
-                                sliderSection(
-                                    title: "Trailer weight",
-                                    value: displayedDraftTripAssumptionsTrailerWeightBinding,
-                                    range: displayedTrailerWeightRange,
-                                    step: displayedTrailerWeightStep,
-                                    displayValue: weightUnits.formattedWeight(
-                                        MiniConsumptionDefaults.normalizedTrailerWeightKg(
-                                            draftTripAssumptionsTrailerWeightKg,
-                                            usesPounds: weightUnits == .pounds
-                                        )
-                                    ),
-                                    showsPrecisionButtons: true
-                                )
-
-                                Toggle("Boxy trailer / caravan", isOn: $draftTripAssumptionsBoxyTrailerEnabled)
-                                    .font(.subheadline.weight(.semibold))
-                                    .tint(rangePilotAccentColor)
-                            }
-
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Roof box")
-                                    .font(.subheadline.weight(.semibold))
-
-                                Picker("Roof box", selection: $draftTripAssumptionsRoofBoxMode) {
-                                    ForEach(RoofBoxMode.allCases) { mode in
-                                        Text(mode.label).tag(mode as RoofBoxMode)
-                                    }
-                                }
-                                .pickerStyle(.segmented)
-                            }
+                            .tint(.secondary)
                         }
                     }
                 }
@@ -3022,6 +3032,12 @@ struct ContentView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+
+    private func tripAssumptionSectionLabel(_ title: String, systemImage: String) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
     }
 
     private var settingsTab: some View {
@@ -3232,18 +3248,51 @@ struct ContentView: View {
 
     private var rangeRecenterButton: some View {
         Button {
-            rangeMapAutofitRequestID += 1
+            handleRangeMapLocationButton()
         } label: {
             Image(systemName: "location")
                 .font(.headline.weight(.semibold))
                 .frame(width: 42, height: 42)
         }
         .buttonStyle(.plain)
-        .disabled(rangeMapLocationProvider.coordinate == nil)
         .background(.thinMaterial, in: Circle())
         .foregroundStyle(.tint)
-        .opacity(rangeMapLocationProvider.coordinate == nil ? 0.45 : 1)
-        .accessibilityLabel("Recenter map")
+        .accessibilityLabel(rangeMapLocationButtonAccessibilityLabel)
+    }
+
+    private func handleRangeMapLocationButton() {
+        if rangeMapLocationProvider.coordinate != nil {
+            rangeMapAutofitRequestID += 1
+            return
+        }
+
+        switch rangeMapLocationProvider.authorizationStatus {
+        case .denied, .restricted:
+            openAppSettings()
+        default:
+            rangeMapLocationProvider.requestLocation()
+        }
+    }
+
+    private var rangeMapLocationButtonAccessibilityLabel: String {
+        if rangeMapLocationProvider.coordinate != nil {
+            return "Recenter map"
+        }
+
+        switch rangeMapLocationProvider.authorizationStatus {
+        case .denied, .restricted:
+            return "Open location settings"
+        default:
+            return "Request current location"
+        }
+    }
+
+    private func openAppSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+
+        UIApplication.shared.open(url)
     }
 
     private var rangeChargingThresholdToggle: some View {
@@ -4088,14 +4137,7 @@ struct ContentView: View {
                 .disabled(isTripAssistantInterpreting || tripAssistantDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
                 if hasTripEstimate {
-                    Button {
-                        presentTripAssumptionsEditor()
-                    } label: {
-                        Label("Adjust trip assumptions", systemImage: "slider.horizontal.3")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
+                    tripAssumptionsStatusBlock
                 }
 
                 if let tripAssistantMessage {
@@ -4105,6 +4147,41 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private var tripAssumptionsStatusBlock: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("Trip assumptions")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                if areTripAssumptionsAdjustedForCurrentTrip {
+                    Text("Adjusted for this trip")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Text("Using current Range settings for each new trip.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            Button {
+                presentTripAssumptionsEditor()
+            } label: {
+                Label("Adjust for this trip", systemImage: "slider.horizontal.3")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.tertiarySystemGroupedBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
     private var favoriteDestinationMenu: some View {
@@ -6987,6 +7064,11 @@ final class RangeMapLocationProvider: NSObject, ObservableObject, CLLocationMana
         handleAuthorizationStatus(manager.authorizationStatus)
     }
 
+    func requestLocation() {
+        didFailLocation = false
+        handleAuthorizationStatus(manager.authorizationStatus)
+    }
+
     nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         Task { @MainActor in
             handleAuthorizationStatus(manager.authorizationStatus)
@@ -9368,9 +9450,9 @@ private struct RangeDrivingConditionsControlsView: View {
 
             DisclosureGroup(isExpanded: $isDrivingConditionsExpanded) {
                 VStack(alignment: .leading, spacing: 12) {
-                    RangeWindSection(windCondition: $windCondition)
-
                     RangeRoadSurfaceSection(roadSurface: roadSurface)
+
+                    RangeWindSection(windCondition: $windCondition)
 
                     RangeAirConditioningSection(airConditioningMode: $airConditioningMode)
 
@@ -9640,9 +9722,6 @@ private struct RangeWindSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Wind")
-                .font(.subheadline.weight(.semibold))
-
             Picker("Wind", selection: $windCondition) {
                 ForEach(WindCondition.rangeOrderedCases) { condition in
                     Text(condition.label).tag(condition as WindCondition)
