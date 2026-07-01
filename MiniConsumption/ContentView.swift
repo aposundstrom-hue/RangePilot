@@ -279,6 +279,27 @@ private struct TripEstimateAssumptionsFingerprint: Equatable {
     let windCondition: WindCondition
     let planningMode: PlanningMode
     let arrivalBatteryTargetPercent: Double
+    let minimumChargingStopBatteryPercent: Double
+    let targetChargingStopBatteryPercent: Double
+    let trailerTowModeEnabled: Bool
+    let trailerWeightKg: Double
+    let boxyTrailerEnabled: Bool
+    let roofBoxMode: RoofBoxMode
+    let tyreSet: TyreSet
+    let rollingResistanceClass: RollingResistanceClass
+    let airConditioningMode: AirConditioningMode
+}
+
+private struct TripAssumptionsSnapshot: Equatable {
+    let startBatteryPercent: Double
+    let temperature: Double
+    let roadTypeProfile: RoadTypeProfile
+    let motorwaySpeed: Double
+    let roadSurface: RoadSurface
+    let windCondition: WindCondition
+    let arrivalBatteryTargetPercent: Double
+    let minimumChargingStopBatteryPercent: Double
+    let targetChargingStopBatteryPercent: Double
     let trailerTowModeEnabled: Bool
     let trailerWeightKg: Double
     let boxyTrailerEnabled: Bool
@@ -383,6 +404,14 @@ private struct VehicleProfileEditorDraft {
 private enum TripAssistantMessage {
     case text(String)
     case controlsUpdated(distanceKm: Double?, routeDistanceUnavailable: Bool, updatesAfterDistance: [String])
+
+    var isRouteSummary: Bool {
+        if case .controlsUpdated = self {
+            return true
+        }
+
+        return false
+    }
 
     func text(displayUnits: DisplayUnits) -> String {
         switch self {
@@ -538,6 +567,8 @@ struct ContentView: View {
     @State private var tripEstimateWindCondition = MiniConsumptionDefaults.windCondition
     @State private var tripEstimatePlanningMode = MiniConsumptionDefaults.planningMode
     @State private var tripEstimateArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
+    @State private var tripEstimateMinimumChargingStopBatteryPercent = ChargingWindow.defaultMinimumPercent
+    @State private var tripEstimateTargetChargingStopBatteryPercent = ChargingWindow.defaultTargetPercent
     @State private var tripEstimateTrailerTowModeEnabled = false
     @State private var tripEstimateTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
     @State private var tripEstimateBoxyTrailerEnabled = false
@@ -545,6 +576,7 @@ struct ContentView: View {
     @State private var tripEstimateTyreSet = MiniConsumptionDefaults.selectedTyreSet
     @State private var tripEstimateRollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
     @State private var tripEstimateAirConditioningMode = MiniConsumptionDefaults.airConditioningMode
+    @State private var tripAssumptionsBaseline: TripAssumptionsSnapshot?
     @State private var isTripDistanceMapDerived = false
     @State private var selectedAppTab: AppTab = .range
     @State private var selectedTripChargingOption: TripChargingOption = .userSettings
@@ -552,8 +584,9 @@ struct ContentView: View {
     @State private var isQuickTripChargingAssumptionsExpanded = false
     @State private var isTripChargingWindowAdjustmentPresented = false
     @State private var isTripArrivalReserveAdjustmentPresented = false
-    @State private var isTripAssumptionsDrivingConditionsExpanded = true
-    @State private var isTripAssumptionsVehicleExpanded = true
+    @State private var isTripAssumptionsChargingStopLevelsExpanded = false
+    @State private var isTripAssumptionsDrivingConditionsExpanded = false
+    @State private var isTripAssumptionsVehicleExpanded = false
     @State private var draftMinimumChargingPercent = ChargingWindow.defaultMinimumPercent
     @State private var draftFastChargeTargetPercent = ChargingWindow.defaultTargetPercent
     @State private var draftArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
@@ -564,6 +597,8 @@ struct ContentView: View {
     @State private var draftTripAssumptionsRoadSurface = MiniConsumptionDefaults.roadSurface
     @State private var draftTripAssumptionsWindCondition = MiniConsumptionDefaults.windCondition
     @State private var draftTripAssumptionsArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
+    @State private var draftTripAssumptionsMinimumChargingStopBatteryPercent = ChargingWindow.defaultMinimumPercent
+    @State private var draftTripAssumptionsTargetChargingStopBatteryPercent = ChargingWindow.defaultTargetPercent
     @State private var draftTripAssumptionsTrailerTowModeEnabled = false
     @State private var draftTripAssumptionsTrailerWeightKg = MiniConsumptionDefaults.trailerWeightKg
     @State private var draftTripAssumptionsBoxyTrailerEnabled = false
@@ -1002,6 +1037,8 @@ struct ContentView: View {
             windCondition: tripEstimateWindCondition,
             planningMode: tripEstimatePlanningMode,
             arrivalBatteryTargetPercent: tripEstimateArrivalBatteryTargetPercent,
+            minimumChargingStopBatteryPercent: tripEstimateMinimumChargingStopBatteryPercent,
+            targetChargingStopBatteryPercent: tripEstimateTargetChargingStopBatteryPercent,
             trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled,
             trailerWeightKg: tripEstimateTrailerWeightKg,
             boxyTrailerEnabled: tripEstimateBoxyTrailerEnabled,
@@ -1012,22 +1049,65 @@ struct ContentView: View {
         )
     }
 
+    private var currentTripAssumptionsSnapshot: TripAssumptionsSnapshot {
+        let trailerTowModeEnabled = tripEstimateTrailerTowModeEnabled
+
+        return TripAssumptionsSnapshot(
+            startBatteryPercent: min(max(tripEstimateStartBatteryPercent, 10), 100),
+            temperature: tripEstimateTemperature,
+            roadTypeProfile: tripEstimateRoadTypeProfile,
+            motorwaySpeed: MiniConsumptionDefaults.normalizedMotorwaySpeed(tripEstimateMotorwaySpeed),
+            roadSurface: tripEstimateRoadSurface.segmentedEquivalent,
+            windCondition: tripEstimateWindCondition,
+            arrivalBatteryTargetPercent: min(
+                max(tripEstimateArrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound),
+                ChargingWindow.arrivalBatteryTargetBounds.upperBound
+            ),
+            minimumChargingStopBatteryPercent: tripEstimateMinimumChargingStopBatteryPercentBinding.wrappedValue,
+            targetChargingStopBatteryPercent: tripEstimateTargetChargingStopBatteryPercentBinding.wrappedValue,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerTowModeEnabled
+                ? MiniConsumptionDefaults.normalizedTrailerWeightKg(tripEstimateTrailerWeightKg, usesPounds: weightUnits == .pounds)
+                : 0,
+            boxyTrailerEnabled: trailerTowModeEnabled ? tripEstimateBoxyTrailerEnabled : false,
+            roofBoxMode: tripEstimateRoofBoxMode,
+            tyreSet: tripEstimateTyreSet,
+            rollingResistanceClass: tripEstimateRollingResistanceClass,
+            airConditioningMode: tripEstimateAirConditioningMode
+        )
+    }
+
     private var areTripAssumptionsAdjustedForCurrentTrip: Bool {
-        abs(tripEstimateStartBatteryPercent - min(max(startBatteryPercent, 10), 100)) > 0.001
-            || abs(tripEstimateTemperature - temperature) > 0.001
-            || tripEstimateRoadTypeProfile != roadTypeProfile
-            || abs(tripEstimateMotorwaySpeed - MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed)) > 0.001
-            || tripEstimateRoadSurface != roadSurface.segmentedEquivalent
-            || tripEstimateWindCondition != windCondition
-            || tripEstimatePlanningMode != tripPlanningStrategy
-            || abs(tripEstimateArrivalBatteryTargetPercent - min(max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound), ChargingWindow.arrivalBatteryTargetBounds.upperBound)) > 0.001
-            || tripEstimateTrailerTowModeEnabled != trailerTowModeEnabled
-            || abs(tripEstimateTrailerWeightKg - MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds)) > 0.001
-            || tripEstimateBoxyTrailerEnabled != boxyTrailerEnabled
-            || tripEstimateRoofBoxMode != roofBoxMode
-            || tripEstimateTyreSet != activeSelectedTyreSet
-            || tripEstimateRollingResistanceClass != activeRollingResistanceClass
-            || tripEstimateAirConditioningMode != activeAirConditioningMode
+        guard let tripAssumptionsBaseline else {
+            return false
+        }
+
+        return hasTripAssumptionChanges(from: tripAssumptionsBaseline)
+    }
+
+    private func hasTripAssumptionChanges(from baseline: TripAssumptionsSnapshot) -> Bool {
+        let current = currentTripAssumptionsSnapshot
+
+        return differs(current.startBatteryPercent, baseline.startBatteryPercent)
+            || differs(current.temperature, baseline.temperature)
+            || current.roadTypeProfile != baseline.roadTypeProfile
+            || differs(current.motorwaySpeed, baseline.motorwaySpeed)
+            || current.roadSurface != baseline.roadSurface
+            || current.windCondition != baseline.windCondition
+            || differs(current.arrivalBatteryTargetPercent, baseline.arrivalBatteryTargetPercent)
+            || differs(current.minimumChargingStopBatteryPercent, baseline.minimumChargingStopBatteryPercent)
+            || differs(current.targetChargingStopBatteryPercent, baseline.targetChargingStopBatteryPercent)
+            || current.trailerTowModeEnabled != baseline.trailerTowModeEnabled
+            || differs(current.trailerWeightKg, baseline.trailerWeightKg)
+            || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled
+            || current.roofBoxMode != baseline.roofBoxMode
+            || current.tyreSet != baseline.tyreSet
+            || current.rollingResistanceClass != baseline.rollingResistanceClass
+            || current.airConditioningMode != baseline.airConditioningMode
+    }
+
+    private func differs(_ lhs: Double, _ rhs: Double) -> Bool {
+        abs(lhs - rhs) > 0.001
     }
 
     private var activeAverageChargingSpeedKW: Double {
@@ -1349,7 +1429,10 @@ struct ContentView: View {
     }
 
     private var tripPlanningChargingWindow: ChargingWindow {
-        normalChargingWindow
+        ChargingWindow(
+            minimumPercent: tripEstimateMinimumChargingStopBatteryPercentBinding.wrappedValue,
+            targetPercent: tripEstimateTargetChargingStopBatteryPercentBinding.wrappedValue
+        )
     }
 
     private var effectiveUsableBatteryKWh: Double {
@@ -1456,7 +1539,7 @@ struct ContentView: View {
             totalTripKWh: quickTripForecast.totalKWh,
             startBatteryPercent: startBatteryPercent,
             temperature: temperature,
-            chargingWindow: tripPlanningChargingWindow,
+            chargingWindow: normalChargingWindow,
             arrivalBatteryTargetPercent: arrivalBatteryTargetPercent,
             averageChargingSpeedKW: tripPlanningAverageChargingSpeedKW,
             chargingSetupMinutes: tripChargingSetupMinutes,
@@ -1675,7 +1758,7 @@ struct ContentView: View {
     private var quickTripChargingLegRangeKm: Double {
         MiniConsumptionCalculator.calculateChargingLegRange(
             expectedKWhPer100km: quickTripForecast.finalKWhPer100km,
-            chargingWindow: tripPlanningChargingWindow,
+            chargingWindow: normalChargingWindow,
             usableBatteryKWh: tripPlanningUsableBatteryKWh
         )
     }
@@ -1728,7 +1811,7 @@ struct ContentView: View {
             expectedDrivingTime: nil,
             expectedKWhPer100km: quickTripForecast.finalKWhPer100km,
             chargingLegRangeKm: quickTripChargingLegRangeKm,
-            chargingWindow: tripPlanningChargingWindow,
+            chargingWindow: normalChargingWindow,
             temperature: temperature,
             averageChargingSpeedKW: tripPlanningAverageChargingSpeedKW,
             chargingSetupMinutes: tripChargingSetupMinutes,
@@ -2010,6 +2093,130 @@ struct ContentView: View {
                     fallback: ChargingWindow.defaultMinimumPercent
                 )
                 draftFastChargeTargetPercent = max(clampedValue, minimum + 1)
+            }
+        )
+    }
+
+    private var tripEstimateMinimumChargingStopBatteryPercentBinding: Binding<Double> {
+        Binding(
+            get: {
+                let target = clampedFinite(
+                    tripEstimateTargetChargingStopBatteryPercent,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                let minimum = clampedFinite(
+                    tripEstimateMinimumChargingStopBatteryPercent,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                return min(minimum, target - 1)
+            },
+            set: { newValue in
+                let clampedValue = clampedFinite(
+                    newValue,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                let target = clampedFinite(
+                    tripEstimateTargetChargingStopBatteryPercent,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                tripEstimateMinimumChargingStopBatteryPercent = min(clampedValue, target - 1)
+            }
+        )
+    }
+
+    private var tripEstimateTargetChargingStopBatteryPercentBinding: Binding<Double> {
+        Binding(
+            get: {
+                let minimum = clampedFinite(
+                    tripEstimateMinimumChargingStopBatteryPercent,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                let target = clampedFinite(
+                    tripEstimateTargetChargingStopBatteryPercent,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                return max(target, minimum + 1)
+            },
+            set: { newValue in
+                let clampedValue = clampedFinite(
+                    newValue,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                let minimum = clampedFinite(
+                    tripEstimateMinimumChargingStopBatteryPercent,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                tripEstimateTargetChargingStopBatteryPercent = max(clampedValue, minimum + 1)
+            }
+        )
+    }
+
+    private var draftTripAssumptionsMinimumChargingStopBatteryPercentBinding: Binding<Double> {
+        Binding(
+            get: {
+                let target = clampedFinite(
+                    draftTripAssumptionsTargetChargingStopBatteryPercent,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                let minimum = clampedFinite(
+                    draftTripAssumptionsMinimumChargingStopBatteryPercent,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                return min(minimum, target - 1)
+            },
+            set: { newValue in
+                let clampedValue = clampedFinite(
+                    newValue,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                let target = clampedFinite(
+                    draftTripAssumptionsTargetChargingStopBatteryPercent,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                draftTripAssumptionsMinimumChargingStopBatteryPercent = min(clampedValue, target - 1)
+            }
+        )
+    }
+
+    private var draftTripAssumptionsTargetChargingStopBatteryPercentBinding: Binding<Double> {
+        Binding(
+            get: {
+                let minimum = clampedFinite(
+                    draftTripAssumptionsMinimumChargingStopBatteryPercent,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                let target = clampedFinite(
+                    draftTripAssumptionsTargetChargingStopBatteryPercent,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                return max(target, minimum + 1)
+            },
+            set: { newValue in
+                let clampedValue = clampedFinite(
+                    newValue,
+                    in: ChargingWindow.targetBounds,
+                    fallback: ChargingWindow.defaultTargetPercent
+                )
+                let minimum = clampedFinite(
+                    draftTripAssumptionsMinimumChargingStopBatteryPercent,
+                    in: ChargingWindow.minimumBounds,
+                    fallback: ChargingWindow.defaultMinimumPercent
+                )
+                draftTripAssumptionsTargetChargingStopBatteryPercent = max(clampedValue, minimum + 1)
             }
         )
     }
@@ -2717,11 +2924,6 @@ struct ContentView: View {
         .onChange(of: displayUnits) {
             resetTripOutcomeInput()
         }
-        .onChange(of: selectedAppTab) { oldValue, newValue in
-            if oldValue == .trip, newValue != .trip {
-                clearActiveTripSearch()
-            }
-        }
         .onChange(of: tripEstimateAssumptionsFingerprint) {
             resetTransientAlternativeTripPlanSelection()
         }
@@ -2898,28 +3100,6 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     card {
                         VStack(alignment: .leading, spacing: 16) {
-                            tripAssumptionSectionLabel("Battery", systemImage: "battery.100percent")
-
-                            RangeSliderSection(
-                                title: "Starting battery",
-                                value: draftTripAssumptionsStartBatteryPercentBinding,
-                                range: 10...100,
-                                step: 1,
-                                displayValue: "\(rounded(draftTripAssumptionsStartBatteryPercentBinding.wrappedValue))%"
-                            )
-
-                            RangeSliderSection(
-                                title: "Arrival target",
-                                value: draftTripAssumptionsArrivalBatteryTargetPercentBinding,
-                                range: ChargingWindow.arrivalBatteryTargetBounds,
-                                step: 1,
-                                displayValue: "\(rounded(draftTripAssumptionsArrivalBatteryTargetPercentBinding.wrappedValue))%"
-                            )
-
-                            Divider()
-
-                            tripAssumptionSectionLabel("Driving", systemImage: "car.side")
-
                             RangeRouteTypeSection(roadTypeProfile: $draftTripAssumptionsRoadTypeProfile)
 
                             RangeSliderSection(
@@ -2939,6 +3119,14 @@ struct ContentView: View {
                             )
                             .disabled(draftTripAssumptionsRoadTypeProfile.motorwaySpeedScalingFactor == 0)
                             .opacity(draftTripAssumptionsRoadTypeProfile.motorwaySpeedScalingFactor == 0 ? 0.45 : 1)
+
+                            RangeSliderSection(
+                                title: "Starting battery",
+                                value: draftTripAssumptionsStartBatteryPercentBinding,
+                                range: 10...100,
+                                step: 1,
+                                displayValue: "\(rounded(draftTripAssumptionsStartBatteryPercentBinding.wrappedValue))%"
+                            )
 
                             Divider()
 
@@ -2960,35 +3148,6 @@ struct ContentView: View {
 
                             DisclosureGroup(isExpanded: $isTripAssumptionsVehicleExpanded) {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Tyre set")
-                                            .font(.subheadline.weight(.semibold))
-
-                                        Picker("Tyre set", selection: $draftTripAssumptionsTyreSet) {
-                                            ForEach(TyreSet.allCases) { tyreSet in
-                                                Text(tyreSet.label).tag(tyreSet as TyreSet)
-                                            }
-                                        }
-                                        .pickerStyle(.segmented)
-                                        .onChange(of: draftTripAssumptionsTyreSet) { _, newValue in
-                                            draftTripAssumptionsRollingResistanceClass = newValue == .summer
-                                                ? activeSummerTyreClass
-                                                : activeWinterTyreClass
-                                        }
-                                    }
-
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Rolling resistance")
-                                            .font(.subheadline.weight(.semibold))
-
-                                        Picker("Rolling resistance", selection: $draftTripAssumptionsRollingResistanceClass) {
-                                            ForEach(RollingResistanceClass.rangeOrderedCases) { tyreClass in
-                                                Text(tyreClass.label).tag(tyreClass as RollingResistanceClass)
-                                            }
-                                        }
-                                        .pickerStyle(.segmented)
-                                    }
-
                                     RangeTrailerTowSection(
                                         isEnabled: $draftTripAssumptionsTrailerTowModeEnabled,
                                         weightKg: displayedDraftTripAssumptionsTrailerWeightBinding,
@@ -3007,6 +3166,40 @@ struct ContentView: View {
                                 .padding(.top, 8)
                             } label: {
                                 tripAssumptionSectionLabel("Vehicle", systemImage: "shippingbox")
+                            }
+                            .tint(.secondary)
+
+                            Divider()
+
+                            DisclosureGroup(isExpanded: $isTripAssumptionsChargingStopLevelsExpanded) {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    RangeSliderSection(
+                                        title: "Arrival target",
+                                        value: draftTripAssumptionsArrivalBatteryTargetPercentBinding,
+                                        range: ChargingWindow.arrivalBatteryTargetBounds,
+                                        step: 1,
+                                        displayValue: "\(rounded(draftTripAssumptionsArrivalBatteryTargetPercentBinding.wrappedValue))%"
+                                    )
+
+                                    RangeSliderSection(
+                                        title: "Minimum charge at stop",
+                                        value: draftTripAssumptionsMinimumChargingStopBatteryPercentBinding,
+                                        range: ChargingWindow.minimumBounds,
+                                        step: 1,
+                                        displayValue: "\(rounded(draftTripAssumptionsMinimumChargingStopBatteryPercentBinding.wrappedValue))%"
+                                    )
+
+                                    RangeSliderSection(
+                                        title: "Target charge after stop",
+                                        value: draftTripAssumptionsTargetChargingStopBatteryPercentBinding,
+                                        range: ChargingWindow.targetBounds,
+                                        step: 1,
+                                        displayValue: "\(rounded(draftTripAssumptionsTargetChargingStopBatteryPercentBinding.wrappedValue))%"
+                                    )
+                                }
+                                .padding(.top, 8)
+                            } label: {
+                                tripAssumptionSectionLabel("Charging", systemImage: "bolt.batteryblock")
                             }
                             .tint(.secondary)
                         }
@@ -4136,11 +4329,7 @@ struct ContentView: View {
                 .tint(rangePilotAccentColor)
                 .disabled(isTripAssistantInterpreting || tripAssistantDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-                if hasTripEstimate {
-                    tripAssumptionsStatusBlock
-                }
-
-                if let tripAssistantMessage {
+                if let tripAssistantMessage, tripAssistantMessage.isRouteSummary == false {
                     Text(tripAssistantMessage.text(displayUnits: displayUnits))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
@@ -4149,39 +4338,134 @@ struct ContentView: View {
         }
     }
 
-    private var tripAssumptionsStatusBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("Trip assumptions")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-
-                if areTripAssumptionsAdjustedForCurrentTrip {
-                    Text("Adjusted for this trip")
-                        .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Text("Using current Range settings for each new trip.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-
+    private var tripAssumptionsCompactRow: some View {
+        HStack(spacing: 8) {
             Button {
                 presentTripAssumptionsEditor()
             } label: {
-                Label("Adjust for this trip", systemImage: "slider.horizontal.3")
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 10) {
+                    Text("Trip assumptions")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+
+                    Spacer()
+
+                    Text(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Range settings")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    if areTripAssumptionsAdjustedForCurrentTrip {
+                        tripAssumptionChangeIndicators
+                    }
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
+            .buttonStyle(.plain)
+            .accessibilityLabel("Trip assumptions")
+            .accessibilityValue(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Range settings")
+            .accessibilityHint("Opens trip assumptions for this trip")
+
+            if areTripAssumptionsAdjustedForCurrentTrip {
+                Button("Reset") {
+                    resetTripAssumptionsToCurrentRangeSettings()
+                }
+                .font(.caption.weight(.semibold))
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .accessibilityLabel("Reset to Range settings")
+            }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.tertiarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    private var tripRouteSummaryText: String {
+        var parts = [
+            displayUnits.formattedDistance(tripEstimateDistance),
+            tripEstimateRoadTypeProfile.label.lowercased()
+        ]
+
+        if tripEstimateRoadTypeProfile.motorwaySpeedScalingFactor != 0 {
+            parts.append(formattedMotorwaySpeed(tripEstimateMotorwaySpeed))
+        }
+
+        return parts.joined(separator: " · ")
+    }
+
+    @ViewBuilder
+    private var tripAssumptionChangeIndicators: some View {
+        if let baseline = tripAssumptionsBaseline {
+            let current = currentTripAssumptionsSnapshot
+
+            HStack(spacing: 5) {
+                if differs(current.startBatteryPercent, baseline.startBatteryPercent) {
+                    RangeDisclosureSummaryIcon(systemName: "battery.100percent", accessibilityLabel: "Starting battery changed")
+                }
+
+                if differs(current.arrivalBatteryTargetPercent, baseline.arrivalBatteryTargetPercent) {
+                    RangeDisclosureSummaryIcon(systemName: "flag.checkered", accessibilityLabel: "Arrival target changed")
+                }
+
+                if differs(current.minimumChargingStopBatteryPercent, baseline.minimumChargingStopBatteryPercent)
+                    || differs(current.targetChargingStopBatteryPercent, baseline.targetChargingStopBatteryPercent) {
+                    RangeDisclosureSummaryIcon(systemName: "bolt.batteryblock", accessibilityLabel: "Charging stop levels changed")
+                }
+
+                if differs(current.temperature, baseline.temperature) {
+                    RangeDisclosureSummaryIcon(systemName: "thermometer.medium", accessibilityLabel: "Temperature changed")
+                }
+
+                if current.roadTypeProfile != baseline.roadTypeProfile {
+                    RangeDisclosureSummaryIcon(systemName: "road.lanes", accessibilityLabel: "Driving mix changed")
+                }
+
+                if current.roadSurface != baseline.roadSurface {
+                    tripRoadSurfaceChangeIndicator(for: current.roadSurface)
+                }
+
+                if current.windCondition != baseline.windCondition {
+                    RangeDisclosureSummaryIcon(systemName: "wind", accessibilityLabel: "Wind changed")
+                }
+
+                if differs(current.motorwaySpeed, baseline.motorwaySpeed) {
+                    RangeDisclosureSummaryChip(text: formattedMotorwaySpeed(current.motorwaySpeed))
+                }
+
+                if current.trailerTowModeEnabled != baseline.trailerTowModeEnabled
+                    || differs(current.trailerWeightKg, baseline.trailerWeightKg)
+                    || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled {
+                    RangeTrailerSummaryIcon()
+                        .accessibilityLabel("Trailer or tow changed")
+                }
+
+                if current.roofBoxMode != baseline.roofBoxMode {
+                    RangeDisclosureSummaryIcon(systemName: "shippingbox", accessibilityLabel: "Roof box changed")
+                }
+
+                if current.tyreSet != baseline.tyreSet
+                    || current.rollingResistanceClass != baseline.rollingResistanceClass {
+                    RangeDisclosureSummaryChip(text: "Tyres")
+                }
+
+                if current.airConditioningMode != baseline.airConditioningMode {
+                    RangeDisclosureSummaryIcon(systemName: "fan", accessibilityLabel: "Air conditioning changed")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tripRoadSurfaceChangeIndicator(for surface: RoadSurface) -> some View {
+        switch surface.segmentedEquivalent {
+        case .wet:
+            RangeDisclosureSummaryIcon(systemName: "cloud.rain", accessibilityLabel: "Road condition changed")
+        case .snowSlush:
+            RangeDisclosureSummaryIcon(systemName: "snowflake", accessibilityLabel: "Road condition changed")
+        default:
+            RangeDisclosureSummaryChip(text: surface.label)
+        }
     }
 
     private var favoriteDestinationMenu: some View {
@@ -4288,7 +4572,7 @@ struct ContentView: View {
     }
 
     private var tripResultCard: some View {
-        card(title: "Route and charging", footnote: "Preview, assumptions, and charging estimate.") {
+        card {
             VStack(alignment: .leading, spacing: 16) {
 #if canImport(MapKit)
                 if let tripAssistantRoute,
@@ -4296,6 +4580,7 @@ struct ContentView: View {
                     TripRoutePreviewView(
                         route: tripAssistantRoute,
                         routePolyline: tripAssistantRouteEstimate?.polyline,
+                        summaryText: tripRouteSummaryText,
                         needsCharging: batteryPlan.needsCharging,
                         selectedPlan: selectedTripChargingOptionPlan,
                         onPlanRouteToCoordinate: { coordinate, destinationLabel in
@@ -4313,6 +4598,8 @@ struct ContentView: View {
                 if isCustomVehicleProfileSelected {
                     experimentalTripVehicleProfileRow
                 }
+
+                tripAssumptionsCompactRow
 
                 TripChargingSummaryView(
                     presentation: tripChargingPresentation,
@@ -4443,6 +4730,8 @@ struct ContentView: View {
         draftTripAssumptionsMotorwaySpeed = tripEstimateMotorwaySpeedBinding.wrappedValue
         draftTripAssumptionsRoadSurface = tripEstimateRoadSurface
         draftTripAssumptionsWindCondition = tripEstimateWindCondition
+        draftTripAssumptionsMinimumChargingStopBatteryPercent = tripEstimateMinimumChargingStopBatteryPercentBinding.wrappedValue
+        draftTripAssumptionsTargetChargingStopBatteryPercent = tripEstimateTargetChargingStopBatteryPercentBinding.wrappedValue
         draftTripAssumptionsTrailerTowModeEnabled = tripEstimateTrailerTowModeEnabled
         draftTripAssumptionsTrailerWeightKg = tripEstimateTrailerWeightKg
         draftTripAssumptionsBoxyTrailerEnabled = tripEstimateBoxyTrailerEnabled
@@ -4450,6 +4739,9 @@ struct ContentView: View {
         draftTripAssumptionsTyreSet = tripEstimateTyreSet
         draftTripAssumptionsRollingResistanceClass = tripEstimateRollingResistanceClass
         draftTripAssumptionsAirConditioningMode = tripEstimateAirConditioningMode
+        isTripAssumptionsChargingStopLevelsExpanded = false
+        isTripAssumptionsDrivingConditionsExpanded = false
+        isTripAssumptionsVehicleExpanded = false
         isTripAssumptionsEditorPresented = true
     }
 
@@ -4465,6 +4757,8 @@ struct ContentView: View {
         tripEstimateMotorwaySpeed = draftTripAssumptionsMotorwaySpeedBinding.wrappedValue
         tripEstimateRoadSurface = draftTripAssumptionsRoadSurface
         tripEstimateWindCondition = draftTripAssumptionsWindCondition
+        tripEstimateMinimumChargingStopBatteryPercent = draftTripAssumptionsMinimumChargingStopBatteryPercentBinding.wrappedValue
+        tripEstimateTargetChargingStopBatteryPercent = draftTripAssumptionsTargetChargingStopBatteryPercentBinding.wrappedValue
         tripEstimateTrailerTowModeEnabled = draftTripAssumptionsTrailerTowModeEnabled
         tripEstimateTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(
             draftTripAssumptionsTrailerWeightKg,
@@ -5842,11 +6136,20 @@ struct ContentView: View {
     }
 
     private func refreshTripEstimateAssumptionsIfNeeded() {
-        guard hasTripRoutePlanningResult == false else {
+        initializeTripEstimateAssumptionsIfNeeded()
+    }
+
+    private func initializeTripEstimateAssumptionsIfNeeded() {
+        guard tripAssumptionsBaseline == nil else {
             return
         }
 
-        resetTripEstimateAssumptionsFromCurrentSettings()
+        resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: true)
+    }
+
+    private func resetTripAssumptionsToCurrentRangeSettings() {
+        resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: false)
+        selectedTripChargingOption = .userSettings
     }
 
 #if canImport(CoreLocation) && canImport(MapKit)
@@ -5869,8 +6172,9 @@ struct ContentView: View {
             planningMode: nil
         )
 
+        let preservesExistingTripAssumptions = tripAssumptionsBaseline != nil
         selectedAppTab = .trip
-        resetTripEstimateAssumptionsFromCurrentSettings()
+        initializeTripEstimateAssumptionsIfNeeded()
         tripAssistantSearchGeneration += 1
         let searchGeneration = tripAssistantSearchGeneration
         tripAssistantDescription = destinationLabel
@@ -5903,7 +6207,7 @@ struct ContentView: View {
                     input,
                     routeEstimate: routeEstimate,
                     fallbackDistanceKm: nil,
-                    preservesCurrentTripAssumptions: false
+                    preservesCurrentTripAssumptions: preservesExistingTripAssumptions
                 )
                 isTripAssistantRouteLookupPending = false
                 tripAssistantMessage = tripAssistantSummary(
@@ -5922,9 +6226,8 @@ struct ContentView: View {
         fallbackDistanceKm: Double?,
         preservesCurrentTripAssumptions: Bool
     ) {
-        if preservesCurrentTripAssumptions == false || hasTripEstimate == false {
-            resetTripEstimateAssumptionsFromCurrentSettings()
-        }
+        let preservesExistingTripAssumptions = preservesCurrentTripAssumptions || tripAssumptionsBaseline != nil
+        initializeTripEstimateAssumptionsIfNeeded()
 
         tripAssistantSearchGeneration += 1
         let searchGeneration = tripAssistantSearchGeneration
@@ -5965,7 +6268,7 @@ struct ContentView: View {
                     input,
                     routeEstimate: routeEstimate,
                     fallbackDistanceKm: fallbackDistanceKm,
-                    preservesCurrentTripAssumptions: preservesCurrentTripAssumptions
+                    preservesCurrentTripAssumptions: preservesExistingTripAssumptions
                 )
                 isTripAssistantInterpreting = false
                 isTripAssistantRouteLookupPending = false
@@ -6001,11 +6304,13 @@ struct ContentView: View {
         isTripAssistantDescriptionFocused = false
         isTripAssumptionsEditorPresented = false
         selectedTripChargingOption = .userSettings
-        resetTripEstimateAssumptionsFromCurrentSettings()
+        initializeTripEstimateAssumptionsIfNeeded()
     }
 
-    private func resetTripEstimateAssumptionsFromCurrentSettings() {
-        tripEstimateDistance = min(max(distance, 1), 1000)
+    private func resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: Bool) {
+        if resetDistance {
+            tripEstimateDistance = min(max(distance, 1), 1000)
+        }
         tripEstimateStartBatteryPercent = min(max(startBatteryPercent, 10), 100)
         tripEstimateTemperature = temperature
         tripEstimateRoadTypeProfile = roadTypeProfile
@@ -6024,7 +6329,12 @@ struct ContentView: View {
             max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound),
             ChargingWindow.arrivalBatteryTargetBounds.upperBound
         )
-        isTripDistanceMapDerived = false
+        tripEstimateMinimumChargingStopBatteryPercent = activeNormalMinimumChargingPercent
+        tripEstimateTargetChargingStopBatteryPercent = activeNormalFastChargeTargetPercent
+        if resetDistance {
+            isTripDistanceMapDerived = false
+        }
+        tripAssumptionsBaseline = currentTripAssumptionsSnapshot
     }
 
     private func applyTripAssistantInput(
@@ -6111,7 +6421,10 @@ struct ContentView: View {
                 max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound),
                 ChargingWindow.arrivalBatteryTargetBounds.upperBound
             )
+            tripEstimateMinimumChargingStopBatteryPercent = activeNormalMinimumChargingPercent
+            tripEstimateTargetChargingStopBatteryPercent = activeNormalFastChargeTargetPercent
             hasTripEstimate = true
+            tripAssumptionsBaseline = currentTripAssumptionsSnapshot
 
             return roadTypeSelection
         }
@@ -6669,6 +6982,7 @@ struct ContentView: View {
 private struct TripRoutePreviewView: View {
     let route: TripRouteDescription
     let routePolyline: MKPolyline?
+    let summaryText: String?
     let needsCharging: Bool
     let selectedPlan: TripChargingOptionPlan?
     let onPlanRouteToCoordinate: (CLLocationCoordinate2D, String) -> Void
@@ -6685,6 +6999,7 @@ private struct TripRoutePreviewView: View {
     init(
         route: TripRouteDescription,
         routePolyline: MKPolyline?,
+        summaryText: String?,
         needsCharging: Bool,
         selectedPlan: TripChargingOptionPlan?,
         onPlanRouteToCoordinate: @escaping (CLLocationCoordinate2D, String) -> Void,
@@ -6692,6 +7007,7 @@ private struct TripRoutePreviewView: View {
     ) {
         self.route = route
         self.routePolyline = routePolyline
+        self.summaryText = summaryText
         self.needsCharging = needsCharging
         self.selectedPlan = selectedPlan
         self.onPlanRouteToCoordinate = onPlanRouteToCoordinate
@@ -6775,6 +7091,12 @@ private struct TripRoutePreviewView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Route preview", systemImage: "map")
                 .font(.subheadline.weight(.semibold))
+
+            if let summaryText, !summaryText.isEmpty {
+                Text(summaryText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             if hasRenderableRoute {
                 routeMap
