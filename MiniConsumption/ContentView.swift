@@ -499,6 +499,7 @@ struct ContentView: View {
     @AppStorage("weightUnits") private var weightUnits = WeightUnits.kilograms
     @AppStorage("rangeDisplayMode") private var rangeDisplayMode = RangeDisplayMode.gauge
     @AppStorage("showRangeMapChargingThresholdCircle") private var showRangeMapChargingThresholdCircle = true
+    @AppStorage("rangeMapReturnTripEnabled") private var rangeMapReturnTripEnabled = false
     @AppStorage("hasSeenWelcomePopup") private var hasSeenWelcomePopup = false
     @AppStorage("hasSeenLogActualConsumptionInfo") private var hasSeenLogActualConsumptionInfo = false
     @AppStorage("hasSeenTripPlanningInputInfo") private var hasSeenTripPlanningInputInfo = false
@@ -3367,6 +3368,7 @@ struct ContentView: View {
             autofitRequestID: rangeMapAutofitRequestID,
             minimumFastChargingStopBatteryPercent: activeNormalMinimumChargingPercent,
             showsChargingThresholdCircle: showRangeMapChargingThresholdCircle,
+            showsReturnTripRange: rangeMapReturnTripEnabled,
             batteryPercent: $startBatteryPercent,
             onPlanRouteToDestination: { coordinate in
                 planTripToSelectedMapCoordinate(coordinate)
@@ -3392,7 +3394,10 @@ struct ContentView: View {
                 .padding(12)
         }
         .overlay(alignment: .bottomLeading) {
-            rangeChargingThresholdToggle
+            HStack(spacing: 8) {
+                rangeReturnTripToggle
+                rangeChargingThresholdToggle
+            }
                 .padding(12)
         }
         .background(Color(.secondarySystemGroupedBackground))
@@ -3508,6 +3513,23 @@ struct ContentView: View {
             } message: {
                 Text(rangeChargingReserveInfoText)
             }
+    }
+
+    private var rangeReturnTripToggle: some View {
+        Button {
+            rangeMapReturnTripEnabled.toggle()
+        } label: {
+            Image(systemName: rangeMapReturnTripEnabled ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.triangle.2.circlepath.circle")
+                .font(.headline.weight(.semibold))
+                .frame(width: 34, height: 34)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .background(.thinMaterial, in: Circle())
+        .foregroundStyle(rangeMapReturnTripEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.secondary.opacity(0.65)))
+        .accessibilityLabel("Return trip range")
+        .accessibilityValue(rangeMapReturnTripEnabled ? "Shown" : "Hidden")
+        .accessibilityHint("Shows the distance you can travel and return without charging while keeping the full one-way range as a reference.")
     }
 
     private var rangeChargingReserveGesture: some Gesture {
@@ -6597,6 +6619,8 @@ struct ContentView: View {
         displayUnits = .metric
         temperatureUnits = .celsius
         weightUnits = .kilograms
+        rangeMapReturnTripEnabled = false
+        showRangeMapChargingThresholdCircle = true
         experimentalCustomVehicleProfileEnabled = false
         VehicleProfileStore.setSelectedProfileID(VehicleProfileResolver.builtInMiniProfileID)
         selectedVehicleProfileID = VehicleProfileResolver.builtInMiniProfileID
@@ -7451,6 +7475,7 @@ struct RangeMapView: View {
     let autofitRequestID: Int
     let minimumFastChargingStopBatteryPercent: Double
     let showsChargingThresholdCircle: Bool
+    let showsReturnTripRange: Bool
     @Binding var batteryPercent: Double
     let onPlanRouteToDestination: (CLLocationCoordinate2D) -> Void
     let onSearchChargersNearby: (CLLocationCoordinate2D) -> Void
@@ -7475,8 +7500,12 @@ struct RangeMapView: View {
         return "\(coordinate.latitude),\(coordinate.longitude)"
     }
 
-    private var rangeRadiusMeters: CLLocationDistance {
+    private var fullRangeRadiusMeters: CLLocationDistance {
         max(0, estimatedRangeKm * rangeMapRadiusCorrectionFactor) * 1_000
+    }
+
+    private var primaryRangeRadiusMeters: CLLocationDistance {
+        fullRangeRadiusMeters * (showsReturnTripRange ? 0.5 : 1)
     }
 
     private var chargingThresholdRadiusMeters: CLLocationDistance? {
@@ -7485,12 +7514,15 @@ struct RangeMapView: View {
             return nil
         }
 
-        let practicalRangeKm = estimatedRangeKm * (1 - minimumFastChargingStopBatteryPercent / batteryPercent)
+        let returnTripFactor = showsReturnTripRange ? 0.5 : 1
+        let practicalRangeKm = estimatedRangeKm
+            * (1 - minimumFastChargingStopBatteryPercent / batteryPercent)
+            * returnTripFactor
         return max(0, practicalRangeKm * rangeMapRadiusCorrectionFactor) * 1_000
     }
 
     private var rangeHaloRadiusMeters: CLLocationDistance {
-        rangeRadiusMeters * 1.02
+        primaryRangeRadiusMeters * 1.02
     }
 
     private var cameraFitRadiusMeters: CLLocationDistance {
@@ -7502,14 +7534,14 @@ struct RangeMapView: View {
         thresholdRadiusMeters: CLLocationDistance
     ) -> MKPolygon? {
         guard thresholdRadiusMeters > 0,
-              thresholdRadiusMeters < rangeRadiusMeters else {
+              thresholdRadiusMeters < primaryRangeRadiusMeters else {
             return nil
         }
 
         return Self.circularBandPolygon(
             center: coordinate,
             innerRadiusMeters: thresholdRadiusMeters,
-            outerRadiusMeters: rangeRadiusMeters
+            outerRadiusMeters: primaryRangeRadiusMeters
         )
     }
 
@@ -7518,10 +7550,16 @@ struct RangeMapView: View {
             if let coordinate = locationProvider.coordinate, Self.isValid(coordinate) {
                 MapReader { mapProxy in
                     Map(position: $mapPosition, interactionModes: [.pan, .zoom]) {
+                        if showsReturnTripRange {
+                            MapCircle(center: coordinate, radius: fullRangeRadiusMeters)
+                                .foregroundStyle(rangePilotAccentColor.opacity(0.035))
+                                .stroke(rangePilotAccentColor.opacity(0.14), lineWidth: 1.25)
+                        }
+
                         MapCircle(center: coordinate, radius: rangeHaloRadiusMeters)
                             .foregroundStyle(rangePilotAccentColor.opacity(0.13))
 
-                        MapCircle(center: coordinate, radius: rangeRadiusMeters)
+                        MapCircle(center: coordinate, radius: primaryRangeRadiusMeters)
                             .foregroundStyle(rangePilotAccentColor.opacity(0.11))
                             .stroke(rangePilotAccentColor.opacity(0.30), lineWidth: 2)
 
