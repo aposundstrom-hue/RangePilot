@@ -624,7 +624,7 @@ struct ContentView: View {
                 )
             )
             let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-                referenceConsumption: experimentalForecastReferenceConsumption(for: calibrationCorrection),
+                referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
                 distance: tripEstimateDistance,
                 temperature: tripEstimateTemperature,
                 roadTypeProfile: tripEstimateRoadTypeProfile,
@@ -658,7 +658,7 @@ struct ContentView: View {
             )
         )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: calibratedForecastReferenceConsumption(for: calibrationCorrection),
+            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
             distance: tripEstimateDistance,
             temperature: tripEstimateTemperature,
             roadTypeProfile: tripEstimateRoadTypeProfile,
@@ -728,10 +728,6 @@ struct ContentView: View {
         positiveFinite(activeVehicleProfile.profile.wltpRangeKm, fallback: 234)
     }
 
-    private var experimentalReferenceConsumptionKWhPer100Km: Double {
-        (sanitizedExperimentalUsableBatteryCapacityKWh / degradedModelWLTPRangeKm(for: activeVehicleProfile.profile) * 100) * 1.04
-    }
-
     private var tripPlanningUsableBatteryKWh: Double {
         positiveFinite(
             activeVehicleProfile.profile.usableBatteryKWh,
@@ -758,7 +754,7 @@ struct ContentView: View {
 
         let calibrationCorrection = activeCalibrationCorrection
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: experimentalForecastReferenceConsumption(for: calibrationCorrection),
+            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
             distance: distance,
             temperature: temperature,
             roadTypeProfile: roadTypeProfile,
@@ -804,7 +800,7 @@ struct ContentView: View {
     ) -> ForecastResult {
         let calibrationCorrection = activeCalibrationCorrection
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: calibratedForecastReferenceConsumption(for: calibrationCorrection),
+            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
             distance: distanceKm,
             temperature: temperature,
             roadTypeProfile: roadTypeProfile,
@@ -845,7 +841,7 @@ struct ContentView: View {
                 )
             )
             let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-                referenceConsumption: experimentalForecastReferenceConsumption(for: calibrationCorrection),
+                referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
                 distance: distance,
                 temperature: outcomeTemperature,
                 roadTypeProfile: outcomeRoadTypeProfile,
@@ -879,7 +875,7 @@ struct ContentView: View {
             )
         )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: calibratedForecastReferenceConsumption(for: calibrationCorrection),
+            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
             distance: distance,
             temperature: outcomeTemperature,
             roadTypeProfile: outcomeRoadTypeProfile,
@@ -1402,41 +1398,21 @@ struct ContentView: View {
     }
 
     private var effectiveReferenceConsumption: Double {
-        if isCustomVehicleProfileSelected {
-            if activeUseContinuousCalibration, activeCalibrationCorrection.canApply {
-                return activeVehicleProfileDefaultReferenceConsumption
-                    * MiniConsumptionCalculator.calibrationSafetyMultiplier
-                    * activeCalibrationCorrection.totalFactor
-            }
-
-            return activeVehicleProfileManualReferenceConsumption
-        }
-
-        if activeUseContinuousCalibration, activeCalibrationCorrection.canApply {
-            return MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
-                * activeCalibrationCorrection.totalFactor
-                * MiniConsumptionCalculator.calibrationSafetyMultiplier
-        }
-
-        return referenceConsumption
+        ReferenceConsumptionResolver.effectiveReference(
+            profileDefault: activeVehicleProfileDefaultReferenceConsumption,
+            manualReference: activeVehicleProfileManualReferenceConsumption,
+            automaticCalibrationFactor: activeUseContinuousCalibration && activeCalibrationCorrection.canApply
+                ? activeCalibrationCorrection.totalFactor
+                : nil
+        )
     }
 
-    private func calibratedForecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
-        guard activeUseContinuousCalibration, correction.canApply else {
-            return referenceConsumption
-        }
-
-        return MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
-            * MiniConsumptionCalculator.calibrationSafetyMultiplier
-    }
-
-    private func experimentalForecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
-        guard activeUseContinuousCalibration, correction.canApply else {
-            return activeVehicleProfileManualReferenceConsumption
-        }
-
-        return activeVehicleProfileDefaultReferenceConsumption
-            * MiniConsumptionCalculator.calibrationSafetyMultiplier
+    private func forecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
+        ReferenceConsumptionResolver.forecastBaseline(
+            profileDefault: activeVehicleProfileDefaultReferenceConsumption,
+            manualReference: activeVehicleProfileManualReferenceConsumption,
+            automaticCalibrationCanApply: activeUseContinuousCalibration && correction.canApply
+        )
     }
 
     private var batteryPlan: BatteryPlan {
@@ -1469,7 +1445,7 @@ struct ContentView: View {
 
         let calibrationCorrection = activeCalibrationCorrection
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: experimentalForecastReferenceConsumption(for: calibrationCorrection),
+            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
             distance: normalizedQuickTripDistance,
             temperature: temperature,
             roadTypeProfile: roadTypeProfile,
@@ -2242,41 +2218,21 @@ struct ContentView: View {
     }
 
     private func activeVehicleProfileDefaultReferenceConsumption(for profile: VehicleProfile) -> Double {
-        guard profile.kind == .custom else {
-            return defaultReferenceConsumptionKWhPer100Km
-        }
-
-        let usableBatteryKWh = positiveFinite(
-            profile.usableBatteryKWh,
-            fallback: VehicleProfileResolver.defaultCustomUsableBatteryCapacityKWh
-        )
-        let wltpRangeKm = positiveFinite(
-            profile.wltpRangeKm,
-            fallback: VehicleProfileResolver.defaultCustomWLTPRangeKm
-        )
-        let modelWLTPRangeKm = degradedModelWLTPRangeKm(for: profile, nominalWLTPRangeKm: wltpRangeKm)
-        return (usableBatteryKWh / modelWLTPRangeKm * 100) * 1.04
+        ReferenceConsumptionResolver.profileDerivedDefault(for: profile)
     }
 
     private func manualReferenceConsumption(for profile: VehicleProfile) -> Double {
-        let defaultValue = activeVehicleProfileDefaultReferenceConsumption(for: profile)
-
-        guard profile.kind == .custom else {
-            return clampedFinite(
-                referenceConsumption,
-                in: 9.5...20,
-                fallback: defaultValue
+        ReferenceConsumptionResolver.manualReference(
+            for: profile,
+            overrides: referenceConsumptionOverridesByProfileID,
+            legacyBuiltInValue: UserDefaults.standard.object(forKey: "referenceConsumption") == nil
+                ? nil
+                : referenceConsumption,
+            legacyFallbackSuppressedProfileIDs: Set(
+                UserDefaults.standard.stringArray(
+                    forKey: ReferenceConsumptionResolver.legacyFallbackSuppressedProfileIDsKey
+                ) ?? []
             )
-        }
-
-        guard let overrideValue = referenceConsumptionOverridesByProfileID[profile.id] else {
-            return defaultValue
-        }
-
-        return clampedFinite(
-            overrideValue,
-            in: 9.5...20,
-            fallback: defaultValue
         )
     }
 
@@ -2287,23 +2243,27 @@ struct ContentView: View {
             fallback: activeVehicleProfileDefaultReferenceConsumption(for: profile)
         )
 
-        if profile.kind == .custom {
-            var overrides = referenceConsumptionOverridesByProfileID
-            overrides[profile.id] = clampedValue
-            referenceConsumptionOverridesByProfileID = overrides
-        } else {
-            referenceConsumption = clampedValue
-        }
+        var overrides = referenceConsumptionOverridesByProfileID
+        overrides[profile.id] = clampedValue
+        referenceConsumptionOverridesByProfileID = overrides
     }
 
     private func resetManualReferenceConsumptionForActiveProfile() {
-        if activeVehicleProfile.profile.kind == .custom {
-            var overrides = referenceConsumptionOverridesByProfileID
-            overrides.removeValue(forKey: activeVehicleProfile.profile.id)
-            referenceConsumptionOverridesByProfileID = overrides
-        } else {
-            referenceConsumption = defaultReferenceConsumptionKWhPer100Km
-        }
+        let profileID = activeVehicleProfile.profile.id
+        var suppressedProfileIDs = Set(
+            UserDefaults.standard.stringArray(
+                forKey: ReferenceConsumptionResolver.legacyFallbackSuppressedProfileIDsKey
+            ) ?? []
+        )
+        suppressedProfileIDs.insert(profileID)
+        UserDefaults.standard.set(
+            suppressedProfileIDs.sorted(),
+            forKey: ReferenceConsumptionResolver.legacyFallbackSuppressedProfileIDsKey
+        )
+
+        var overrides = referenceConsumptionOverridesByProfileID
+        overrides.removeValue(forKey: profileID)
+        referenceConsumptionOverridesByProfileID = overrides
     }
 
     private var referenceConsumptionOverridesByProfileID: [String: Double] {
@@ -5680,18 +5640,6 @@ struct ContentView: View {
         value.isFinite && value > 0 ? value : fallback
     }
 
-    private func degradedModelWLTPRangeKm(
-        for profile: VehicleProfile,
-        nominalWLTPRangeKm: Double? = nil
-    ) -> Double {
-        let nominalRangeKm = nominalWLTPRangeKm ?? positiveFinite(
-            profile.wltpRangeKm,
-            fallback: VehicleProfileResolver.defaultCustomWLTPRangeKm
-        )
-        let degradationPercent = min(max(profile.batteryDegradationPercent, 0), 10)
-        return nominalRangeKm * (1.0 - Double(degradationPercent) / 100.0)
-    }
-
     private func consumptionText(forTenths tenths: Int) -> String {
         displayUnits.formatConsumptionValue(
             fromKWhPer100Km: displayUnits.storedConsumption(fromDisplayed: Double(tenths) / 10)
@@ -5922,9 +5870,7 @@ struct ContentView: View {
             batteryEndPercent: nil,
             distanceKm: input.actualDistanceKm,
             plannedDistanceKm: distance,
-            referenceConsumptionKWhPer100Km: isCustomVehicleProfileSelected
-                ? experimentalReferenceConsumptionKWhPer100Km
-                : outcomeLogForecast.referenceConsumptionKWhPer100km,
+            referenceConsumptionKWhPer100Km: activeVehicleProfileDefaultReferenceConsumption,
             currentBatteryPercent: startBatteryPercent,
             motorwayShare: outcomeRoadTypeProfile.legacyMotorwayShare,
             roadTypeProfile: outcomeRoadTypeProfile,
@@ -5952,11 +5898,8 @@ struct ContentView: View {
     }
 
     private func outcomeCalibrationBaselineForecast(distanceKm: Double) -> ForecastResult {
-        let referenceConsumption = isCustomVehicleProfileSelected
-            ? experimentalReferenceConsumptionKWhPer100Km
-            : MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: referenceConsumption,
+            referenceConsumption: activeVehicleProfileDefaultReferenceConsumption,
             distance: distanceKm,
             temperature: outcomeTemperature,
             roadTypeProfile: outcomeRoadTypeProfile,
@@ -8658,18 +8601,27 @@ struct TripOutcome: Codable, Identifiable {
     }
 
     nonisolated var fixedCalibrationBaselinePredictedConsumptionKWhPer100Km: Double? {
+        if let calibrationBaselinePredictedConsumptionKWhPer100Km {
+            return calibrationBaselinePredictedConsumptionKWhPer100Km
+        }
+
+        guard let referenceConsumptionKWhPer100Km else {
+            // Records without either an explicit predicted baseline or a stored
+            // profile reference are ambiguous and must not be assigned one by origin.
+            return nil
+        }
+
         if trailerTowModeEnabled {
             guard let calibrationDistanceKm else {
                 return nil
             }
 
             guard let trailerWeightKg else {
-                let storedBaseline = calibrationBaselinePredictedConsumptionKWhPer100Km
-                    ?? predictedConsumptionKWhPer100Km
-                return max(0, storedBaseline - modeledTemporaryCalibrationAdjustmentKWhPer100Km)
+                return max(0, predictedConsumptionKWhPer100Km - modeledTemporaryCalibrationAdjustmentKWhPer100Km)
             }
 
             return trailerCalibrationBaselinePredictedConsumption(
+                referenceConsumptionKWhPer100Km: referenceConsumptionKWhPer100Km,
                 distanceKm: calibrationDistanceKm,
                 temperatureC: temperatureC,
                 roadSurface: roadSurface,
@@ -8687,7 +8639,7 @@ struct TripOutcome: Codable, Identifiable {
         }
 
         return MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: fixedCalibrationBaselineReferenceConsumptionKWhPer100Km,
+            referenceConsumption: referenceConsumptionKWhPer100Km,
             distance: calibrationDistanceKm,
             temperature: temperatureC,
             roadTypeProfile: roadTypeProfile,
@@ -8701,27 +8653,19 @@ struct TripOutcome: Codable, Identifiable {
         .finalKWhPer100km
     }
 
-    private nonisolated var fixedCalibrationBaselineReferenceConsumptionKWhPer100Km: Double {
-        switch vehicleProfileKind {
-        case .mini:
-            MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
-        case .customEV:
-            referenceConsumptionKWhPer100Km ?? predictedConsumptionKWhPer100Km
-        }
-    }
-
     private nonisolated var modeledTemporaryCalibrationAdjustmentKWhPer100Km: Double {
         modeledClimateCalibrationAdjustmentKWhPer100Km
             + modeledRoofBoxCalibrationAdjustmentKWhPer100Km
     }
 
     private nonisolated var modeledClimateCalibrationAdjustmentKWhPer100Km: Double {
-        guard let calibrationDistanceKm else {
+        guard let calibrationDistanceKm,
+              let referenceConsumptionKWhPer100Km else {
             return 0
         }
 
         let forecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: fixedCalibrationBaselineReferenceConsumptionKWhPer100Km,
+            referenceConsumption: referenceConsumptionKWhPer100Km,
             distance: calibrationDistanceKm,
             temperature: temperatureC,
             roadTypeProfile: roadTypeProfile,
@@ -8792,7 +8736,7 @@ struct TripOutcome: Codable, Identifiable {
                 boxyTrailerEnabled: boxyTrailerEnabled,
                 distanceKm: updatedLoggedDistanceKm
             ) ?? calibrationBaselinePredictedConsumptionKWhPer100Km
-            : nil
+            : calibrationBaselinePredictedConsumptionKWhPer100Km
 
         return TripOutcome(
             id: id,
@@ -8849,6 +8793,7 @@ struct TripOutcome: Codable, Identifiable {
         }
 
         return trailerCalibrationBaselinePredictedConsumption(
+            referenceConsumptionKWhPer100Km: referenceConsumptionKWhPer100Km,
             distanceKm: updatedDistanceKm,
             temperatureC: temperatureC,
             roadSurface: roadSurface,
@@ -8862,6 +8807,7 @@ struct TripOutcome: Codable, Identifiable {
     }
 
     private nonisolated func trailerCalibrationBaselinePredictedConsumption(
+        referenceConsumptionKWhPer100Km: Double?,
         distanceKm: Double,
         temperatureC: Double,
         roadSurface: RoadSurface,
@@ -8871,9 +8817,13 @@ struct TripOutcome: Codable, Identifiable {
         rollingResistanceClass: RollingResistanceClass,
         trailerWeightKg: Double,
         boxyTrailerEnabled: Bool
-    ) -> Double {
+    ) -> Double? {
+        guard let referenceConsumptionKWhPer100Km else {
+            return nil
+        }
+
         let ruleBasedBaseline = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: fixedCalibrationBaselineReferenceConsumptionKWhPer100Km,
+            referenceConsumption: referenceConsumptionKWhPer100Km,
             distance: distanceKm,
             temperature: temperatureC,
             roadTypeProfile: roadTypeProfile,

@@ -279,6 +279,95 @@ struct EffectiveVehicleProfileSettings {
     }
 }
 
+enum ReferenceConsumptionResolver {
+    static let manualOverrideBounds = 9.5...20.0
+    static let legacyFallbackSuppressedProfileIDsKey = "referenceConsumptionLegacyFallbackSuppressedProfileIDs.v1"
+    private static let profileDefaultCompatibilityOverrides = [
+        VehicleProfileResolver.builtInMiniProfileID: defaultReferenceConsumptionKWhPer100Km
+    ]
+
+    static func profileDerivedDefault(for profile: VehicleProfile) -> Double {
+        if let compatibilityDefault = profileDefaultCompatibilityOverrides[profile.id] {
+            return clamped(compatibilityDefault, fallback: defaultReferenceConsumptionKWhPer100Km)
+        }
+
+        let usableBatteryKWh = positiveFinite(
+            profile.usableBatteryKWh,
+            fallback: VehicleProfileResolver.defaultCustomUsableBatteryCapacityKWh
+        )
+        let wltpRangeKm = positiveFinite(
+            profile.wltpRangeKm,
+            fallback: VehicleProfileResolver.defaultCustomWLTPRangeKm
+        )
+        let degradation = Double(min(max(profile.batteryDegradationPercent, 0), 10)) / 100
+        let degradedWLTPRangeKm = wltpRangeKm * (1 - degradation)
+        let derivedDefault = (usableBatteryKWh / degradedWLTPRangeKm * 100) * 1.04
+        return clamped(derivedDefault, fallback: defaultReferenceConsumptionKWhPer100Km)
+    }
+
+    static func manualReference(
+        for profile: VehicleProfile,
+        overrides: [String: Double],
+        legacyBuiltInValue: Double?,
+        legacyFallbackSuppressedProfileIDs: Set<String>
+    ) -> Double {
+        let profileDefault = profileDerivedDefault(for: profile)
+        let resolvedValue = overrides[profile.id]
+            ?? legacyCompatibilityValue(
+                for: profile.id,
+                value: legacyBuiltInValue,
+                suppressedProfileIDs: legacyFallbackSuppressedProfileIDs
+            )
+            ?? profileDefault
+        return clamped(resolvedValue, fallback: profileDefault)
+    }
+
+    static func forecastBaseline(
+        profileDefault: Double,
+        manualReference: Double,
+        automaticCalibrationCanApply: Bool
+    ) -> Double {
+        automaticCalibrationCanApply
+            ? profileDefault * MiniConsumptionCalculator.calibrationSafetyMultiplier
+            : manualReference
+    }
+
+    static func effectiveReference(
+        profileDefault: Double,
+        manualReference: Double,
+        automaticCalibrationFactor: Double?
+    ) -> Double {
+        guard let automaticCalibrationFactor else {
+            return manualReference
+        }
+
+        return profileDefault
+            * MiniConsumptionCalculator.calibrationSafetyMultiplier
+            * automaticCalibrationFactor
+    }
+
+    private static func legacyCompatibilityValue(
+        for profileID: String,
+        value: Double?,
+        suppressedProfileIDs: Set<String>
+    ) -> Double? {
+        guard suppressedProfileIDs.contains(profileID) == false,
+              let value else {
+            return nil
+        }
+        return [VehicleProfileResolver.builtInMiniProfileID: value][profileID]
+    }
+
+    private static func positiveFinite(_ value: Double, fallback: Double) -> Double {
+        value.isFinite && value > 0 ? value : fallback
+    }
+
+    private static func clamped(_ value: Double, fallback: Double) -> Double {
+        let finiteValue = value.isFinite ? value : fallback
+        return min(max(finiteValue, manualOverrideBounds.lowerBound), manualOverrideBounds.upperBound)
+    }
+}
+
 enum EffectiveVehicleProfileSettingsResolver {
     static let useContinuousCalibrationOverridesKey = "useContinuousCalibrationByVehicleProfile.v1"
     static let normalMinimumChargingPercentOverridesKey = "normalMinimumChargingPercentByVehicleProfile.v1"
@@ -353,7 +442,19 @@ enum EffectiveVehicleProfileSettingsResolver {
             key: "winterTyreClass",
             fallback: MiniConsumptionDefaults.winterTyreClass
         )
-        let defaultReferenceConsumption = defaultReferenceConsumption(for: profile)
+        let defaultReferenceConsumption = ReferenceConsumptionResolver.profileDerivedDefault(for: profile)
+        let referenceOverrides: [String: Double] = overrides(defaults: defaults, key: referenceConsumptionOverridesKey)
+        let suppressedLegacyFallbackProfileIDs = Set(
+            defaults.stringArray(forKey: ReferenceConsumptionResolver.legacyFallbackSuppressedProfileIDsKey) ?? []
+        )
+        let manualReferenceConsumption = ReferenceConsumptionResolver.manualReference(
+            for: profile,
+            overrides: referenceOverrides,
+            legacyBuiltInValue: defaults.object(forKey: "referenceConsumption") == nil
+                ? nil
+                : globalReferenceConsumption,
+            legacyFallbackSuppressedProfileIDs: suppressedLegacyFallbackProfileIDs
+        )
         let resolvedMinimumChargingPercent = normalMinimumChargingPercent(for: profile, defaults: defaults)
         let resolvedFastChargeTargetPercent = normalFastChargeTargetPercent(for: profile, defaults: defaults)
         let resolvedAverageChargingSpeed = averageChargingSpeedKW(for: profile, defaults: defaults)
@@ -367,7 +468,7 @@ enum EffectiveVehicleProfileSettingsResolver {
             return EffectiveVehicleProfileSettings(
                 profile: profile,
                 defaultReferenceConsumption: defaultReferenceConsumption,
-                manualReferenceConsumption: clamped(globalReferenceConsumption, to: 9.5...20, fallback: defaultReferenceConsumption),
+                manualReferenceConsumption: manualReferenceConsumption,
                 motorwaySpeed: globalMotorwaySpeed,
                 airConditioningMode: globalAirConditioningMode,
                 selectedTyreSet: globalSelectedTyreSet,
@@ -381,7 +482,6 @@ enum EffectiveVehicleProfileSettingsResolver {
             )
         }
 
-        let referenceOverrides: [String: Double] = overrides(defaults: defaults, key: referenceConsumptionOverridesKey)
         let motorwaySpeedOverrides: [String: Double] = overrides(defaults: defaults, key: motorwaySpeedOverridesKey)
         let airConditioningOverrides: [String: String] = overrides(defaults: defaults, key: airConditioningModeOverridesKey)
         let tyreSetOverrides: [String: String] = overrides(defaults: defaults, key: selectedTyreSetOverridesKey)
@@ -391,11 +491,7 @@ enum EffectiveVehicleProfileSettingsResolver {
         return EffectiveVehicleProfileSettings(
             profile: profile,
             defaultReferenceConsumption: defaultReferenceConsumption,
-            manualReferenceConsumption: clamped(
-                referenceOverrides[profile.id] ?? defaultReferenceConsumption,
-                to: 9.5...20,
-                fallback: defaultReferenceConsumption
-            ),
+            manualReferenceConsumption: manualReferenceConsumption,
             motorwaySpeed: MiniConsumptionDefaults.normalizedMotorwaySpeed(
                 motorwaySpeedOverrides[profile.id] ?? globalMotorwaySpeed
             ),
@@ -551,23 +647,6 @@ enum EffectiveVehicleProfileSettingsResolver {
             key: averageChargingSpeedOverridesKey,
             defaults: defaults
         )
-    }
-
-    private static func defaultReferenceConsumption(for profile: VehicleProfile) -> Double {
-        guard profile.kind == .custom else {
-            return defaultReferenceConsumptionKWhPer100Km
-        }
-
-        let usableBatteryKWh = positiveFinite(
-            profile.usableBatteryKWh,
-            fallback: VehicleProfileResolver.defaultCustomUsableBatteryCapacityKWh
-        )
-        let wltpRangeKm = positiveFinite(
-            profile.wltpRangeKm,
-            fallback: VehicleProfileResolver.defaultCustomWLTPRangeKm
-        )
-        let degradation = Double(min(max(profile.batteryDegradationPercent, 0), 10)) / 100
-        return (usableBatteryKWh / (wltpRangeKm * (1 - degradation)) * 100) * 1.04
     }
 
     private static func legacyBuiltInChargingValue(

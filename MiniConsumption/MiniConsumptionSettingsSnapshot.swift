@@ -66,13 +66,13 @@ struct MiniConsumptionSettingsSnapshot {
                     trailerTowModeEnabled: trailerTowModeEnabled
                 )
             )
-        if useContinuousCalibration, calibrationCorrection.canApply {
-            return calibrationBaseReferenceConsumption
-                * calibrationCorrection.totalFactor
-                * MiniConsumptionCalculator.calibrationSafetyMultiplier
-        }
-
-        return referenceConsumption
+        return ReferenceConsumptionResolver.effectiveReference(
+            profileDefault: defaultReferenceConsumption,
+            manualReference: referenceConsumption,
+            automaticCalibrationFactor: useContinuousCalibration && calibrationCorrection.canApply
+                ? calibrationCorrection.totalFactor
+                : nil
+        )
     }
 
     var activeRollingResistanceClass: RollingResistanceClass {
@@ -210,18 +210,11 @@ struct MiniConsumptionSettingsSnapshot {
     }
 
     private func calibratedForecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
-        guard useContinuousCalibration, correction.canApply else {
-            return referenceConsumption
-        }
-
-        return calibrationBaseReferenceConsumption
-            * MiniConsumptionCalculator.calibrationSafetyMultiplier
-    }
-
-    private var calibrationBaseReferenceConsumption: Double {
-        activeForecastUsesCustomVehicleProfile
-            ? defaultReferenceConsumption
-            : MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
+        ReferenceConsumptionResolver.forecastBaseline(
+            profileDefault: defaultReferenceConsumption,
+            manualReference: referenceConsumption,
+            automaticCalibrationCanApply: useContinuousCalibration && correction.canApply
+        )
     }
 
     private var scenarioEquipment: ScenarioEquipmentSettings {
