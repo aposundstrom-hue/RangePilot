@@ -64,8 +64,18 @@ struct ContentView: View {
     }
 
     private var forecast: ForecastResult {
-        MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: vehicleProfile.referenceConsumptionKWhPer100Km,
+        let calibrationFactor = forecastAssumptions.automaticCalibrationFactor
+        let effectiveReference = forecastAssumptions.effectiveReferenceConsumptionKWhPer100Km
+        let forecastReference = if let calibrationFactor,
+                                   calibrationFactor.isFinite,
+                                   calibrationFactor > 0,
+                                   let effectiveReference {
+            effectiveReference / calibrationFactor
+        } else {
+            vehicleProfile.referenceConsumptionKWhPer100Km
+        }
+        return MiniConsumptionCalculator.calculateForecast(
+            referenceConsumption: forecastReference,
             distance: MiniConsumptionDefaults.tripDistanceKm,
             temperature: temperatureC,
             roadTypeProfile: drivingMode.roadTypeProfile,
@@ -78,6 +88,12 @@ struct ContentView: View {
             applyDistanceAdjustment: false,
             usesCustomVehicleProfile: vehicleProfile.calculationProfile.kind == .custom,
             usableBatteryKWh: vehicleProfile.calculationProfile.usableBatteryKWh
+        )
+        .withScenarioEquipment(
+            forecastAssumptions.scenarioEquipment,
+            roadTypeProfile: drivingMode.roadTypeProfile,
+            motorwaySpeed: forecastAssumptions.motorwaySpeed,
+            calibrationFactor: calibrationFactor
         )
     }
 
@@ -660,6 +676,9 @@ private struct WatchForecastAssumptions: Equatable {
     var summerTyreClass: RollingResistanceClass
     var winterTyreClass: RollingResistanceClass
     var useContinuousCalibration: Bool
+    var effectiveReferenceConsumptionKWhPer100Km: Double?
+    var automaticCalibrationFactor: Double?
+    var scenarioEquipment: ScenarioEquipmentSettings
 
     var activeRollingResistanceClass: RollingResistanceClass {
         selectedTyreSet == .summer ? summerTyreClass : winterTyreClass
@@ -673,7 +692,10 @@ private struct WatchForecastAssumptions: Equatable {
         selectedTyreSet: MiniConsumptionDefaults.selectedTyreSet,
         summerTyreClass: MiniConsumptionDefaults.summerTyreClass,
         winterTyreClass: MiniConsumptionDefaults.winterTyreClass,
-        useContinuousCalibration: MiniConsumptionDefaults.useContinuousCalibration
+        useContinuousCalibration: MiniConsumptionDefaults.useContinuousCalibration,
+        effectiveReferenceConsumptionKWhPer100Km: nil,
+        automaticCalibrationFactor: nil,
+        scenarioEquipment: .none
     )
 
     init(
@@ -684,7 +706,10 @@ private struct WatchForecastAssumptions: Equatable {
         selectedTyreSet: TyreSet,
         summerTyreClass: RollingResistanceClass,
         winterTyreClass: RollingResistanceClass,
-        useContinuousCalibration: Bool
+        useContinuousCalibration: Bool,
+        effectiveReferenceConsumptionKWhPer100Km: Double?,
+        automaticCalibrationFactor: Double?,
+        scenarioEquipment: ScenarioEquipmentSettings
     ) {
         self.motorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
         self.roadSurface = roadSurface
@@ -694,6 +719,9 @@ private struct WatchForecastAssumptions: Equatable {
         self.summerTyreClass = summerTyreClass
         self.winterTyreClass = winterTyreClass
         self.useContinuousCalibration = useContinuousCalibration
+        self.effectiveReferenceConsumptionKWhPer100Km = effectiveReferenceConsumptionKWhPer100Km
+        self.automaticCalibrationFactor = automaticCalibrationFactor
+        self.scenarioEquipment = scenarioEquipment
     }
 
     init(snapshot: WatchRangeStateSnapshot) {
@@ -705,7 +733,32 @@ private struct WatchForecastAssumptions: Equatable {
             selectedTyreSet: snapshot.selectedTyreSet,
             summerTyreClass: snapshot.summerTyreClass,
             winterTyreClass: snapshot.winterTyreClass,
-            useContinuousCalibration: snapshot.useContinuousCalibration
+            useContinuousCalibration: snapshot.useContinuousCalibration,
+            effectiveReferenceConsumptionKWhPer100Km: snapshot.effectiveReferenceConsumptionKWhPer100Km,
+            automaticCalibrationFactor: snapshot.automaticCalibrationFactor,
+            scenarioEquipment: ScenarioEquipmentSettings(
+                trailerTowModeEnabled: snapshot.trailerTowModeEnabled,
+                trailerWeightKg: snapshot.trailerWeightKg,
+                boxyTrailerEnabled: snapshot.boxyTrailerEnabled,
+                roofBoxMode: snapshot.roofBoxMode
+            )
+        )
+    }
+
+}
+
+private extension ForecastResult {
+    func withScenarioEquipment(
+        _ equipment: ScenarioEquipmentSettings,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        calibrationFactor: Double?
+    ) -> ForecastResult {
+        equipment.applying(
+            to: self,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            calibrationFactor: calibrationFactor
         )
     }
 }

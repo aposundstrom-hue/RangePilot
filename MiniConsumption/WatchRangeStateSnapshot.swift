@@ -12,6 +12,8 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
     let vehicleProfileName: String
     let vehicleProfileKind: VehicleProfileDefinitionKind?
     let referenceConsumptionKWhPer100Km: Double?
+    let effectiveReferenceConsumptionKWhPer100Km: Double?
+    let automaticCalibrationFactor: Double?
     let usableBatteryKWh: Double
     let wltpRangeKm: Double
     let peakDCChargingKW: Double
@@ -24,8 +26,117 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
     let summerTyreClass: RollingResistanceClass
     let winterTyreClass: RollingResistanceClass
     let useContinuousCalibration: Bool
+    let trailerTowModeEnabled: Bool
+    let trailerWeightKg: Double
+    let boxyTrailerEnabled: Bool
+    let roofBoxMode: RoofBoxMode
     let displayUnitsRawValue: String?
     let temperatureUnitsRawValue: String?
+
+    init(
+        batteryPercent: Double,
+        roadTypeProfile: RoadTypeProfile,
+        temperatureC: Double,
+        activeVehicleProfileID: String?,
+        availableVehicleProfiles: [VehicleProfile]?,
+        vehicleProfileName: String,
+        vehicleProfileKind: VehicleProfileDefinitionKind?,
+        referenceConsumptionKWhPer100Km: Double?,
+        effectiveReferenceConsumptionKWhPer100Km: Double?,
+        automaticCalibrationFactor: Double?,
+        usableBatteryKWh: Double,
+        wltpRangeKm: Double,
+        peakDCChargingKW: Double,
+        batteryDegradationPercent: Int,
+        motorwaySpeed: Double,
+        roadSurface: RoadSurface,
+        windCondition: WindCondition,
+        airConditioningMode: AirConditioningMode,
+        selectedTyreSet: TyreSet,
+        summerTyreClass: RollingResistanceClass,
+        winterTyreClass: RollingResistanceClass,
+        useContinuousCalibration: Bool,
+        trailerTowModeEnabled: Bool,
+        trailerWeightKg: Double,
+        boxyTrailerEnabled: Bool,
+        roofBoxMode: RoofBoxMode,
+        displayUnitsRawValue: String?,
+        temperatureUnitsRawValue: String?
+    ) {
+        self.batteryPercent = batteryPercent
+        self.roadTypeProfile = roadTypeProfile
+        self.temperatureC = temperatureC
+        self.activeVehicleProfileID = activeVehicleProfileID
+        self.availableVehicleProfiles = availableVehicleProfiles
+        self.vehicleProfileName = vehicleProfileName
+        self.vehicleProfileKind = vehicleProfileKind
+        self.referenceConsumptionKWhPer100Km = referenceConsumptionKWhPer100Km
+        self.effectiveReferenceConsumptionKWhPer100Km = effectiveReferenceConsumptionKWhPer100Km
+        self.automaticCalibrationFactor = automaticCalibrationFactor
+        self.usableBatteryKWh = usableBatteryKWh
+        self.wltpRangeKm = wltpRangeKm
+        self.peakDCChargingKW = peakDCChargingKW
+        self.batteryDegradationPercent = batteryDegradationPercent
+        self.motorwaySpeed = motorwaySpeed
+        self.roadSurface = roadSurface
+        self.windCondition = windCondition
+        self.airConditioningMode = airConditioningMode
+        self.selectedTyreSet = selectedTyreSet
+        self.summerTyreClass = summerTyreClass
+        self.winterTyreClass = winterTyreClass
+        self.useContinuousCalibration = useContinuousCalibration
+        self.trailerTowModeEnabled = trailerTowModeEnabled
+        self.trailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg)
+        self.boxyTrailerEnabled = boxyTrailerEnabled
+        self.roofBoxMode = roofBoxMode
+        self.displayUnitsRawValue = displayUnitsRawValue
+        self.temperatureUnitsRawValue = temperatureUnitsRawValue
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case batteryPercent, roadTypeProfile, temperatureC, activeVehicleProfileID
+        case availableVehicleProfiles, vehicleProfileName, vehicleProfileKind
+        case referenceConsumptionKWhPer100Km, effectiveReferenceConsumptionKWhPer100Km, automaticCalibrationFactor
+        case usableBatteryKWh, wltpRangeKm, peakDCChargingKW, batteryDegradationPercent
+        case motorwaySpeed, roadSurface, windCondition, airConditioningMode
+        case selectedTyreSet, summerTyreClass, winterTyreClass, useContinuousCalibration
+        case trailerTowModeEnabled, trailerWeightKg, boxyTrailerEnabled, roofBoxMode
+        case displayUnitsRawValue, temperatureUnitsRawValue
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            batteryPercent: try container.decode(Double.self, forKey: .batteryPercent),
+            roadTypeProfile: try container.decode(RoadTypeProfile.self, forKey: .roadTypeProfile),
+            temperatureC: try container.decode(Double.self, forKey: .temperatureC),
+            activeVehicleProfileID: try container.decodeIfPresent(String.self, forKey: .activeVehicleProfileID),
+            availableVehicleProfiles: try container.decodeIfPresent([VehicleProfile].self, forKey: .availableVehicleProfiles),
+            vehicleProfileName: try container.decode(String.self, forKey: .vehicleProfileName),
+            vehicleProfileKind: try container.decodeIfPresent(VehicleProfileDefinitionKind.self, forKey: .vehicleProfileKind),
+            referenceConsumptionKWhPer100Km: try container.decodeIfPresent(Double.self, forKey: .referenceConsumptionKWhPer100Km),
+            effectiveReferenceConsumptionKWhPer100Km: try container.decodeIfPresent(Double.self, forKey: .effectiveReferenceConsumptionKWhPer100Km),
+            automaticCalibrationFactor: try container.decodeIfPresent(Double.self, forKey: .automaticCalibrationFactor),
+            usableBatteryKWh: try container.decode(Double.self, forKey: .usableBatteryKWh),
+            wltpRangeKm: try container.decode(Double.self, forKey: .wltpRangeKm),
+            peakDCChargingKW: try container.decode(Double.self, forKey: .peakDCChargingKW),
+            batteryDegradationPercent: try container.decode(Int.self, forKey: .batteryDegradationPercent),
+            motorwaySpeed: try container.decode(Double.self, forKey: .motorwaySpeed),
+            roadSurface: try container.decode(RoadSurface.self, forKey: .roadSurface),
+            windCondition: try container.decode(WindCondition.self, forKey: .windCondition),
+            airConditioningMode: try container.decode(AirConditioningMode.self, forKey: .airConditioningMode),
+            selectedTyreSet: try container.decode(TyreSet.self, forKey: .selectedTyreSet),
+            summerTyreClass: try container.decode(RollingResistanceClass.self, forKey: .summerTyreClass),
+            winterTyreClass: try container.decode(RollingResistanceClass.self, forKey: .winterTyreClass),
+            useContinuousCalibration: try container.decodeIfPresent(Bool.self, forKey: .useContinuousCalibration) ?? MiniConsumptionDefaults.useContinuousCalibration,
+            trailerTowModeEnabled: try container.decodeIfPresent(Bool.self, forKey: .trailerTowModeEnabled) ?? false,
+            trailerWeightKg: try container.decodeIfPresent(Double.self, forKey: .trailerWeightKg) ?? MiniConsumptionDefaults.trailerWeightKg,
+            boxyTrailerEnabled: try container.decodeIfPresent(Bool.self, forKey: .boxyTrailerEnabled) ?? false,
+            roofBoxMode: try container.decodeIfPresent(RoofBoxMode.self, forKey: .roofBoxMode) ?? .off,
+            displayUnitsRawValue: try container.decodeIfPresent(String.self, forKey: .displayUnitsRawValue),
+            temperatureUnitsRawValue: try container.decodeIfPresent(String.self, forKey: .temperatureUnitsRawValue)
+        )
+    }
 }
 
 enum WatchRangeStateSnapshotStore {

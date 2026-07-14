@@ -90,6 +90,10 @@ struct VehicleProfile: Codable, Equatable, Identifiable {
         try container.encode(wltpRangeKm, forKey: .wltpRangeKm)
         try container.encode(peakDCChargingKW, forKey: .peakDCChargingKW)
         try container.encode(batteryDegradationPercent, forKey: .batteryDegradationPercent)
+        try container.encode(summerTyreClass, forKey: .summerTyreClass)
+        try container.encode(winterTyreClass, forKey: .winterTyreClass)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
     }
 }
 
@@ -243,6 +247,410 @@ enum VehicleProfileResolver {
 
     private static func positiveFinite(_ value: Double, fallback: Double) -> Double {
         value.isFinite && value > 0 ? value : fallback
+    }
+}
+
+// Settings ownership model:
+// - Vehicle profile: vehicle specifications, degradation, calibration, normal charging,
+//   tyres, motorway-speed default, and A/C default. Some remain in profile-ID override
+//   dictionaries until a later storage migration.
+// - Current drive/scenario: battery, weather/road conditions, trailer, and roof box.
+// - Trip-local: planned distance, starting battery, arrival reserve, charging-stop levels,
+//   and per-trip condition/equipment overrides.
+// - Global app preferences: units, Range presentation/map options, onboarding, and access.
+// - Trip defaults: Quick Trip distance, planning mode, arrival reserve, and setup time.
+struct EffectiveVehicleProfileSettings {
+    let profile: VehicleProfile
+    let defaultReferenceConsumption: Double
+    let manualReferenceConsumption: Double
+    let motorwaySpeed: Double
+    let airConditioningMode: AirConditioningMode
+    let selectedTyreSet: TyreSet
+    let summerTyreClass: RollingResistanceClass
+    let winterTyreClass: RollingResistanceClass
+    let normalMinimumChargingPercent: Double
+    let normalFastChargeTargetPercent: Double
+    let averageChargingSpeedKW: Double
+    let chargingTaperStartSOC: Double
+    let useContinuousCalibration: Bool
+
+    var activeRollingResistanceClass: RollingResistanceClass {
+        selectedTyreSet == .summer ? summerTyreClass : winterTyreClass
+    }
+}
+
+enum EffectiveVehicleProfileSettingsResolver {
+    static let useContinuousCalibrationOverridesKey = "useContinuousCalibrationByVehicleProfile.v1"
+    static let normalMinimumChargingPercentOverridesKey = "normalMinimumChargingPercentByVehicleProfile.v1"
+    static let normalFastChargeTargetPercentOverridesKey = "normalFastChargeTargetPercentByVehicleProfile.v1"
+    static let averageChargingSpeedOverridesKey = "averageChargingSpeedKWByVehicleProfile.v1"
+    private static let referenceConsumptionOverridesKey = "referenceConsumptionByVehicleProfile.v1"
+    private static let motorwaySpeedOverridesKey = "motorwaySpeedByVehicleProfile.v1"
+    private static let airConditioningModeOverridesKey = "airConditioningModeByVehicleProfile.v1"
+    private static let selectedTyreSetOverridesKey = "selectedTyreSetByVehicleProfile.v1"
+    private static let summerTyreClassOverridesKey = "summerTyreClassByVehicleProfile.v1"
+    private static let winterTyreClassOverridesKey = "winterTyreClassByVehicleProfile.v1"
+
+    static func resolve(defaults: UserDefaults = .standard) -> EffectiveVehicleProfileSettings {
+        let miniDegradation = int(
+            defaults: defaults,
+            key: "batteryDegradationPercent",
+            fallback: MiniConsumptionDefaults.batteryDegradationPercent
+        )
+        let miniSummerTyreClass = rawValue(
+            defaults: defaults,
+            key: "summerTyreClass",
+            fallback: MiniConsumptionDefaults.summerTyreClass
+        )
+        let miniWinterTyreClass = rawValue(
+            defaults: defaults,
+            key: "winterTyreClass",
+            fallback: MiniConsumptionDefaults.winterTyreClass
+        )
+        let input = VehicleProfileResolverInput(
+            experimentalCustomVehicleProfileEnabled: false,
+            experimentalUsableBatteryCapacityKWh: VehicleProfileResolver.defaultCustomUsableBatteryCapacityKWh,
+            experimentalOfficialWLTPRangeKm: VehicleProfileResolver.defaultCustomWLTPRangeKm,
+            experimentalMaximumDCChargingSpeedKW: VehicleProfileResolver.defaultCustomPeakDCChargingKW,
+            batteryDegradationPercent: miniDegradation,
+            summerTyreClass: miniSummerTyreClass,
+            winterTyreClass: miniWinterTyreClass
+        )
+        let profile = VehicleProfileResolver.activeProfile(
+            for: input,
+            customProfiles: VehicleProfileStore.loadCustomProfiles(defaults: defaults),
+            selectedProfileID: VehicleProfileStore.selectedProfileID(defaults: defaults)
+        ).profile
+
+        return resolve(profile: profile, defaults: defaults)
+    }
+
+    static func resolve(
+        profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> EffectiveVehicleProfileSettings {
+        let globalReferenceConsumption = double(
+            defaults: defaults,
+            key: "referenceConsumption",
+            fallback: defaultReferenceConsumptionKWhPer100Km
+        )
+        let globalMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(
+            double(defaults: defaults, key: "motorwaySpeed", fallback: MiniConsumptionDefaults.motorwaySpeedKmh)
+        )
+        let globalAirConditioningMode = rawValue(
+            defaults: defaults,
+            key: "airConditioningMode",
+            fallback: MiniConsumptionDefaults.airConditioningMode
+        )
+        let globalSelectedTyreSet = selectedTyreSet(defaults: defaults)
+        let globalSummerTyreClass = tyreClass(
+            defaults: defaults,
+            key: "summerTyreClass",
+            fallback: MiniConsumptionDefaults.summerTyreClass
+        )
+        let globalWinterTyreClass = tyreClass(
+            defaults: defaults,
+            key: "winterTyreClass",
+            fallback: MiniConsumptionDefaults.winterTyreClass
+        )
+        let defaultReferenceConsumption = defaultReferenceConsumption(for: profile)
+        let resolvedMinimumChargingPercent = normalMinimumChargingPercent(for: profile, defaults: defaults)
+        let resolvedFastChargeTargetPercent = normalFastChargeTargetPercent(for: profile, defaults: defaults)
+        let resolvedAverageChargingSpeed = averageChargingSpeedKW(for: profile, defaults: defaults)
+        let resolvedChargingTaperStartSOC = MiniConsumptionCalculator.chargingTaperStartSOC(for: profile)
+        let useContinuousCalibration = useContinuousCalibration(
+            for: profile.id,
+            defaults: defaults
+        )
+
+        guard profile.kind == .custom else {
+            return EffectiveVehicleProfileSettings(
+                profile: profile,
+                defaultReferenceConsumption: defaultReferenceConsumption,
+                manualReferenceConsumption: clamped(globalReferenceConsumption, to: 9.5...20, fallback: defaultReferenceConsumption),
+                motorwaySpeed: globalMotorwaySpeed,
+                airConditioningMode: globalAirConditioningMode,
+                selectedTyreSet: globalSelectedTyreSet,
+                summerTyreClass: globalSummerTyreClass,
+                winterTyreClass: globalWinterTyreClass,
+                normalMinimumChargingPercent: resolvedMinimumChargingPercent,
+                normalFastChargeTargetPercent: resolvedFastChargeTargetPercent,
+                averageChargingSpeedKW: resolvedAverageChargingSpeed,
+                chargingTaperStartSOC: resolvedChargingTaperStartSOC,
+                useContinuousCalibration: useContinuousCalibration
+            )
+        }
+
+        let referenceOverrides: [String: Double] = overrides(defaults: defaults, key: referenceConsumptionOverridesKey)
+        let motorwaySpeedOverrides: [String: Double] = overrides(defaults: defaults, key: motorwaySpeedOverridesKey)
+        let airConditioningOverrides: [String: String] = overrides(defaults: defaults, key: airConditioningModeOverridesKey)
+        let tyreSetOverrides: [String: String] = overrides(defaults: defaults, key: selectedTyreSetOverridesKey)
+        let summerTyreOverrides: [String: String] = overrides(defaults: defaults, key: summerTyreClassOverridesKey)
+        let winterTyreOverrides: [String: String] = overrides(defaults: defaults, key: winterTyreClassOverridesKey)
+
+        return EffectiveVehicleProfileSettings(
+            profile: profile,
+            defaultReferenceConsumption: defaultReferenceConsumption,
+            manualReferenceConsumption: clamped(
+                referenceOverrides[profile.id] ?? defaultReferenceConsumption,
+                to: 9.5...20,
+                fallback: defaultReferenceConsumption
+            ),
+            motorwaySpeed: MiniConsumptionDefaults.normalizedMotorwaySpeed(
+                motorwaySpeedOverrides[profile.id] ?? globalMotorwaySpeed
+            ),
+            airConditioningMode: airConditioningOverrides[profile.id].flatMap(AirConditioningMode.init(rawValue:))
+                ?? globalAirConditioningMode,
+            selectedTyreSet: tyreSetOverrides[profile.id].flatMap(TyreSet.init(rawValue:))
+                ?? globalSelectedTyreSet,
+            summerTyreClass: summerTyreOverrides[profile.id].flatMap(RollingResistanceClass.init(rawValue:))
+                ?? globalSummerTyreClass,
+            winterTyreClass: winterTyreOverrides[profile.id].flatMap(RollingResistanceClass.init(rawValue:))
+                ?? globalWinterTyreClass,
+            normalMinimumChargingPercent: resolvedMinimumChargingPercent,
+            normalFastChargeTargetPercent: resolvedFastChargeTargetPercent,
+            averageChargingSpeedKW: resolvedAverageChargingSpeed,
+            chargingTaperStartSOC: resolvedChargingTaperStartSOC,
+            useContinuousCalibration: useContinuousCalibration
+        )
+    }
+
+    static func setUseContinuousCalibration(
+        _ isEnabled: Bool,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        var values: [String: Bool] = overrides(
+            defaults: defaults,
+            key: useContinuousCalibrationOverridesKey
+        )
+        values[profileID] = isEnabled
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: useContinuousCalibrationOverridesKey)
+        }
+    }
+
+    static func useContinuousCalibration(
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) -> Bool {
+        let values: [String: Bool] = overrides(
+            defaults: defaults,
+            key: useContinuousCalibrationOverridesKey
+        )
+        return values[profileID]
+            ?? (defaults.object(forKey: "useContinuousCalibration") as? Bool)
+            ?? MiniConsumptionDefaults.useContinuousCalibration
+    }
+
+    static func normalMinimumChargingPercent(
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> Double {
+        let values: [String: Double] = overrides(
+            defaults: defaults,
+            key: normalMinimumChargingPercentOverridesKey
+        )
+        let resolvedValue = values[profile.id]
+            ?? legacyBuiltInChargingValue(
+                for: profile,
+                key: "normalMinimumChargingPercent",
+                defaults: defaults
+            )
+            ?? ChargingWindow.defaultMinimumPercent
+        return clamped(
+            resolvedValue,
+            to: ChargingWindow.minimumBounds,
+            fallback: ChargingWindow.defaultMinimumPercent
+        )
+    }
+
+    static func setNormalMinimumChargingPercent(
+        _ value: Double,
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) {
+        setChargingOverride(
+            clamped(value, to: ChargingWindow.minimumBounds, fallback: ChargingWindow.defaultMinimumPercent),
+            for: profile.id,
+            key: normalMinimumChargingPercentOverridesKey,
+            defaults: defaults
+        )
+    }
+
+    static func normalFastChargeTargetPercent(
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> Double {
+        let values: [String: Double] = overrides(
+            defaults: defaults,
+            key: normalFastChargeTargetPercentOverridesKey
+        )
+        let resolvedValue = values[profile.id]
+            ?? legacyBuiltInChargingValue(
+                for: profile,
+                key: "normalFastChargeTargetPercent",
+                defaults: defaults
+            )
+            ?? ChargingWindow.defaultTargetPercent
+        return clamped(
+            resolvedValue,
+            to: ChargingWindow.targetBounds,
+            fallback: ChargingWindow.defaultTargetPercent
+        )
+    }
+
+    static func setNormalFastChargeTargetPercent(
+        _ value: Double,
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) {
+        setChargingOverride(
+            clamped(value, to: ChargingWindow.targetBounds, fallback: ChargingWindow.defaultTargetPercent),
+            for: profile.id,
+            key: normalFastChargeTargetPercentOverridesKey,
+            defaults: defaults
+        )
+    }
+
+    static func averageChargingSpeedKW(
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> Double {
+        let defaultValue = MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: profile)
+        let values: [String: Double] = overrides(
+            defaults: defaults,
+            key: averageChargingSpeedOverridesKey
+        )
+        let resolvedValue = values[profile.id]
+            ?? legacyBuiltInChargingValue(
+                for: profile,
+                key: "averageChargingSpeedKW",
+                defaults: defaults
+            )
+            ?? defaultValue
+        return clamped(
+            resolvedValue,
+            to: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: profile),
+            fallback: defaultValue
+        )
+    }
+
+    static func setAverageChargingSpeedKW(
+        _ value: Double,
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) {
+        setChargingOverride(
+            clamped(
+                value,
+                to: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: profile),
+                fallback: MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: profile)
+            ),
+            for: profile.id,
+            key: averageChargingSpeedOverridesKey,
+            defaults: defaults
+        )
+    }
+
+    private static func defaultReferenceConsumption(for profile: VehicleProfile) -> Double {
+        guard profile.kind == .custom else {
+            return defaultReferenceConsumptionKWhPer100Km
+        }
+
+        let usableBatteryKWh = positiveFinite(
+            profile.usableBatteryKWh,
+            fallback: VehicleProfileResolver.defaultCustomUsableBatteryCapacityKWh
+        )
+        let wltpRangeKm = positiveFinite(
+            profile.wltpRangeKm,
+            fallback: VehicleProfileResolver.defaultCustomWLTPRangeKm
+        )
+        let degradation = Double(min(max(profile.batteryDegradationPercent, 0), 10)) / 100
+        return (usableBatteryKWh / (wltpRangeKm * (1 - degradation)) * 100) * 1.04
+    }
+
+    private static func legacyBuiltInChargingValue(
+        for profile: VehicleProfile,
+        key: String,
+        defaults: UserDefaults
+    ) -> Double? {
+        guard profile.id == VehicleProfileResolver.builtInMiniProfileID,
+              defaults.object(forKey: key) != nil else {
+            return nil
+        }
+
+        return double(defaults: defaults, key: key, fallback: 0)
+    }
+
+    private static func setChargingOverride(
+        _ value: Double,
+        for profileID: String,
+        key: String,
+        defaults: UserDefaults
+    ) {
+        var values: [String: Double] = overrides(defaults: defaults, key: key)
+        values[profileID] = value
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: key)
+        }
+    }
+
+    private static func selectedTyreSet(defaults: UserDefaults) -> TyreSet {
+        if let value: TyreSet = optionalRawValue(defaults: defaults, key: "selectedTyreSet") {
+            return value
+        }
+        return defaults.object(forKey: "winterTyres") as? Bool == true ? .winter : MiniConsumptionDefaults.selectedTyreSet
+    }
+
+    private static func tyreClass(
+        defaults: UserDefaults,
+        key: String,
+        fallback: RollingResistanceClass
+    ) -> RollingResistanceClass {
+        optionalRawValue(defaults: defaults, key: key)
+            ?? rawValue(defaults: defaults, key: "rollingResistanceClass", fallback: fallback)
+    }
+
+    private static func overrides<Value: Decodable>(defaults: UserDefaults, key: String) -> [String: Value] {
+        guard let data = defaults.data(forKey: key),
+              data.isEmpty == false,
+              let values = try? JSONDecoder().decode([String: Value].self, from: data) else {
+            return [:]
+        }
+        return values
+    }
+
+    private static func double(defaults: UserDefaults, key: String, fallback: Double) -> Double {
+        defaults.object(forKey: key) as? Double ?? fallback
+    }
+
+    private static func int(defaults: UserDefaults, key: String, fallback: Int) -> Int {
+        defaults.object(forKey: key) as? Int ?? fallback
+    }
+
+    private static func rawValue<Value: RawRepresentable>(
+        defaults: UserDefaults,
+        key: String,
+        fallback: Value
+    ) -> Value where Value.RawValue == String {
+        optionalRawValue(defaults: defaults, key: key) ?? fallback
+    }
+
+    private static func optionalRawValue<Value: RawRepresentable>(
+        defaults: UserDefaults,
+        key: String
+    ) -> Value? where Value.RawValue == String {
+        defaults.string(forKey: key).flatMap(Value.init(rawValue:))
+    }
+
+    private static func positiveFinite(_ value: Double, fallback: Double) -> Double {
+        value.isFinite && value > 0 ? value : fallback
+    }
+
+    private static func clamped(_ value: Double, to range: ClosedRange<Double>, fallback: Double) -> Double {
+        guard value.isFinite else { return min(max(fallback, range.lowerBound), range.upperBound) }
+        return min(max(value, range.lowerBound), range.upperBound)
     }
 }
 

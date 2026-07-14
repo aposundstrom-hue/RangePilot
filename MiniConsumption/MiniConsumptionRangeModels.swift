@@ -70,6 +70,100 @@ enum MiniConsumptionDefaults {
     }
 }
 
+enum RoofBoxMode: String, Codable, CaseIterable, Identifiable {
+    case off
+    case small
+    case large
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .off: "Off"
+        case .small: "Small"
+        case .large: "Large"
+        }
+    }
+
+    nonisolated var aerodynamicCoefficient: Double {
+        switch self {
+        case .off: 0
+        case .small: 0.7
+        case .large: 1.2
+        }
+    }
+}
+
+struct ScenarioEquipmentSettings: Codable, Equatable {
+    let trailerTowModeEnabled: Bool
+    let trailerWeightKg: Double
+    let boxyTrailerEnabled: Bool
+    let roofBoxMode: RoofBoxMode
+
+    static let none = ScenarioEquipmentSettings(
+        trailerTowModeEnabled: false,
+        trailerWeightKg: MiniConsumptionDefaults.trailerWeightKg,
+        boxyTrailerEnabled: false,
+        roofBoxMode: .off
+    )
+
+    nonisolated func applying(
+        to forecast: ForecastResult,
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double,
+        calibrationFactor: Double? = nil
+    ) -> ForecastResult {
+        let trailerAdjusted = forecast.applyingFinalConsumptionAddition(
+            trailerAddition(roadTypeProfile: roadTypeProfile, motorwaySpeed: motorwaySpeed)
+        )
+        let calibrated = calibrationFactor.map(trailerAdjusted.applyingCalibrationFactor) ?? trailerAdjusted
+        return calibrated.applyingFinalConsumptionAddition(
+            roofBoxAddition(roadTypeProfile: roadTypeProfile, motorwaySpeed: motorwaySpeed)
+        )
+    }
+
+    nonisolated func additionalConsumption(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
+        trailerAddition(roadTypeProfile: roadTypeProfile, motorwaySpeed: motorwaySpeed)
+            + roofBoxAddition(roadTypeProfile: roadTypeProfile, motorwaySpeed: motorwaySpeed)
+    }
+
+    private nonisolated func trailerAddition(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
+        guard trailerTowModeEnabled else { return 0 }
+        let weightAddition = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg) * 0.003
+        guard boxyTrailerEnabled else { return weightAddition }
+        let baseAddition: Double = switch roadTypeProfile {
+        case .cityMix: 0.8
+        case .countryside: 1.2
+        case .motorwayMix: 2.2
+        case .motorway: 3.0
+        }
+        return weightAddition + baseAddition * pow(effectiveSpeed(roadTypeProfile, motorwaySpeed) / 100, 2)
+    }
+
+    private nonisolated func roofBoxAddition(
+        roadTypeProfile: RoadTypeProfile,
+        motorwaySpeed: Double
+    ) -> Double {
+        guard roofBoxMode != .off else { return 0 }
+        return roofBoxMode.aerodynamicCoefficient
+            * pow(effectiveSpeed(roadTypeProfile, motorwaySpeed) / 100, 2)
+    }
+
+    private nonisolated func effectiveSpeed(_ roadTypeProfile: RoadTypeProfile, _ motorwaySpeed: Double) -> Double {
+        switch roadTypeProfile {
+        case .cityMix: 50
+        case .countryside: 80
+        case .motorwayMix, .motorway: MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
+        }
+    }
+}
+
 enum CalibrationTripQuality {
     nonisolated static let minimumCalibrationTripDistanceKm = 15.0
     nonisolated static let minimumCityMixCalibrationTripDistanceKm = 5.0

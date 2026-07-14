@@ -1,9 +1,8 @@
 import Foundation
 
 struct MiniConsumptionSettingsSnapshot {
-    private static let averageChargingSpeedOverridesStorageKey = "averageChargingSpeedKWByVehicleProfile.v1"
-
     let referenceConsumption: Double
+    let defaultReferenceConsumption: Double
     let tripDistance: Double
     let temperature: Double
     let airConditioningMode: AirConditioningMode
@@ -18,9 +17,15 @@ struct MiniConsumptionSettingsSnapshot {
     let winterTyreClass: RollingResistanceClass
     let rollingResistanceClass: RollingResistanceClass
     let useContinuousCalibration: Bool
+    let trailerTowModeEnabled: Bool
+    let trailerWeightKg: Double
+    let boxyTrailerEnabled: Bool
+    let roofBoxMode: RoofBoxMode
     let batteryDegradationPercent: Int
     let activeForecastUsableBatteryKWh: Double
     let activeForecastUsesCustomVehicleProfile: Bool
+    let activeVehicleProfile: VehicleProfile
+    let resolvedChargingTaperStartSOC: Double
     let arrivalBatteryTargetPercent: Double
     let normalMinimumChargingPercent: Double
     let normalFastChargeTargetPercent: Double
@@ -42,23 +47,27 @@ struct MiniConsumptionSettingsSnapshot {
     }
 
     var effectiveUsableBatteryKWh: Double {
-        MiniConsumptionCalculator.effectiveUsableBatteryKWh(degradationPercent: batteryDegradationPercent)
+        activeForecastUsableBatteryKWh
     }
 
     var chargingTaperStartSOC: Double {
-        MiniConsumptionCalculator.chargingTaperStartSOC(degradationPercent: batteryDegradationPercent)
+        resolvedChargingTaperStartSOC
     }
 
     var effectiveReferenceConsumption: Double {
-        let calibrationCorrection = ContinuousCalibrationSummary(outcomes: outcomes, vehicleProfileKind: .mini)
+        let calibrationCorrection = ContinuousCalibrationSummary(
+            outcomes: outcomes,
+            vehicleProfile: activeVehicleProfile
+        )
             .correction(
                 for: CalibrationPredictionContext(
                     roadTypeProfile: roadTypeProfile,
-                    tyreSet: selectedTyreSet
+                    tyreSet: selectedTyreSet,
+                    trailerTowModeEnabled: trailerTowModeEnabled
                 )
             )
         if useContinuousCalibration, calibrationCorrection.canApply {
-            return MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
+            return calibrationBaseReferenceConsumption
                 * calibrationCorrection.totalFactor
                 * MiniConsumptionCalculator.calibrationSafetyMultiplier
         }
@@ -71,119 +80,46 @@ struct MiniConsumptionSettingsSnapshot {
     }
 
     static func load(defaults: UserDefaults = .standard) -> Self {
-        let batteryDegradationPercent = defaults.int(
-            forKey: "batteryDegradationPercent",
-            defaultValue: MiniConsumptionDefaults.batteryDegradationPercent
-        )
-        let summerTyreClass = defaults.tyreClass(
-            forKey: "summerTyreClass",
-            defaultValue: MiniConsumptionDefaults.summerTyreClass
-        )
-        let winterTyreClass = defaults.tyreClass(
-            forKey: "winterTyreClass",
-            defaultValue: MiniConsumptionDefaults.winterTyreClass
-        )
-        let activeVehicleProfile = resolvedActiveVehicleProfile(
-            defaults: defaults,
-            batteryDegradationPercent: batteryDegradationPercent,
-            summerTyreClass: summerTyreClass,
-            winterTyreClass: winterTyreClass
-        )
-        let averageChargingSpeedKW = resolvedAverageChargingSpeedKW(
-            defaults: defaults,
-            for: activeVehicleProfile
-        )
+        let effectiveProfile = EffectiveVehicleProfileSettingsResolver.resolve(defaults: defaults)
+        let activeVehicleProfile = effectiveProfile.profile
 
         return Self(
-            referenceConsumption: defaults.double(forKey: "referenceConsumption", defaultValue: defaultReferenceConsumptionKWhPer100Km),
+            referenceConsumption: effectiveProfile.manualReferenceConsumption,
+            defaultReferenceConsumption: effectiveProfile.defaultReferenceConsumption,
             tripDistance: defaults.double(forKey: "tripDistance", defaultValue: MiniConsumptionDefaults.tripDistanceKm),
             temperature: defaults.double(forKey: "temperature", defaultValue: MiniConsumptionDefaults.temperatureC),
-            airConditioningMode: defaults.rawRepresentable(forKey: "airConditioningMode", defaultValue: MiniConsumptionDefaults.airConditioningMode),
+            airConditioningMode: effectiveProfile.airConditioningMode,
             roadTypeProfile: defaults.rawRepresentable(forKey: "roadTypeProfile", defaultValue: MiniConsumptionDefaults.roadTypeProfile),
-            motorwaySpeed: defaults.double(forKey: "motorwaySpeed", defaultValue: MiniConsumptionDefaults.motorwaySpeedKmh),
+            motorwaySpeed: effectiveProfile.motorwaySpeed,
             roadSurface: defaults.rawRepresentable(forKey: "roadSurface", defaultValue: MiniConsumptionDefaults.roadSurface),
             windCondition: defaults.rawRepresentable(forKey: "windCondition", defaultValue: MiniConsumptionDefaults.windCondition),
             planningMode: defaults.rawRepresentable(forKey: "planningMode", defaultValue: MiniConsumptionDefaults.planningMode),
             currentBatteryPercent: defaults.double(forKey: "currentBatteryPercent", defaultValue: MiniConsumptionDefaults.currentBatteryPercent),
-            selectedTyreSet: defaults.selectedTyreSet(),
-            summerTyreClass: summerTyreClass,
-            winterTyreClass: winterTyreClass,
-            rollingResistanceClass: defaults.activeTyreClass(),
-            useContinuousCalibration: defaults.bool(forKey: "useContinuousCalibration", defaultValue: MiniConsumptionDefaults.useContinuousCalibration),
-            batteryDegradationPercent: batteryDegradationPercent,
+            selectedTyreSet: effectiveProfile.selectedTyreSet,
+            summerTyreClass: effectiveProfile.summerTyreClass,
+            winterTyreClass: effectiveProfile.winterTyreClass,
+            rollingResistanceClass: effectiveProfile.activeRollingResistanceClass,
+            useContinuousCalibration: effectiveProfile.useContinuousCalibration,
+            trailerTowModeEnabled: defaults.bool(forKey: "trailerTowModeEnabled", defaultValue: false),
+            trailerWeightKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                defaults.double(forKey: "trailerWeightKg", defaultValue: MiniConsumptionDefaults.trailerWeightKg)
+            ),
+            boxyTrailerEnabled: defaults.bool(forKey: "boxyTrailerEnabled", defaultValue: false),
+            roofBoxMode: defaults.rawRepresentable(forKey: "roofBoxMode", defaultValue: .off),
+            batteryDegradationPercent: activeVehicleProfile.batteryDegradationPercent,
             activeForecastUsableBatteryKWh: activeVehicleProfile.usableBatteryKWh,
             activeForecastUsesCustomVehicleProfile: activeVehicleProfile.kind == .custom,
+            activeVehicleProfile: activeVehicleProfile,
+            resolvedChargingTaperStartSOC: effectiveProfile.chargingTaperStartSOC,
             arrivalBatteryTargetPercent: defaults.double(forKey: "arrivalBatteryTargetPercent", defaultValue: ChargingWindow.defaultArrivalBatteryTargetPercent),
-            normalMinimumChargingPercent: defaults.double(forKey: "normalMinimumChargingPercent", defaultValue: ChargingWindow.defaultMinimumPercent),
-            normalFastChargeTargetPercent: defaults.double(forKey: "normalFastChargeTargetPercent", defaultValue: ChargingWindow.defaultTargetPercent),
-            averageChargingSpeedKW: averageChargingSpeedKW,
+            normalMinimumChargingPercent: effectiveProfile.normalMinimumChargingPercent,
+            normalFastChargeTargetPercent: effectiveProfile.normalFastChargeTargetPercent,
+            averageChargingSpeedKW: effectiveProfile.averageChargingSpeedKW,
             tripChargingSetupMinutes: defaults.double(forKey: "tripChargingSetupMinutes", defaultValue: defaultTripChargingSetupMinutes),
             displayUnits: defaults.rawRepresentable(forKey: "displayUnits", defaultValue: .metric),
             temperatureUnits: defaults.rawRepresentable(forKey: "temperatureUnits", defaultValue: .celsius),
             outcomes: TripOutcomeStore.load()
         )
-    }
-
-    private static func resolvedActiveVehicleProfile(
-        defaults: UserDefaults,
-        batteryDegradationPercent: Int,
-        summerTyreClass: RollingResistanceClass,
-        winterTyreClass: RollingResistanceClass
-    ) -> VehicleProfile {
-        let input = VehicleProfileResolverInput(
-            experimentalCustomVehicleProfileEnabled: false,
-            experimentalUsableBatteryCapacityKWh: VehicleProfileResolver.defaultCustomUsableBatteryCapacityKWh,
-            experimentalOfficialWLTPRangeKm: VehicleProfileResolver.defaultCustomWLTPRangeKm,
-            experimentalMaximumDCChargingSpeedKW: VehicleProfileResolver.defaultCustomPeakDCChargingKW,
-            batteryDegradationPercent: batteryDegradationPercent,
-            summerTyreClass: summerTyreClass,
-            winterTyreClass: winterTyreClass
-        )
-
-        return VehicleProfileResolver.activeProfile(
-            for: input,
-            customProfiles: VehicleProfileStore.loadCustomProfiles(defaults: defaults),
-            selectedProfileID: VehicleProfileStore.selectedProfileID(defaults: defaults)
-        )
-        .profile
-    }
-
-    private static func resolvedAverageChargingSpeedKW(
-        defaults: UserDefaults,
-        for profile: VehicleProfile
-    ) -> Double {
-        let defaultValue = MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: profile)
-        let bounds = MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: profile)
-        let value: Double
-
-        if profile.kind == .custom {
-            value = averageChargingSpeedOverridesByProfileID(defaults: defaults)[profile.id] ?? defaultValue
-        } else {
-            value = defaults.double(forKey: "averageChargingSpeedKW", defaultValue: defaultValue)
-        }
-
-        guard value.isFinite else {
-            return clampedAverageChargingSpeedKW(defaultValue, in: bounds)
-        }
-
-        return clampedAverageChargingSpeedKW(value, in: bounds)
-    }
-
-    private static func averageChargingSpeedOverridesByProfileID(defaults: UserDefaults) -> [String: Double] {
-        guard let data = defaults.data(forKey: averageChargingSpeedOverridesStorageKey),
-              data.isEmpty == false,
-              let overrides = try? JSONDecoder().decode([String: Double].self, from: data) else {
-            return [:]
-        }
-
-        return overrides
-    }
-
-    private static func clampedAverageChargingSpeedKW(
-        _ value: Double,
-        in bounds: ClosedRange<Double>
-    ) -> Double {
-        min(max(value, bounds.lowerBound), bounds.upperBound)
     }
 
     func forecast(
@@ -193,11 +129,15 @@ struct MiniConsumptionSettingsSnapshot {
         planningMode: PlanningMode,
         applyDistanceAdjustment: Bool = true
     ) -> ForecastResult {
-        let calibrationCorrection = ContinuousCalibrationSummary(outcomes: outcomes, vehicleProfileKind: .mini)
+        let calibrationCorrection = ContinuousCalibrationSummary(
+            outcomes: outcomes,
+            vehicleProfile: activeVehicleProfile
+        )
             .correction(
                 for: CalibrationPredictionContext(
                     roadTypeProfile: roadTypeProfile,
-                    tyreSet: selectedTyreSet
+                    tyreSet: selectedTyreSet,
+                    trailerTowModeEnabled: trailerTowModeEnabled
                 )
             )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -216,11 +156,12 @@ struct MiniConsumptionSettingsSnapshot {
             usableBatteryKWh: activeForecastUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return ruleBasedForecast
-        }
-
-        return ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+        return scenarioEquipment.applying(
+            to: ruleBasedForecast,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            calibrationFactor: useContinuousCalibration ? calibrationCorrection.totalFactor : nil
+        )
     }
 
     func forecast(
@@ -233,11 +174,15 @@ struct MiniConsumptionSettingsSnapshot {
         planningMode: PlanningMode,
         applyDistanceAdjustment: Bool = true
     ) -> ForecastResult {
-        let calibrationCorrection = ContinuousCalibrationSummary(outcomes: outcomes, vehicleProfileKind: .mini)
+        let calibrationCorrection = ContinuousCalibrationSummary(
+            outcomes: outcomes,
+            vehicleProfile: activeVehicleProfile
+        )
             .correction(
                 for: CalibrationPredictionContext(
                     roadTypeProfile: roadTypeProfile,
-                    tyreSet: selectedTyreSet
+                    tyreSet: selectedTyreSet,
+                    trailerTowModeEnabled: trailerTowModeEnabled
                 )
             )
         let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
@@ -256,11 +201,12 @@ struct MiniConsumptionSettingsSnapshot {
             usableBatteryKWh: activeForecastUsableBatteryKWh
         )
 
-        guard useContinuousCalibration else {
-            return ruleBasedForecast
-        }
-
-        return ruleBasedForecast.applyingCalibrationFactor(calibrationCorrection.totalFactor)
+        return scenarioEquipment.applying(
+            to: ruleBasedForecast,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: motorwaySpeed,
+            calibrationFactor: useContinuousCalibration ? calibrationCorrection.totalFactor : nil
+        )
     }
 
     private func calibratedForecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
@@ -268,8 +214,23 @@ struct MiniConsumptionSettingsSnapshot {
             return referenceConsumption
         }
 
-        return MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
+        return calibrationBaseReferenceConsumption
             * MiniConsumptionCalculator.calibrationSafetyMultiplier
+    }
+
+    private var calibrationBaseReferenceConsumption: Double {
+        activeForecastUsesCustomVehicleProfile
+            ? defaultReferenceConsumption
+            : MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
+    }
+
+    private var scenarioEquipment: ScenarioEquipmentSettings {
+        ScenarioEquipmentSettings(
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled,
+            roofBoxMode: roofBoxMode
+        )
     }
 }
 

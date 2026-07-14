@@ -124,6 +124,10 @@ enum MiniConsumptionInitialSetup {
         }
     }
 
+    static func defaultUnits(for locale: Locale = .current) -> (displayUnits: DisplayUnits, temperatureUnits: TemperatureUnits, weightUnits: WeightUnits) {
+        inferredUnits(for: locale)
+    }
+
     private static func isFreshInstall(defaults: UserDefaults) -> Bool {
         !existingInstallEvidenceKeys.contains { defaults.object(forKey: $0) != nil }
             && TripOutcomeStore.load().isEmpty
@@ -197,36 +201,6 @@ private enum RangeDisplayMode: String, CaseIterable, Identifiable {
             return "Gauge"
         case .map:
             return "Map"
-        }
-    }
-}
-
-enum RoofBoxMode: String, Codable, CaseIterable, Identifiable {
-    case off
-    case small
-    case large
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .off:
-            return "Off"
-        case .small:
-            return "Small"
-        case .large:
-            return "Large"
-        }
-    }
-
-    nonisolated var aerodynamicCoefficient: Double {
-        switch self {
-        case .off:
-            return 0
-        case .small:
-            return 0.7
-        case .large:
-            return 1.2
         }
     }
 }
@@ -477,21 +451,22 @@ struct ContentView: View {
     @AppStorage("selectedTyreSet") private var selectedTyreSet = MiniConsumptionDefaults.selectedTyreSet
     @AppStorage("summerTyreClass") private var summerTyreClass = MiniConsumptionDefaults.summerTyreClass
     @AppStorage("winterTyreClass") private var winterTyreClass = MiniConsumptionDefaults.winterTyreClass
-    @AppStorage("useContinuousCalibration") private var useContinuousCalibration = MiniConsumptionDefaults.useContinuousCalibration
+    @AppStorage("useContinuousCalibration") private var legacyUseContinuousCalibration = MiniConsumptionDefaults.useContinuousCalibration
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.useContinuousCalibrationOverridesKey) private var useContinuousCalibrationOverridesByProfileData = Data()
     @AppStorage("batteryDegradationPercent") private var miniBatteryDegradationPercent = MiniConsumptionDefaults.batteryDegradationPercent
     @AppStorage("arrivalBatteryTargetPercent") private var arrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
     @AppStorage("normalMinimumChargingPercent") private var normalMinimumChargingPercent = ChargingWindow.defaultMinimumPercent
     @AppStorage("normalFastChargeTargetPercent") private var normalFastChargeTargetPercent = ChargingWindow.defaultTargetPercent
     @AppStorage("averageChargingSpeedKW") private var averageChargingSpeedKW = MiniConsumptionCalculator.defaultAverageChargingSpeedKW
-    @AppStorage("averageChargingSpeedKWByVehicleProfile.v1") private var averageChargingSpeedOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.averageChargingSpeedOverridesKey) private var averageChargingSpeedOverridesByProfileData = Data()
     @AppStorage("referenceConsumptionByVehicleProfile.v1") private var referenceConsumptionOverridesByProfileData = Data()
     @AppStorage("motorwaySpeedByVehicleProfile.v1") private var motorwaySpeedOverridesByProfileData = Data()
     @AppStorage("airConditioningModeByVehicleProfile.v1") private var airConditioningModeOverridesByProfileData = Data()
     @AppStorage("selectedTyreSetByVehicleProfile.v1") private var selectedTyreSetOverridesByProfileData = Data()
     @AppStorage("summerTyreClassByVehicleProfile.v1") private var summerTyreClassOverridesByProfileData = Data()
     @AppStorage("winterTyreClassByVehicleProfile.v1") private var winterTyreClassOverridesByProfileData = Data()
-    @AppStorage("normalMinimumChargingPercentByVehicleProfile.v1") private var normalMinimumChargingPercentOverridesByProfileData = Data()
-    @AppStorage("normalFastChargeTargetPercentByVehicleProfile.v1") private var normalFastChargeTargetPercentOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.normalMinimumChargingPercentOverridesKey) private var normalMinimumChargingPercentOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.normalFastChargeTargetPercentOverridesKey) private var normalFastChargeTargetPercentOverridesByProfileData = Data()
     @AppStorage("tripChargingSetupMinutes") private var tripChargingSetupMinutes = defaultTripChargingSetupMinutes
     @AppStorage("quickTripDistance") private var quickTripDistance = MiniConsumptionDefaults.quickTripDistanceKm
     @AppStorage("displayUnits") private var displayUnits = DisplayUnits.metric
@@ -578,6 +553,7 @@ struct ContentView: View {
     @State private var tripEstimateRollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
     @State private var tripEstimateAirConditioningMode = MiniConsumptionDefaults.airConditioningMode
     @State private var tripAssumptionsBaseline: TripAssumptionsSnapshot?
+    @State private var tripAssumptionsRemainExplicitAfterProfileSwitch = false
     @State private var isTripDistanceMapDerived = false
     @State private var selectedAppTab: AppTab = .range
     @State private var selectedTripChargingOption: TripChargingOption = .userSettings
@@ -619,7 +595,6 @@ struct ContentView: View {
     @State private var isVehicleSetupExpanded = false
     @State private var isLoggedTripDrivingConditionsExpanded = false
     @State private var isLoggedTripVehicleSetupExpanded = false
-    @State private var isTripAdvancedChargingSettingsExpanded = false
     @State private var shouldScrollToVehicleProfileCard = false
     @State private var profileEditorMode: VehicleProfileEditorMode?
     @State private var profileEditorDraft = VehicleProfileEditorDraft()
@@ -631,6 +606,7 @@ struct ContentView: View {
     @StateObject private var rangeMapLocationProvider = RangeMapLocationProvider()
     @State private var rangeMapAutofitRequestID = 0
     @State private var isRangeChargingReserveInfoPresented = false
+    @State private var isRangeReturnTripInfoPresented = false
     @FocusState private var isTripAssistantDescriptionFocused: Bool
     @FocusState private var focusedCustomVehicleProfileField: CustomVehicleProfileField?
 
@@ -756,14 +732,11 @@ struct ContentView: View {
         (sanitizedExperimentalUsableBatteryCapacityKWh / degradedModelWLTPRangeKm(for: activeVehicleProfile.profile) * 100) * 1.04
     }
 
-    private var sanitizedExperimentalMaximumDCChargingSpeedKW: Double {
-        positiveFinite(activeVehicleProfile.profile.peakDCChargingKW, fallback: 50)
-    }
-
     private var tripPlanningUsableBatteryKWh: Double {
-        isCustomVehicleProfileSelected
-            ? sanitizedExperimentalUsableBatteryCapacityKWh
-            : effectiveUsableBatteryKWh
+        positiveFinite(
+            activeVehicleProfile.profile.usableBatteryKWh,
+            fallback: MiniConsumptionCalculator.nominalUsableBatteryKWh
+        )
     }
 
     private var tripPlanningAverageChargingSpeedKW: Double {
@@ -771,20 +744,7 @@ struct ContentView: View {
     }
 
     private var tripPlanningChargingTaperStartSOC: Double {
-        guard isCustomVehicleProfileSelected else {
-            return chargingTaperStartSOC
-        }
-
-        switch sanitizedExperimentalMaximumDCChargingSpeedKW {
-        case ...75:
-            return 80
-        case ...125:
-            return 75
-        case ...200:
-            return 70
-        default:
-            return 65
-        }
+        MiniConsumptionCalculator.chargingTaperStartSOC(for: activeVehicleProfile.profile)
     }
 
     private var tripPlanningChargingSpeedBoundsKW: ClosedRange<Double> {
@@ -1002,6 +962,10 @@ struct ContentView: View {
             vehicleProfileName: profile.displayName,
             vehicleProfileKind: profile.kind,
             referenceConsumptionKWhPer100Km: activeVehicleProfileManualReferenceConsumption,
+            effectiveReferenceConsumptionKWhPer100Km: effectiveReferenceConsumption,
+            automaticCalibrationFactor: activeUseContinuousCalibration && activeCalibrationCorrection.canApply
+                ? activeCalibrationCorrection.totalFactor
+                : nil,
             usableBatteryKWh: profile.usableBatteryKWh,
             wltpRangeKm: profile.wltpRangeKm,
             peakDCChargingKW: profile.peakDCChargingKW,
@@ -1013,7 +977,11 @@ struct ContentView: View {
             selectedTyreSet: activeSelectedTyreSet,
             summerTyreClass: activeSummerTyreClass,
             winterTyreClass: activeWinterTyreClass,
-            useContinuousCalibration: useContinuousCalibration,
+            useContinuousCalibration: activeUseContinuousCalibration,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: normalizedTrailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled,
+            roofBoxMode: roofBoxMode,
             displayUnitsRawValue: displayUnits.rawValue,
             temperatureUnitsRawValue: temperatureUnits.rawValue
         )
@@ -1025,6 +993,29 @@ struct ContentView: View {
 
     private var isCustomVehicleProfileSelected: Bool {
         activeVehicleProfile.usesCustomEVBehavior
+    }
+
+    private var activeUseContinuousCalibration: Bool {
+        _ = legacyUseContinuousCalibration
+        return EffectiveVehicleProfileSettingsResolver.useContinuousCalibration(
+            for: activeVehicleProfile.profile.id
+        )
+    }
+
+    private var useContinuousCalibrationBinding: Binding<Bool> {
+        Binding(
+            get: { activeUseContinuousCalibration },
+            set: { isEnabled in
+                EffectiveVehicleProfileSettingsResolver.setUseContinuousCalibration(
+                    isEnabled,
+                    for: activeVehicleProfile.profile.id
+                )
+                useContinuousCalibrationOverridesByProfileData = UserDefaults.standard.data(
+                    forKey: EffectiveVehicleProfileSettingsResolver.useContinuousCalibrationOverridesKey
+                ) ?? Data()
+                publishWatchRangeStateSnapshot()
+            }
+        )
     }
 
     private var tripEstimateAssumptionsFingerprint: TripEstimateAssumptionsFingerprint {
@@ -1051,8 +1042,6 @@ struct ContentView: View {
     }
 
     private var currentTripAssumptionsSnapshot: TripAssumptionsSnapshot {
-        let trailerTowModeEnabled = tripEstimateTrailerTowModeEnabled
-
         return TripAssumptionsSnapshot(
             startBatteryPercent: min(max(tripEstimateStartBatteryPercent, 10), 100),
             temperature: tripEstimateTemperature,
@@ -1066,11 +1055,12 @@ struct ContentView: View {
             ),
             minimumChargingStopBatteryPercent: tripEstimateMinimumChargingStopBatteryPercentBinding.wrappedValue,
             targetChargingStopBatteryPercent: tripEstimateTargetChargingStopBatteryPercentBinding.wrappedValue,
-            trailerTowModeEnabled: trailerTowModeEnabled,
-            trailerWeightKg: trailerTowModeEnabled
-                ? MiniConsumptionDefaults.normalizedTrailerWeightKg(tripEstimateTrailerWeightKg, usesPounds: weightUnits == .pounds)
-                : 0,
-            boxyTrailerEnabled: trailerTowModeEnabled ? tripEstimateBoxyTrailerEnabled : false,
+            trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled,
+            trailerWeightKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                tripEstimateTrailerWeightKg,
+                usesPounds: weightUnits == .pounds
+            ),
+            boxyTrailerEnabled: tripEstimateBoxyTrailerEnabled,
             roofBoxMode: tripEstimateRoofBoxMode,
             tyreSet: tripEstimateTyreSet,
             rollingResistanceClass: tripEstimateRollingResistanceClass,
@@ -1079,6 +1069,9 @@ struct ContentView: View {
     }
 
     private var areTripAssumptionsAdjustedForCurrentTrip: Bool {
+        if tripAssumptionsRemainExplicitAfterProfileSwitch {
+            return true
+        }
         guard let tripAssumptionsBaseline else {
             return false
         }
@@ -1099,8 +1092,9 @@ struct ContentView: View {
             || differs(current.minimumChargingStopBatteryPercent, baseline.minimumChargingStopBatteryPercent)
             || differs(current.targetChargingStopBatteryPercent, baseline.targetChargingStopBatteryPercent)
             || current.trailerTowModeEnabled != baseline.trailerTowModeEnabled
-            || differs(current.trailerWeightKg, baseline.trailerWeightKg)
-            || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled
+            || (current.trailerTowModeEnabled
+                && (differs(current.trailerWeightKg, baseline.trailerWeightKg)
+                    || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled))
             || current.roofBoxMode != baseline.roofBoxMode
             || current.tyreSet != baseline.tyreSet
             || current.rollingResistanceClass != baseline.rollingResistanceClass
@@ -1112,7 +1106,7 @@ struct ContentView: View {
     }
 
     private var activeAverageChargingSpeedKW: Double {
-        averageChargingSpeedKW(for: activeVehicleProfile.profile)
+        EffectiveVehicleProfileSettingsResolver.averageChargingSpeedKW(for: activeVehicleProfile.profile)
     }
 
     private var activeAverageChargingSpeedDefaultKW: Double {
@@ -1147,56 +1141,15 @@ struct ContentView: View {
         trailerWeightKg: Double,
         boxyTrailerEnabled: Bool
     ) -> Double {
-        guard trailerTowModeEnabled else {
-            return 0
-        }
-
-        let weightExtraConsumption = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg) * 0.003
-        let aerodynamicExtraConsumption = boxyTrailerEnabled
-            ? boxyTrailerAerodynamicExtraConsumptionKWhPer100Km(
-                roadTypeProfile: roadTypeProfile,
-                motorwaySpeed: motorwaySpeed
-            )
-            : 0
-
-        return weightExtraConsumption + aerodynamicExtraConsumption
-    }
-
-    private func boxyTrailerAerodynamicExtraConsumptionKWhPer100Km(
-        roadTypeProfile: RoadTypeProfile,
-        motorwaySpeed: Double
-    ) -> Double {
-        let baseExtraConsumption: Double
-        switch roadTypeProfile {
-        case .cityMix:
-            baseExtraConsumption = 0.8
-        case .countryside:
-            baseExtraConsumption = 1.2
-        case .motorwayMix:
-            baseExtraConsumption = 2.2
-        case .motorway:
-            baseExtraConsumption = 3.0
-        }
-
-        let speedFactor = pow(loadAerodynamicSpeedKmh(
+        ScenarioEquipmentSettings(
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: trailerWeightKg,
+            boxyTrailerEnabled: boxyTrailerEnabled,
+            roofBoxMode: .off
+        ).additionalConsumption(
             roadTypeProfile: roadTypeProfile,
             motorwaySpeed: motorwaySpeed
-        ) / 100, 2)
-        return baseExtraConsumption * speedFactor
-    }
-
-    private func loadAerodynamicSpeedKmh(
-        roadTypeProfile: RoadTypeProfile,
-        motorwaySpeed: Double
-    ) -> Double {
-        switch roadTypeProfile {
-        case .cityMix:
-            return 50
-        case .countryside:
-            return 80
-        case .motorwayMix, .motorway:
-            return MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
-        }
+        )
     }
 
     private func roofBoxExtraConsumptionKWhPer100Km(
@@ -1215,15 +1168,15 @@ struct ContentView: View {
         motorwaySpeed: Double,
         roofBoxMode: RoofBoxMode
     ) -> Double {
-        guard roofBoxMode != .off else {
-            return 0
-        }
-
-        let speedKmh = loadAerodynamicSpeedKmh(
+        ScenarioEquipmentSettings(
+            trailerTowModeEnabled: false,
+            trailerWeightKg: MiniConsumptionDefaults.trailerWeightKg,
+            boxyTrailerEnabled: false,
+            roofBoxMode: roofBoxMode
+        ).additionalConsumption(
             roadTypeProfile: roadTypeProfile,
             motorwaySpeed: motorwaySpeed
         )
-        return roofBoxMode.aerodynamicCoefficient * pow(speedKmh / 100.0, 2)
     }
 
     private var trailerWeightText: String {
@@ -1320,7 +1273,7 @@ struct ContentView: View {
         boxyTrailerEnabled: Bool,
         roofBoxMode: RoofBoxMode
     ) -> ForecastResult {
-        guard useContinuousCalibration else {
+        guard activeUseContinuousCalibration else {
             return applyingRoofBoxConsumptionAdjustment(
                 to: applyingTrailerConsumptionAdjustment(
                     to: forecast,
@@ -1378,11 +1331,11 @@ struct ContentView: View {
     }
 
     private var activeNormalMinimumChargingPercent: Double {
-        normalMinimumChargingPercent(for: activeVehicleProfile.profile)
+        EffectiveVehicleProfileSettingsResolver.normalMinimumChargingPercent(for: activeVehicleProfile.profile)
     }
 
     private var activeNormalFastChargeTargetPercent: Double {
-        normalFastChargeTargetPercent(for: activeVehicleProfile.profile)
+        EffectiveVehicleProfileSettingsResolver.normalFastChargeTargetPercent(for: activeVehicleProfile.profile)
     }
 
     private var vehicleProfileResolverInput: VehicleProfileResolverInput {
@@ -1402,7 +1355,15 @@ struct ContentView: View {
     }
 
     private var continuousCalibrationSummary: ContinuousCalibrationSummary {
-        ContinuousCalibrationSummary(outcomes: outcomes, vehicleProfileKind: activeVehicleProfileKind)
+        ContinuousCalibrationSummary(
+            outcomes: outcomes,
+            vehicleProfile: activeVehicleProfile.profile
+        )
+    }
+
+    private var activeVehicleProfileTripOutcomes: [TripOutcome] {
+        let scope = CalibrationVehicleScope(vehicleProfile: activeVehicleProfile.profile)
+        return outcomes.filter(scope.includes)
     }
 
     private var activeCalibrationCorrection: CalibrationCorrection {
@@ -1440,13 +1401,9 @@ struct ContentView: View {
         MiniConsumptionCalculator.effectiveUsableBatteryKWh(degradationPercent: batteryDegradationPercent)
     }
 
-    private var chargingTaperStartSOC: Double {
-        MiniConsumptionCalculator.chargingTaperStartSOC(degradationPercent: batteryDegradationPercent)
-    }
-
     private var effectiveReferenceConsumption: Double {
         if isCustomVehicleProfileSelected {
-            if useContinuousCalibration, activeCalibrationCorrection.canApply {
+            if activeUseContinuousCalibration, activeCalibrationCorrection.canApply {
                 return activeVehicleProfileDefaultReferenceConsumption
                     * MiniConsumptionCalculator.calibrationSafetyMultiplier
                     * activeCalibrationCorrection.totalFactor
@@ -1455,7 +1412,7 @@ struct ContentView: View {
             return activeVehicleProfileManualReferenceConsumption
         }
 
-        if useContinuousCalibration, activeCalibrationCorrection.canApply {
+        if activeUseContinuousCalibration, activeCalibrationCorrection.canApply {
             return MiniConsumptionCalculator.continuousCalibrationBaseReferenceConsumptionKWhPer100Km
                 * activeCalibrationCorrection.totalFactor
                 * MiniConsumptionCalculator.calibrationSafetyMultiplier
@@ -1465,7 +1422,7 @@ struct ContentView: View {
     }
 
     private func calibratedForecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
-        guard useContinuousCalibration, correction.canApply else {
+        guard activeUseContinuousCalibration, correction.canApply else {
             return referenceConsumption
         }
 
@@ -1474,7 +1431,7 @@ struct ContentView: View {
     }
 
     private func experimentalForecastReferenceConsumption(for correction: CalibrationCorrection) -> Double {
-        guard useContinuousCalibration, correction.canApply else {
+        guard activeUseContinuousCalibration, correction.canApply else {
             return activeVehicleProfileManualReferenceConsumption
         }
 
@@ -2257,45 +2214,23 @@ struct ContentView: View {
         )
     }
 
-    private func averageChargingSpeedKW(for profile: VehicleProfile) -> Double {
-        let defaultValue = MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: profile)
-        let bounds = MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: profile)
-
-        guard profile.kind == .custom else {
-            return clampedFinite(
-                averageChargingSpeedKW,
-                in: bounds,
-                fallback: defaultValue
-            )
-        }
-
-        guard let overrideValue = averageChargingSpeedOverridesByProfileID[profile.id] else {
-            return defaultValue
-        }
-
-        return clampedFinite(
-            overrideValue,
-            in: bounds,
-            fallback: defaultValue
-        )
-    }
-
     private func setAverageChargingSpeedKW(_ value: Double, for profile: VehicleProfile) {
-        let clampedValue = clampedFinite(
-            value,
-            in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: profile),
-            fallback: MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: profile)
-        )
-
-        if profile.kind == .custom {
-            var overrides = averageChargingSpeedOverridesByProfileID
-            overrides[profile.id] = clampedValue
-            averageChargingSpeedOverridesByProfileID = overrides
-        } else {
-            averageChargingSpeedKW = clampedValue
-        }
+        EffectiveVehicleProfileSettingsResolver.setAverageChargingSpeedKW(value, for: profile)
+        averageChargingSpeedOverridesByProfileData = UserDefaults.standard.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.averageChargingSpeedOverridesKey
+        ) ?? Data()
 
         resetTransientAlternativeTripPlanSelection()
+    }
+
+    private func refreshChargingWindowOverrideData() {
+        normalMinimumChargingPercentOverridesByProfileData = UserDefaults.standard.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.normalMinimumChargingPercentOverridesKey
+        ) ?? Data()
+        normalFastChargeTargetPercentOverridesByProfileData = UserDefaults.standard.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.normalFastChargeTargetPercentOverridesKey
+        )
+            ?? Data()
     }
 
     private var activeVehicleProfileDefaultReferenceConsumption: Double {
@@ -2547,20 +2482,7 @@ struct ContentView: View {
     }
 
     private func normalMinimumChargingPercent(for profile: VehicleProfile) -> Double {
-        guard profile.kind == .custom,
-              let overrideValue = normalMinimumChargingPercentOverridesByProfileID[profile.id] else {
-            return clampedFinite(
-                normalMinimumChargingPercent,
-                in: ChargingWindow.minimumBounds,
-                fallback: ChargingWindow.defaultMinimumPercent
-            )
-        }
-
-        return clampedFinite(
-            overrideValue,
-            in: ChargingWindow.minimumBounds,
-            fallback: ChargingWindow.defaultMinimumPercent
-        )
+        EffectiveVehicleProfileSettingsResolver.normalMinimumChargingPercent(for: profile)
     }
 
     private func defaultMinimumChargingPercent(forWLTPRangeKm wltpRangeKm: Double) -> Double {
@@ -2585,55 +2507,18 @@ struct ContentView: View {
     }
 
     private func setNormalMinimumChargingPercent(_ value: Double, for profile: VehicleProfile) {
-        let clampedValue = clampedFinite(
-            value,
-            in: ChargingWindow.minimumBounds,
-            fallback: ChargingWindow.defaultMinimumPercent
-        )
-
-        if profile.kind == .custom {
-            var overrides = normalMinimumChargingPercentOverridesByProfileID
-            overrides[profile.id] = clampedValue
-            normalMinimumChargingPercentOverridesByProfileID = overrides
-        } else {
-            normalMinimumChargingPercent = clampedValue
-        }
-
+        EffectiveVehicleProfileSettingsResolver.setNormalMinimumChargingPercent(value, for: profile)
+        refreshChargingWindowOverrideData()
         resetTransientAlternativeTripPlanSelection()
     }
 
     private func normalFastChargeTargetPercent(for profile: VehicleProfile) -> Double {
-        guard profile.kind == .custom,
-              let overrideValue = normalFastChargeTargetPercentOverridesByProfileID[profile.id] else {
-            return clampedFinite(
-                normalFastChargeTargetPercent,
-                in: ChargingWindow.targetBounds,
-                fallback: ChargingWindow.defaultTargetPercent
-            )
-        }
-
-        return clampedFinite(
-            overrideValue,
-            in: ChargingWindow.targetBounds,
-            fallback: ChargingWindow.defaultTargetPercent
-        )
+        EffectiveVehicleProfileSettingsResolver.normalFastChargeTargetPercent(for: profile)
     }
 
     private func setNormalFastChargeTargetPercent(_ value: Double, for profile: VehicleProfile) {
-        let clampedValue = clampedFinite(
-            value,
-            in: ChargingWindow.targetBounds,
-            fallback: ChargingWindow.defaultTargetPercent
-        )
-
-        if profile.kind == .custom {
-            var overrides = normalFastChargeTargetPercentOverridesByProfileID
-            overrides[profile.id] = clampedValue
-            normalFastChargeTargetPercentOverridesByProfileID = overrides
-        } else {
-            normalFastChargeTargetPercent = clampedValue
-        }
-
+        EffectiveVehicleProfileSettingsResolver.setNormalFastChargeTargetPercent(value, for: profile)
+        refreshChargingWindowOverrideData()
         resetTransientAlternativeTripPlanSelection()
     }
 
@@ -2686,14 +2571,10 @@ struct ContentView: View {
     }
 
     private func resetAverageChargingSpeedForActiveProfile() {
-        if activeVehicleProfile.profile.kind == .custom {
-            var overrides = averageChargingSpeedOverridesByProfileID
-            overrides.removeValue(forKey: activeVehicleProfile.profile.id)
-            averageChargingSpeedOverridesByProfileID = overrides
-            resetTransientAlternativeTripPlanSelection()
-        } else {
-            averageChargingSpeedKW = MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: activeVehicleProfile.profile)
-        }
+        setAverageChargingSpeedKW(
+            MiniConsumptionCalculator.defaultAverageChargingSpeedKW(for: activeVehicleProfile.profile),
+            for: activeVehicleProfile.profile
+        )
     }
 
     private var averageChargingSpeedOverridesByProfileID: [String: Double] {
@@ -2882,15 +2763,15 @@ struct ContentView: View {
                 resetAllSettingsToDefaults()
             }
         } message: {
-            Text("This restores adjustable settings to app defaults. Trip logs and saved trip outcomes are not deleted.")
+            Text("This resets current drive, trip-planning, display, unit, and map settings. Vehicle profiles and their calibration, charging, tyre, and reference settings are preserved, as are trip logs and saved destinations.")
         }
-        .alert("Clear calibration trip data?", isPresented: $isDeleteAllTripDataConfirmationPresented) {
+        .alert("Clear calibration data for this vehicle?", isPresented: $isDeleteAllTripDataConfirmationPresented) {
             Button("Cancel", role: .cancel) {}
             Button("Clear data", role: .destructive) {
-                deleteAllTripData()
+                clearActiveVehicleProfileTripData()
             }
         } message: {
-            Text("This deletes logged trips used for continuous calibration.")
+            Text("This deletes logged trips for \(activeVehicleProfile.profile.displayName) that are used for calibration. Trips for other vehicles are preserved.")
         }
         .alert("Delete profile?", isPresented: deleteVehicleProfileConfirmationBinding) {
             Button("Cancel", role: .cancel) {
@@ -2947,6 +2828,11 @@ struct ContentView: View {
         .onChange(of: vehicleProfileResolverInput) {
             migrateLegacyCustomEVProfileIfNeeded()
             reconcileSelectedVehicleProfile()
+        }
+        .onChange(of: selectedVehicleProfileID) { oldProfileID, newProfileID in
+            guard oldProfileID != newProfileID else { return }
+            handleActiveVehicleProfileChange()
+            publishWatchRangeStateSnapshot()
         }
     }
 
@@ -3238,12 +3124,30 @@ struct ContentView: View {
         ScrollViewReader { proxy in
             mainTab(title: "Settings") {
                 aboutAppButton
+
+                settingsDomainHeading(
+                    "Vehicle profile",
+                    detail: "Specifications, charging behavior, calibration, and trip data for the selected vehicle."
+                )
                 vehicleProfileCard
                     .id(SettingsScrollTarget.vehicleProfileCard)
-                unitsCard
                 chargingSettingsCard
                 calibrationCard
                 dataCard
+
+                settingsDomainHeading(
+                    "Trip planning",
+                    detail: "Preferences used when estimating charging stops."
+                )
+                tripPlanningSettingsCard
+
+                settingsDomainHeading(
+                    "Application",
+                    detail: "Settings that apply across all vehicle profiles."
+                )
+                unitsCard
+
+                settingsDomainHeading("Reset")
                 resetAllSettingsCard
             }
             .onAppear {
@@ -3291,6 +3195,22 @@ struct ContentView: View {
         Text(title)
             .font(.system(size: 28, weight: .semibold, design: .default))
             .foregroundStyle(.primary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func settingsDomainHeading(_ title: String, detail: String? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.title3.weight(.semibold))
+
+            if let detail {
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.top, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -3394,11 +3314,11 @@ struct ContentView: View {
                 .padding(12)
         }
         .overlay(alignment: .bottomLeading) {
-            HStack(spacing: 8) {
-                rangeReturnTripToggle
+            VStack(spacing: 8) {
                 rangeChargingThresholdToggle
+                rangeReturnTripToggle
             }
-                .padding(12)
+            .padding(12)
         }
         .background(Color(.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -3516,20 +3436,25 @@ struct ContentView: View {
     }
 
     private var rangeReturnTripToggle: some View {
-        Button {
-            rangeMapReturnTripEnabled.toggle()
-        } label: {
-            Image(systemName: rangeMapReturnTripEnabled ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.triangle.2.circlepath.circle")
-                .font(.headline.weight(.semibold))
-                .frame(width: 34, height: 34)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .background(.thinMaterial, in: Circle())
-        .foregroundStyle(rangeMapReturnTripEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.secondary.opacity(0.65)))
-        .accessibilityLabel("Return trip range")
-        .accessibilityValue(rangeMapReturnTripEnabled ? "Shown" : "Hidden")
-        .accessibilityHint("Shows the distance you can travel and return without charging while keeping the full one-way range as a reference.")
+        Image(systemName: rangeMapReturnTripEnabled ? "arrow.triangle.2.circlepath.circle.fill" : "arrow.triangle.2.circlepath.circle")
+            .font(.headline.weight(.semibold))
+            .frame(width: 34, height: 34)
+            .contentShape(Circle())
+            .gesture(rangeReturnTripGesture)
+            .background(.thinMaterial, in: Circle())
+            .foregroundStyle(rangeMapReturnTripEnabled ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.secondary.opacity(0.65)))
+            .accessibilityLabel("Return trip range")
+            .accessibilityValue(rangeMapReturnTripEnabled ? "Shown" : "Hidden")
+            .accessibilityHint("Tap to show or hide the return trip range. Long press for details.")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
+                rangeMapReturnTripEnabled.toggle()
+            }
+            .alert("Return trip", isPresented: $isRangeReturnTripInfoPresented) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(rangeReturnTripInfoText)
+            }
     }
 
     private var rangeChargingReserveGesture: some Gesture {
@@ -3545,11 +3470,32 @@ struct ContentView: View {
             )
     }
 
+    private var rangeReturnTripGesture: some Gesture {
+        LongPressGesture(minimumDuration: 0.55, maximumDistance: 24)
+            .onEnded { _ in
+                isRangeReturnTripInfoPresented = true
+            }
+            .exclusively(
+                before: TapGesture()
+                    .onEnded {
+                        rangeMapReturnTripEnabled.toggle()
+                    }
+            )
+    }
+
     private var rangeChargingReserveInfoText: String {
         return """
         Show or hide the charging buffer area.
 
         Adjust the buffer level in Settings.
+        """
+    }
+
+    private var rangeReturnTripInfoText: String {
+        return """
+        Shows the estimated area you can reach and return from with the current battery level.
+
+        The displayed range and charging buffer are reduced to account for both the outward and return journey.
         """
     }
 
@@ -3582,7 +3528,10 @@ struct ContentView: View {
     }
 
     private var experimentalTripVehicleProfileDetailText: String {
-        let chargingSpeedText = sanitizedExperimentalMaximumDCChargingSpeedKW
+        let chargingSpeedText = positiveFinite(
+            activeVehicleProfile.profile.peakDCChargingKW,
+            fallback: VehicleProfileResolver.defaultCustomPeakDCChargingKW
+        )
             .formatted(.number.precision(.fractionLength(0)))
 
         return "\(experimentalVehicleProfileDetailText) • \(chargingSpeedText) kW peak DC"
@@ -3628,14 +3577,17 @@ struct ContentView: View {
     }
 
     private var calibrationCard: some View {
-        card(title: "Calibration") {
+        card(
+            title: "Calibration",
+            footnote: "Applies to the selected vehicle profile."
+        ) {
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Toggle("Calibration based on logged trips", isOn: $useContinuousCalibration)
+                    Toggle("Calibration based on logged trips", isOn: useContinuousCalibrationBinding)
                         .font(.subheadline.weight(.semibold))
                         .tint(rangePilotAccentColor)
 
-                    if useContinuousCalibration {
+                    if activeUseContinuousCalibration {
                         Text(continuousCalibrationStatusText)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -3698,7 +3650,7 @@ struct ContentView: View {
     }
 
     private var vehicleProfileCard: some View {
-        card(title: "Vehicle profile") {
+        card(title: "Vehicle") {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
                     vehicleProfileSelectorRow
@@ -4157,7 +4109,10 @@ struct ContentView: View {
     }
 
     private var dataCard: some View {
-        card(title: "Data", footnote: "Trip history and calibration data.") {
+        card(
+            title: "Profile data",
+            footnote: "Trips logged for \(activeVehicleProfile.profile.displayName)."
+        ) {
             VStack(spacing: 8) {
                 Button {
                     isTripDataEditorPresented = true
@@ -4166,7 +4121,7 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                .disabled(outcomes.isEmpty)
+                .disabled(activeVehicleProfileTripOutcomes.isEmpty)
 
                 Button {
                     exportTripOutcomes()
@@ -4175,16 +4130,16 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                .disabled(outcomes.isEmpty)
+                .disabled(activeVehicleProfileTripOutcomes.isEmpty)
 
                 Button(role: .destructive) {
                     isDeleteAllTripDataConfirmationPresented = true
                 } label: {
-                    Label("Clear calibration data", systemImage: "arrow.counterclockwise")
+                    Label("Clear calibration data for this vehicle", systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                .disabled(outcomes.isEmpty)
+                .disabled(activeVehicleProfileTripOutcomes.isEmpty)
             }
         }
     }
@@ -4210,7 +4165,10 @@ struct ContentView: View {
     }
 
     private var chargingSettingsCard: some View {
-        card(title: "Charging") {
+        card(
+            title: "Charging behavior",
+            footnote: "Saved for the selected vehicle profile."
+        ) {
             VStack(alignment: .leading, spacing: 14) {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -4246,62 +4204,56 @@ struct ContentView: View {
                     .tint(rangePilotAccentColor)
                 }
 
-                DisclosureGroup(isExpanded: $isTripAdvancedChargingSettingsExpanded) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("Charging setup time")
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                Text("\(rounded(tripChargingSetupMinutesBinding.wrappedValue)) min")
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Slider(
-                                value: tripChargingSetupMinutesBinding,
-                                in: 0...5,
-                                step: 1
-                            )
-                            .tint(rangePilotAccentColor)
-                        }
-
-                        VStack(alignment: .leading, spacing: 10) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Text("Average fast-charging speed")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    Text("\(rounded(averageChargingSpeedKWBinding.wrappedValue)) kW")
-                                        .foregroundStyle(.secondary)
-                                }
-
-                                Slider(
-                                    value: averageChargingSpeedKWBinding,
-                                    in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
-                                    step: MiniConsumptionCalculator.averageChargingSpeedStepKW
-                                )
-                                .tint(rangePilotAccentColor)
-                            }
-
-                            Text("Used as the average charging power up to 80%. This should reflect a normal fast-charge session, not the brief peak.")
-                                .font(.caption)
+                VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Average fast-charging speed")
+                                .font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Text("\(rounded(averageChargingSpeedKWBinding.wrappedValue)) kW")
                                 .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-
-                            Button("Reset to default") {
-                                resetAverageChargingSpeedForActiveProfile()
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(abs(averageChargingSpeedKWBinding.wrappedValue - activeAverageChargingSpeedDefaultKW) < 0.001)
                         }
+
+                        Slider(
+                            value: averageChargingSpeedKWBinding,
+                            in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
+                            step: MiniConsumptionCalculator.averageChargingSpeedStepKW
+                        )
+                        .tint(rangePilotAccentColor)
                     }
-                    .padding(.top, 8)
-                } label: {
-                    Text("Advanced settings")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
+
+                    Text("Used as the average charging power before tapering. This should reflect a normal fast-charge session, not the brief peak.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button("Reset to default") {
+                        resetAverageChargingSpeedForActiveProfile()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(abs(averageChargingSpeedKWBinding.wrappedValue - activeAverageChargingSpeedDefaultKW) < 0.001)
                 }
-                .tint(.secondary)
+            }
+        }
+    }
+
+    private var tripPlanningSettingsCard: some View {
+        card(title: "Charging stops") {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Charging setup time")
+                        .font(.subheadline.weight(.semibold))
+                    Spacer()
+                    Text("\(rounded(tripChargingSetupMinutesBinding.wrappedValue)) min")
+                        .foregroundStyle(.secondary)
+                }
+
+                Slider(
+                    value: tripChargingSetupMinutesBinding,
+                    in: 0...5,
+                    step: 1
+                )
+                .tint(rangePilotAccentColor)
             }
         }
     }
@@ -4456,8 +4408,9 @@ struct ContentView: View {
                 }
 
                 if current.trailerTowModeEnabled != baseline.trailerTowModeEnabled
-                    || differs(current.trailerWeightKg, baseline.trailerWeightKg)
-                    || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled {
+                    || (current.trailerTowModeEnabled
+                        && (differs(current.trailerWeightKg, baseline.trailerWeightKg)
+                            || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled)) {
                     RangeTrailerSummaryIcon()
                         .accessibilityLabel("Trailer or tow changed")
                 }
@@ -5203,11 +5156,11 @@ struct ContentView: View {
     private var tripDataEditorSheet: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 14) {
-                if outcomes.isEmpty {
+                if activeVehicleProfileTripOutcomes.isEmpty {
                     ContentUnavailableView(
                         "No Trip Data",
                         systemImage: "car.side",
-                        description: Text("Recorded trips will appear here after you save trip outcomes.")
+                        description: Text("Trips logged for \(activeVehicleProfile.profile.displayName) will appear here.")
                     )
                 } else {
                     tripDataEditorHeader
@@ -5223,7 +5176,7 @@ struct ContentView: View {
                 }
             }
             .padding()
-            .navigationTitle("Edit trip data")
+            .navigationTitle("Logged trips")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -5242,8 +5195,11 @@ struct ContentView: View {
     private var tripDataEditorHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(outcomes.count) recorded \(outcomes.count == 1 ? "trip" : "trips")")
+                Text("\(activeVehicleProfileTripOutcomes.count) recorded \(activeVehicleProfileTripOutcomes.count == 1 ? "trip" : "trips")")
                     .font(.subheadline.weight(.semibold))
+                Text("Trips logged for \(activeVehicleProfile.profile.displayName)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 Text(tripDataEditorCalibrationSummaryText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -5260,11 +5216,7 @@ struct ContentView: View {
     }
 
     private var tripDataEditorCalibrationSummaryText: String {
-        if isCustomVehicleProfileSelected {
-            return "\(continuousCalibrationSummary.validTripCount) eligible for \(activeVehicleProfile.profile.displayName) calibration. Only trips logged with a custom profile are used to improve this forecast."
-        }
-
-        return "\(continuousCalibrationSummary.validTripCount) eligible for calibration. Only eligible trips are used to improve the forecast."
+        "\(continuousCalibrationSummary.validTripCount) eligible for \(activeVehicleProfile.profile.displayName) calibration. Only trips logged with this profile are used to improve this forecast."
     }
 
     private func tripOutcomeVehicleProfileText(for outcome: TripOutcome) -> String {
@@ -5408,7 +5360,7 @@ struct ContentView: View {
                 isDeleteAllTripDataConfirmationPresented = true
             }
             .buttonStyle(.bordered)
-            .disabled(outcomes.isEmpty)
+            .disabled(activeVehicleProfileTripOutcomes.isEmpty)
 
             Spacer()
 
@@ -5421,7 +5373,7 @@ struct ContentView: View {
     }
 
     private var tripDataEditorOutcomes: [TripOutcome] {
-        outcomes.sorted { $0.date > $1.date }
+        activeVehicleProfileTripOutcomes.sorted { $0.date > $1.date }
     }
 
     private func tripDataRow(for outcome: TripOutcome) -> some View {
@@ -5839,46 +5791,32 @@ struct ContentView: View {
     }
 
     private var isManualReferenceInactive: Bool {
-        useContinuousCalibration && activeCalibrationCorrection.canApply
+        activeUseContinuousCalibration && activeCalibrationCorrection.canApply
     }
 
     private var continuousCalibrationStatusText: String {
         guard activeCalibrationCorrection.canApply else {
-            return isCustomVehicleProfileSelected ? "\(activeVehicleProfile.profile.displayName) calibration" : "Reference value"
+            return "\(activeVehicleProfile.profile.displayName) calibration"
         }
 
-        return activeCalibrationCorrection.displaySourceLabel(for: activeVehicleProfileKind)
+        return "\(activeVehicleProfile.profile.displayName) · \(activeCalibrationCorrection.displaySourceLabel)"
     }
 
     private var calibrationSummaryTitle: String {
-        if useContinuousCalibration, activeCalibrationCorrection.canApply {
-            return "\(activeCalibrationCorrection.displaySourceLabel(for: activeVehicleProfileKind)): \(displayUnits.formattedConsumption(effectiveReferenceConsumption))"
-        }
-
-        if isCustomVehicleProfileSelected {
-            return "\(activeVehicleProfile.profile.displayName) reference: \(displayUnits.formattedConsumption(effectiveReferenceConsumption))"
-        }
-
-        return "Reference value: \(displayUnits.formattedConsumption(effectiveReferenceConsumption))"
+        "\(activeVehicleProfile.profile.displayName) reference: \(displayUnits.formattedConsumption(effectiveReferenceConsumption))"
     }
 
     private var calibrationSummaryDetail: String {
-        if useContinuousCalibration, activeCalibrationCorrection.canApply {
+        if activeUseContinuousCalibration, activeCalibrationCorrection.canApply {
             let count = activeCalibrationCorrection.usableRecordCount
             return "Based on \(count) logged \(count == 1 ? "trip" : "trips")"
         }
 
-        if useContinuousCalibration {
-            return isCustomVehicleProfileSelected
-                ? "Need at least 3 logged trips for \(activeVehicleProfile.profile.displayName)"
-                : "Need at least 3 logged trips"
+        if activeUseContinuousCalibration {
+            return "Need at least 3 logged trips for \(activeVehicleProfile.profile.displayName)"
         }
 
-        if isCustomVehicleProfileSelected {
-            return "\(activeVehicleProfile.profile.displayName) uses the profile battery and WLTP values while continuous calibration is off."
-        }
-
-        return "Manual overall calibration is used while calibration based on logged trips is off."
+        return "Manual overall calibration is used."
     }
 
     private var validSavedDestinationName: String? {
@@ -6170,8 +6108,74 @@ struct ContentView: View {
     }
 
     private func resetTripAssumptionsToCurrentRangeSettings() {
-        resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: false)
+        let currentSettings = currentRangeTripAssumptionsSnapshot
+        applyTripAssumptionsSnapshot(currentSettings)
+        tripAssumptionsBaseline = currentSettings
+        tripAssumptionsRemainExplicitAfterProfileSwitch = false
         selectedTripChargingOption = .userSettings
+    }
+
+    private func handleActiveVehicleProfileChange() {
+        guard tripAssumptionsBaseline != nil else { return }
+
+        let hadExplicitAdjustments = areTripAssumptionsAdjustedForCurrentTrip
+        let currentSettings = currentRangeTripAssumptionsSnapshot
+        tripAssumptionsBaseline = currentSettings
+
+        if hadExplicitAdjustments {
+            tripAssumptionsRemainExplicitAfterProfileSwitch = true
+        } else {
+            applyTripAssumptionsSnapshot(currentSettings)
+            tripAssumptionsRemainExplicitAfterProfileSwitch = false
+        }
+        selectedTripChargingOption = .userSettings
+    }
+
+    private var currentRangeTripAssumptionsSnapshot: TripAssumptionsSnapshot {
+        TripAssumptionsSnapshot(
+            startBatteryPercent: min(max(startBatteryPercent, 10), 100),
+            temperature: temperature,
+            roadTypeProfile: roadTypeProfile,
+            motorwaySpeed: MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed),
+            roadSurface: roadSurface.segmentedEquivalent,
+            windCondition: windCondition,
+            arrivalBatteryTargetPercent: min(
+                max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound),
+                ChargingWindow.arrivalBatteryTargetBounds.upperBound
+            ),
+            minimumChargingStopBatteryPercent: activeNormalMinimumChargingPercent,
+            targetChargingStopBatteryPercent: activeNormalFastChargeTargetPercent,
+            trailerTowModeEnabled: trailerTowModeEnabled,
+            trailerWeightKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                trailerWeightKg,
+                usesPounds: weightUnits == .pounds
+            ),
+            boxyTrailerEnabled: boxyTrailerEnabled,
+            roofBoxMode: roofBoxMode,
+            tyreSet: activeSelectedTyreSet,
+            rollingResistanceClass: activeRollingResistanceClass,
+            airConditioningMode: activeAirConditioningMode
+        )
+    }
+
+    private func applyTripAssumptionsSnapshot(_ snapshot: TripAssumptionsSnapshot) {
+        tripEstimateStartBatteryPercent = snapshot.startBatteryPercent
+        tripEstimateTemperature = snapshot.temperature
+        tripEstimateRoadTypeProfile = snapshot.roadTypeProfile
+        tripEstimateMotorwaySpeed = snapshot.motorwaySpeed
+        tripEstimateRoadSurface = snapshot.roadSurface
+        tripEstimateWindCondition = snapshot.windCondition
+        tripEstimateArrivalBatteryTargetPercent = snapshot.arrivalBatteryTargetPercent
+        tripEstimateMinimumChargingStopBatteryPercent = snapshot.minimumChargingStopBatteryPercent
+        tripEstimateTargetChargingStopBatteryPercent = snapshot.targetChargingStopBatteryPercent
+        tripEstimateTrailerTowModeEnabled = snapshot.trailerTowModeEnabled
+        tripEstimateTrailerWeightKg = snapshot.trailerWeightKg
+        tripEstimateBoxyTrailerEnabled = snapshot.boxyTrailerEnabled
+        tripEstimateRoofBoxMode = snapshot.roofBoxMode
+        tripEstimateTyreSet = snapshot.tyreSet
+        tripEstimateRollingResistanceClass = snapshot.rollingResistanceClass
+        tripEstimateAirConditioningMode = snapshot.airConditioningMode
+        hasTripEstimate = true
     }
 
 #if canImport(CoreLocation) && canImport(MapKit)
@@ -6333,30 +6337,14 @@ struct ContentView: View {
         if resetDistance {
             tripEstimateDistance = min(max(distance, 1), 1000)
         }
-        tripEstimateStartBatteryPercent = min(max(startBatteryPercent, 10), 100)
-        tripEstimateTemperature = temperature
-        tripEstimateRoadTypeProfile = roadTypeProfile
-        tripEstimateMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed)
-        tripEstimateRoadSurface = roadSurface.segmentedEquivalent
-        tripEstimateWindCondition = windCondition
+        let currentSettings = currentRangeTripAssumptionsSnapshot
+        applyTripAssumptionsSnapshot(currentSettings)
         tripEstimatePlanningMode = tripPlanningStrategy
-        tripEstimateTrailerTowModeEnabled = trailerTowModeEnabled
-        tripEstimateTrailerWeightKg = MiniConsumptionDefaults.normalizedTrailerWeightKg(trailerWeightKg, usesPounds: weightUnits == .pounds)
-        tripEstimateBoxyTrailerEnabled = boxyTrailerEnabled
-        tripEstimateRoofBoxMode = roofBoxMode
-        tripEstimateTyreSet = activeSelectedTyreSet
-        tripEstimateRollingResistanceClass = activeRollingResistanceClass
-        tripEstimateAirConditioningMode = activeAirConditioningMode
-        tripEstimateArrivalBatteryTargetPercent = min(
-            max(arrivalBatteryTargetPercent, ChargingWindow.arrivalBatteryTargetBounds.lowerBound),
-            ChargingWindow.arrivalBatteryTargetBounds.upperBound
-        )
-        tripEstimateMinimumChargingStopBatteryPercent = activeNormalMinimumChargingPercent
-        tripEstimateTargetChargingStopBatteryPercent = activeNormalFastChargeTargetPercent
         if resetDistance {
             isTripDistanceMapDerived = false
         }
-        tripAssumptionsBaseline = currentTripAssumptionsSnapshot
+        tripAssumptionsBaseline = currentSettings
+        tripAssumptionsRemainExplicitAfterProfileSwitch = false
     }
 
     private func applyTripAssistantInput(
@@ -6446,7 +6434,6 @@ struct ContentView: View {
             tripEstimateMinimumChargingStopBatteryPercent = activeNormalMinimumChargingPercent
             tripEstimateTargetChargingStopBatteryPercent = activeNormalFastChargeTargetPercent
             hasTripEstimate = true
-            tripAssumptionsBaseline = currentTripAssumptionsSnapshot
 
             return roadTypeSelection
         }
@@ -6560,8 +6547,9 @@ struct ContentView: View {
         }
     }
 
-    private func deleteAllTripData() {
-        outcomes.removeAll()
+    private func clearActiveVehicleProfileTripData() {
+        let matchingOutcomeIDs = Set(activeVehicleProfileTripOutcomes.map(\.id))
+        outcomes.removeAll { matchingOutcomeIDs.contains($0.id) }
         TripOutcomeStore.save(outcomes)
         resetTripDataEditor()
     }
@@ -6579,54 +6567,35 @@ struct ContentView: View {
     }
 
     private func resetAllSettingsToDefaults() {
+        let defaultUnits = MiniConsumptionInitialSetup.defaultUnits()
         startBatteryPercent = MiniConsumptionDefaults.currentBatteryPercent
         roadTypeProfile = MiniConsumptionDefaults.roadTypeProfile
-        motorwaySpeed = MiniConsumptionDefaults.motorwaySpeedKmh
         temperature = MiniConsumptionDefaults.temperatureC
         roadSurface = MiniConsumptionDefaults.roadSurface
         setWindCondition(MiniConsumptionDefaults.windCondition)
         tripPlanningStrategy = MiniConsumptionDefaults.planningMode
-        airConditioningMode = MiniConsumptionDefaults.airConditioningMode
+        trailerTowModeEnabled = false
+        trailerWeightKg = MiniConsumptionDefaults.defaultTrailerWeightKg(
+            usesPounds: defaultUnits.weightUnits == .pounds
+        )
+        boxyTrailerEnabled = false
         roofBoxMode = .off
-
-        selectedTyreSet = MiniConsumptionDefaults.selectedTyreSet
-        winterTyres = false
-        summerTyreClass = MiniConsumptionDefaults.summerTyreClass
-        winterTyreClass = MiniConsumptionDefaults.winterTyreClass
-        rollingResistanceClass = MiniConsumptionDefaults.summerTyreClass
 
         distance = MiniConsumptionDefaults.tripDistanceKm
         quickTripDistance = MiniConsumptionDefaults.quickTripDistanceKm
         isTripDistanceMapDerived = false
-        normalMinimumChargingPercent = ChargingWindow.defaultMinimumPercent
-        normalFastChargeTargetPercent = ChargingWindow.defaultTargetPercent
         arrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
-        averageChargingSpeedKW = MiniConsumptionCalculator.defaultAverageChargingSpeedKW
-        averageChargingSpeedOverridesByProfileData = Data()
-        referenceConsumptionOverridesByProfileData = Data()
-        motorwaySpeedOverridesByProfileData = Data()
-        airConditioningModeOverridesByProfileData = Data()
-        selectedTyreSetOverridesByProfileData = Data()
-        summerTyreClassOverridesByProfileData = Data()
-        winterTyreClassOverridesByProfileData = Data()
-        normalMinimumChargingPercentOverridesByProfileData = Data()
-        normalFastChargeTargetPercentOverridesByProfileData = Data()
-        miniBatteryDegradationPercent = MiniConsumptionDefaults.batteryDegradationPercent
-        batteryDegradationPercent = MiniConsumptionDefaults.batteryDegradationPercent
-
-        useContinuousCalibration = MiniConsumptionDefaults.useContinuousCalibration
-        referenceConsumption = defaultReferenceConsumptionKWhPer100Km
-        displayUnits = .metric
-        temperatureUnits = .celsius
-        weightUnits = .kilograms
+        tripChargingSetupMinutes = defaultTripChargingSetupMinutes
+        rangeDisplayMode = .gauge
+        displayUnits = defaultUnits.displayUnits
+        temperatureUnits = defaultUnits.temperatureUnits
+        weightUnits = defaultUnits.weightUnits
         rangeMapReturnTripEnabled = false
         showRangeMapChargingThresholdCircle = true
-        experimentalCustomVehicleProfileEnabled = false
-        VehicleProfileStore.setSelectedProfileID(VehicleProfileResolver.builtInMiniProfileID)
-        selectedVehicleProfileID = VehicleProfileResolver.builtInMiniProfileID
-        experimentalUsableBatteryCapacityKWh = 28.9
-        experimentalOfficialWLTPRangeKm = 234
-        experimentalMaximumDCChargingSpeedKW = 50
+        if tripAssumptionsBaseline != nil {
+            resetTripAssumptionsToCurrentRangeSettings()
+        }
+        publishWatchRangeStateSnapshot()
     }
 
     private func toggleTripDataSelection(for outcome: TripOutcome) {
@@ -6679,10 +6648,6 @@ struct ContentView: View {
         let display = CalibrationTripEligibility.display(for: outcome)
         if display.eligible, outcome.trailerTowModeEnabled {
             return "Eligible for trailer / tow calibration"
-        }
-
-        if display.eligible, outcome.vehicleProfileKind == .customEV {
-            return "Eligible for custom profile calibration"
         }
 
         return display.eligible ? "Eligible for calibration" : display.displayReason ?? "Not used for calibration"
@@ -6965,12 +6930,13 @@ struct ContentView: View {
     }
 
     private func exportTripOutcomes() {
-        guard !outcomes.isEmpty else {
+        let profileOutcomes = activeVehicleProfileTripOutcomes
+        guard !profileOutcomes.isEmpty else {
             return
         }
 
         do {
-            let csv = TripOutcomeCSV.generate(from: outcomes)
+            let csv = TripOutcomeCSV.generate(from: profileOutcomes)
             let url = FileManager.default.temporaryDirectory
                 .appendingPathComponent("mini-trip-outcomes-\(Date().timeIntervalSince1970).csv")
             try csv.write(to: url, atomically: true, encoding: .utf8)
@@ -9016,34 +8982,15 @@ struct CalibrationCorrection {
     }
 
     var displaySourceLabel: String {
-        displaySourceLabel(for: .mini)
-    }
-
-    func displaySourceLabel(for vehicleProfileKind: VehicleProfileKind) -> String {
         switch source {
         case .manual:
-            vehicleProfileKind == .customEV ? "Custom profile calibration" : "Reference value"
+            "Reference value"
         case .global:
-            switch vehicleProfileKind {
-            case .mini:
-                "\(tyreSet.label) tyre calibration"
-            case .customEV:
-                "Custom profile \(tyreSet.label) calibration"
-            }
+            "\(tyreSet.label) tyre calibration"
         case .drivingMode:
-            switch vehicleProfileKind {
-            case .mini:
-                "\(tyreSet.label) + route type calibration"
-            case .customEV:
-                "Custom profile \(tyreSet.label) + route type calibration"
-            }
+            "\(tyreSet.label) + route type calibration"
         case .trailerTow:
-            switch vehicleProfileKind {
-            case .mini:
-                "Trailer / tow calibration"
-            case .customEV:
-                "Custom profile trailer / tow calibration"
-            }
+            "Trailer / tow calibration"
         }
     }
 
@@ -9165,6 +9112,25 @@ fileprivate enum CalibrationTripEligibility {
     }
 }
 
+struct CalibrationVehicleScope: Equatable {
+    private let profileID: String?
+
+    init(vehicleProfile: VehicleProfile) {
+        let trimmedID = vehicleProfile.id.trimmingCharacters(in: .whitespacesAndNewlines)
+        profileID = trimmedID.isEmpty ? nil : trimmedID
+    }
+
+    func includes(_ outcome: TripOutcome) -> Bool {
+        guard let profileID,
+              let outcomeProfileID = outcome.vehicleProfileID?.trimmingCharacters(in: .whitespacesAndNewlines),
+              outcomeProfileID.isEmpty == false else {
+            return false
+        }
+
+        return outcomeProfileID == profileID
+    }
+}
+
 struct ContinuousCalibrationSummary {
     private static let minimumValidTrips = 3
     private static let maximumCalibrationSampleCount = 10
@@ -9278,10 +9244,9 @@ struct ContinuousCalibrationSummary {
         )
     }
 
-    init(outcomes: [TripOutcome], vehicleProfileKind: VehicleProfileKind? = nil) {
-        let filteredOutcomes = vehicleProfileKind.map { profileKind in
-            outcomes.filter { $0.vehicleProfileKind == profileKind }
-        } ?? outcomes
+    init(outcomes: [TripOutcome], vehicleProfile: VehicleProfile) {
+        let scope = CalibrationVehicleScope(vehicleProfile: vehicleProfile)
+        let filteredOutcomes = outcomes.filter(scope.includes)
         let sortedOutcomes = filteredOutcomes.sorted { $0.date > $1.date }
         let exclusionReasons = sortedOutcomes.compactMap { outcome in
             CalibrationTripEligibility.exclusionReason(for: outcome)

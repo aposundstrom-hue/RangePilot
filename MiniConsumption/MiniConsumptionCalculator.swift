@@ -20,10 +20,6 @@ enum MiniConsumptionCalculator {
     }
 
     static func defaultAverageChargingSpeedKW(for profile: VehicleProfile) -> Double {
-        guard profile.kind == .custom else {
-            return defaultAverageChargingSpeedKW
-        }
-
         let peakDCChargingKW = profile.peakDCChargingKW.isFinite && profile.peakDCChargingKW > 0
             ? profile.peakDCChargingKW
             : VehicleProfileResolver.defaultCustomPeakDCChargingKW
@@ -47,8 +43,21 @@ enum MiniConsumptionCalculator {
         return nominalUsableBatteryKWh * (1.0 - Double(clampedDegradationPercent) / 100.0)
     }
 
-    nonisolated static func chargingTaperStartSOC(degradationPercent: Int) -> Double {
-        max(70, 80 - 0.5 * Double(degradationPercent))
+    static func chargingTaperStartSOC(for profile: VehicleProfile) -> Double {
+        let peakDCChargingKW = profile.peakDCChargingKW.isFinite && profile.peakDCChargingKW > 0
+            ? profile.peakDCChargingKW
+            : VehicleProfileResolver.defaultCustomPeakDCChargingKW
+
+        switch peakDCChargingKW {
+        case ...75:
+            return 80
+        case ...125:
+            return 75
+        case ...200:
+            return 70
+        default:
+            return 65
+        }
     }
 
     static func calculateRemainingRange(
