@@ -22,7 +22,7 @@ struct MiniConsumptionSettingsSnapshot {
     let boxyTrailerEnabled: Bool
     let roofBoxMode: RoofBoxMode
     let batteryDegradationPercent: Int
-    let activeForecastUsableBatteryKWh: Double
+    let originalUsableBatteryKWh: Double
     let activeForecastUsesCustomVehicleProfile: Bool
     let activeVehicleProfile: VehicleProfile
     let resolvedChargingTaperStartSOC: Double
@@ -47,7 +47,10 @@ struct MiniConsumptionSettingsSnapshot {
     }
 
     var effectiveUsableBatteryKWh: Double {
-        activeForecastUsableBatteryKWh
+        MiniConsumptionCalculator.effectiveUsableBatteryKWh(
+            originalUsableBatteryKWh: originalUsableBatteryKWh,
+            degradationPercent: batteryDegradationPercent
+        )
     }
 
     var chargingTaperStartSOC: Double {
@@ -107,7 +110,7 @@ struct MiniConsumptionSettingsSnapshot {
             boxyTrailerEnabled: defaults.bool(forKey: "boxyTrailerEnabled", defaultValue: false),
             roofBoxMode: defaults.rawRepresentable(forKey: "roofBoxMode", defaultValue: .off),
             batteryDegradationPercent: activeVehicleProfile.batteryDegradationPercent,
-            activeForecastUsableBatteryKWh: activeVehicleProfile.usableBatteryKWh,
+            originalUsableBatteryKWh: activeVehicleProfile.usableBatteryKWh,
             activeForecastUsesCustomVehicleProfile: activeVehicleProfile.kind == .custom,
             activeVehicleProfile: activeVehicleProfile,
             resolvedChargingTaperStartSOC: effectiveProfile.chargingTaperStartSOC,
@@ -153,7 +156,7 @@ struct MiniConsumptionSettingsSnapshot {
             airConditioningMode: airConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
             usesCustomVehicleProfile: activeForecastUsesCustomVehicleProfile,
-            usableBatteryKWh: activeForecastUsableBatteryKWh
+            usableBatteryKWh: originalUsableBatteryKWh
         )
 
         return scenarioEquipment.applying(
@@ -198,7 +201,7 @@ struct MiniConsumptionSettingsSnapshot {
             airConditioningMode: airConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
             usesCustomVehicleProfile: activeForecastUsesCustomVehicleProfile,
-            usableBatteryKWh: activeForecastUsableBatteryKWh
+            usableBatteryKWh: originalUsableBatteryKWh
         )
 
         return scenarioEquipment.applying(
@@ -248,30 +251,4 @@ extension UserDefaults {
         return value
     }
 
-    func selectedTyreSet() -> TyreSet {
-        if let tyreSet = rawRepresentableIfPresent(TyreSet.self, forKey: "selectedTyreSet") {
-            return tyreSet
-        }
-
-        return bool(forKey: "winterTyres", defaultValue: false) ? .winter : MiniConsumptionDefaults.selectedTyreSet
-    }
-
-    func tyreClass(forKey key: String, defaultValue: RollingResistanceClass) -> RollingResistanceClass {
-        rawRepresentableIfPresent(RollingResistanceClass.self, forKey: key)
-            ?? rawRepresentable(forKey: "rollingResistanceClass", defaultValue: defaultValue)
-    }
-
-    func activeTyreClass() -> RollingResistanceClass {
-        selectedTyreSet() == .summer
-            ? tyreClass(forKey: "summerTyreClass", defaultValue: MiniConsumptionDefaults.summerTyreClass)
-            : tyreClass(forKey: "winterTyreClass", defaultValue: MiniConsumptionDefaults.winterTyreClass)
-    }
-
-    private func rawRepresentableIfPresent<Value>(_ type: Value.Type, forKey key: String) -> Value? where Value: RawRepresentable, Value.RawValue == String {
-        guard let rawValue = string(forKey: key) else {
-            return nil
-        }
-
-        return Value(rawValue: rawValue)
-    }
 }

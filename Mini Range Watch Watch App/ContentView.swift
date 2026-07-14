@@ -101,7 +101,7 @@ struct ContentView: View {
         MiniConsumptionCalculator.calculateRemainingRange(
             currentBatteryPercent: batteryPercent,
             expectedKWhPer100km: forecast.finalKWhPer100km,
-            usableBatteryKWh: vehicleProfile.calculationProfile.usableBatteryKWh
+            usableBatteryKWh: vehicleProfile.effectiveUsableBatteryKWh
         )
     }
 
@@ -768,17 +768,20 @@ private struct WatchVehicleProfile: Identifiable, Equatable {
     let displayName: String
     let calculationProfile: VehicleProfile
     let referenceConsumptionOverrideKWhPer100Km: Double?
+    let effectiveUsableBatteryOverrideKWh: Double?
 
     init(
         id: String,
         displayName: String,
         calculationProfile: VehicleProfile,
-        referenceConsumptionOverrideKWhPer100Km: Double? = nil
+        referenceConsumptionOverrideKWhPer100Km: Double? = nil,
+        effectiveUsableBatteryOverrideKWh: Double? = nil
     ) {
         self.id = id
         self.displayName = displayName
         self.calculationProfile = calculationProfile
         self.referenceConsumptionOverrideKWhPer100Km = referenceConsumptionOverrideKWhPer100Km
+        self.effectiveUsableBatteryOverrideKWh = effectiveUsableBatteryOverrideKWh
     }
 
     var referenceConsumptionKWhPer100Km: Double {
@@ -786,19 +789,11 @@ private struct WatchVehicleProfile: Identifiable, Equatable {
             return referenceConsumptionOverrideKWhPer100Km
         }
 
-        guard calculationProfile.kind == .custom else {
-            return defaultReferenceConsumptionKWhPer100Km
-        }
-
-        return calculationProfile.usableBatteryKWh / degradedWLTPRangeKm * 100 * 1.04
+        return ReferenceConsumptionResolver.profileDerivedDefault(for: calculationProfile)
     }
 
-    private var degradedWLTPRangeKm: Double {
-        let nominalRangeKm = calculationProfile.wltpRangeKm.isFinite && calculationProfile.wltpRangeKm > 0
-            ? calculationProfile.wltpRangeKm
-            : VehicleProfileResolver.defaultCustomWLTPRangeKm
-        let degradationPercent = min(max(calculationProfile.batteryDegradationPercent, 0), 10)
-        return nominalRangeKm * (1.0 - Double(degradationPercent) / 100.0)
+    var effectiveUsableBatteryKWh: Double {
+        effectiveUsableBatteryOverrideKWh ?? calculationProfile.effectiveUsableBatteryKWh
     }
 
     static let miniCooperSE = WatchVehicleProfile(
@@ -813,12 +808,12 @@ private struct WatchVehicleProfile: Identifiable, Equatable {
     ) -> WatchVehicleProfile {
         if let activeVehicleProfileID = snapshot.activeVehicleProfileID,
            let profile = availableProfiles.first(where: { $0.id == activeVehicleProfileID }) {
-            return profile.withReferenceConsumptionOverride(snapshot.referenceConsumptionKWhPer100Km)
+            return profile.withSnapshotOverrides(snapshot)
         }
 
         let snapshotProfile = WatchVehicleProfile(snapshot: snapshot)
         return availableProfiles.first(where: { $0.id == snapshotProfile.id })?
-            .withReferenceConsumptionOverride(snapshot.referenceConsumptionKWhPer100Km)
+            .withSnapshotOverrides(snapshot)
             ?? snapshotProfile
     }
 
@@ -871,16 +866,18 @@ private struct WatchVehicleProfile: Identifiable, Equatable {
                 createdAt: nil,
                 updatedAt: nil
             ),
-            referenceConsumptionOverrideKWhPer100Km: snapshot.referenceConsumptionKWhPer100Km
+            referenceConsumptionOverrideKWhPer100Km: snapshot.referenceConsumptionKWhPer100Km,
+            effectiveUsableBatteryOverrideKWh: snapshot.effectiveUsableBatteryKWh ?? snapshot.usableBatteryKWh
         )
     }
 
-    private func withReferenceConsumptionOverride(_ referenceConsumption: Double?) -> WatchVehicleProfile {
+    private func withSnapshotOverrides(_ snapshot: WatchRangeStateSnapshot) -> WatchVehicleProfile {
         WatchVehicleProfile(
             id: id,
             displayName: displayName,
             calculationProfile: calculationProfile,
-            referenceConsumptionOverrideKWhPer100Km: referenceConsumption
+            referenceConsumptionOverrideKWhPer100Km: snapshot.referenceConsumptionKWhPer100Km,
+            effectiveUsableBatteryOverrideKWh: snapshot.effectiveUsableBatteryKWh ?? snapshot.usableBatteryKWh
         )
     }
 

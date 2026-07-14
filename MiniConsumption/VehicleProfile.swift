@@ -18,6 +18,13 @@ struct VehicleProfile: Codable, Equatable, Identifiable {
     var createdAt: Date?
     var updatedAt: Date?
 
+    var effectiveUsableBatteryKWh: Double {
+        MiniConsumptionCalculator.effectiveUsableBatteryKWh(
+            originalUsableBatteryKWh: usableBatteryKWh,
+            degradationPercent: batteryDegradationPercent
+        )
+    }
+
     init(
         id: String,
         displayName: String,
@@ -37,7 +44,9 @@ struct VehicleProfile: Codable, Equatable, Identifiable {
         self.usableBatteryKWh = usableBatteryKWh
         self.wltpRangeKm = wltpRangeKm
         self.peakDCChargingKW = peakDCChargingKW
-        self.batteryDegradationPercent = batteryDegradationPercent
+        self.batteryDegradationPercent = MiniConsumptionCalculator.normalizedBatteryDegradationPercent(
+            batteryDegradationPercent
+        )
         self.summerTyreClass = summerTyreClass
         self.winterTyreClass = winterTyreClass
         self.createdAt = createdAt
@@ -70,11 +79,13 @@ struct VehicleProfile: Codable, Equatable, Identifiable {
         usableBatteryKWh = try container.decode(Double.self, forKey: .usableBatteryKWh)
         wltpRangeKm = try container.decode(Double.self, forKey: .wltpRangeKm)
         peakDCChargingKW = try container.decode(Double.self, forKey: .peakDCChargingKW)
-        batteryDegradationPercent = try container.decodeIfPresent(Int.self, forKey: .batteryDegradationPercent)
-            ?? MiniConsumptionDefaults.batteryDegradationPercent
-        summerTyreClass = try container.decodeIfPresent(RollingResistanceClass.self, forKey: .summerTyreClass)
+        batteryDegradationPercent = MiniConsumptionCalculator.normalizedBatteryDegradationPercent(
+            try container.decodeIfPresent(Int.self, forKey: .batteryDegradationPercent)
+                ?? MiniConsumptionDefaults.batteryDegradationPercent
+        )
+        summerTyreClass = (try? container.decode(RollingResistanceClass.self, forKey: .summerTyreClass))
             ?? MiniConsumptionDefaults.summerTyreClass
-        winterTyreClass = try container.decodeIfPresent(RollingResistanceClass.self, forKey: .winterTyreClass)
+        winterTyreClass = (try? container.decode(RollingResistanceClass.self, forKey: .winterTyreClass))
             ?? MiniConsumptionDefaults.winterTyreClass
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
@@ -207,9 +218,7 @@ enum VehicleProfileResolver {
             id: builtInMiniProfileID,
             displayName: builtInMiniName,
             kind: .builtInMini,
-            usableBatteryKWh: MiniConsumptionCalculator.effectiveUsableBatteryKWh(
-                degradationPercent: input.batteryDegradationPercent
-            ),
+            usableBatteryKWh: MiniConsumptionCalculator.nominalUsableBatteryKWh,
             wltpRangeKm: builtInMiniWLTPRangeKm,
             peakDCChargingKW: builtInMiniPeakDCChargingKW,
             batteryDegradationPercent: input.batteryDegradationPercent,
@@ -279,6 +288,16 @@ struct EffectiveVehicleProfileSettings {
     }
 }
 
+struct EffectiveTyreSettings: Equatable {
+    let selectedTyreSet: TyreSet
+    let summerTyreClass: RollingResistanceClass
+    let winterTyreClass: RollingResistanceClass
+
+    var activeRollingResistanceClass: RollingResistanceClass {
+        selectedTyreSet == .summer ? summerTyreClass : winterTyreClass
+    }
+}
+
 enum ReferenceConsumptionResolver {
     static let manualOverrideBounds = 9.5...20.0
     static let legacyFallbackSuppressedProfileIDsKey = "referenceConsumptionLegacyFallbackSuppressedProfileIDs.v1"
@@ -299,9 +318,7 @@ enum ReferenceConsumptionResolver {
             profile.wltpRangeKm,
             fallback: VehicleProfileResolver.defaultCustomWLTPRangeKm
         )
-        let degradation = Double(min(max(profile.batteryDegradationPercent, 0), 10)) / 100
-        let degradedWLTPRangeKm = wltpRangeKm * (1 - degradation)
-        let derivedDefault = (usableBatteryKWh / degradedWLTPRangeKm * 100) * 1.04
+        let derivedDefault = (usableBatteryKWh / wltpRangeKm * 100) * 1.04
         return clamped(derivedDefault, fallback: defaultReferenceConsumptionKWhPer100Km)
     }
 
@@ -369,6 +386,7 @@ enum ReferenceConsumptionResolver {
 }
 
 enum EffectiveVehicleProfileSettingsResolver {
+    static let batteryDegradationOverridesKey = "batteryDegradationByVehicleProfile.v1"
     static let useContinuousCalibrationOverridesKey = "useContinuousCalibrationByVehicleProfile.v1"
     static let normalMinimumChargingPercentOverridesKey = "normalMinimumChargingPercentByVehicleProfile.v1"
     static let normalFastChargeTargetPercentOverridesKey = "normalFastChargeTargetPercentByVehicleProfile.v1"
@@ -376,25 +394,20 @@ enum EffectiveVehicleProfileSettingsResolver {
     private static let referenceConsumptionOverridesKey = "referenceConsumptionByVehicleProfile.v1"
     private static let motorwaySpeedOverridesKey = "motorwaySpeedByVehicleProfile.v1"
     private static let airConditioningModeOverridesKey = "airConditioningModeByVehicleProfile.v1"
-    private static let selectedTyreSetOverridesKey = "selectedTyreSetByVehicleProfile.v1"
-    private static let summerTyreClassOverridesKey = "summerTyreClassByVehicleProfile.v1"
-    private static let winterTyreClassOverridesKey = "winterTyreClassByVehicleProfile.v1"
+    static let selectedTyreSetOverridesKey = "selectedTyreSetByVehicleProfile.v1"
+    static let summerTyreClassOverridesKey = "summerTyreClassByVehicleProfile.v1"
+    static let winterTyreClassOverridesKey = "winterTyreClassByVehicleProfile.v1"
 
     static func resolve(defaults: UserDefaults = .standard) -> EffectiveVehicleProfileSettings {
-        let miniDegradation = int(
+        let legacyMiniDegradation = int(
             defaults: defaults,
             key: "batteryDegradationPercent",
             fallback: MiniConsumptionDefaults.batteryDegradationPercent
         )
-        let miniSummerTyreClass = rawValue(
-            defaults: defaults,
-            key: "summerTyreClass",
-            fallback: MiniConsumptionDefaults.summerTyreClass
-        )
-        let miniWinterTyreClass = rawValue(
-            defaults: defaults,
-            key: "winterTyreClass",
-            fallback: MiniConsumptionDefaults.winterTyreClass
+        let miniDegradation = batteryDegradationPercent(
+            for: VehicleProfileResolver.builtInMiniProfileID,
+            legacyBuiltInValue: legacyMiniDegradation,
+            defaults: defaults
         )
         let input = VehicleProfileResolverInput(
             experimentalCustomVehicleProfileEnabled: false,
@@ -402,8 +415,8 @@ enum EffectiveVehicleProfileSettingsResolver {
             experimentalOfficialWLTPRangeKm: VehicleProfileResolver.defaultCustomWLTPRangeKm,
             experimentalMaximumDCChargingSpeedKW: VehicleProfileResolver.defaultCustomPeakDCChargingKW,
             batteryDegradationPercent: miniDegradation,
-            summerTyreClass: miniSummerTyreClass,
-            winterTyreClass: miniWinterTyreClass
+            summerTyreClass: MiniConsumptionDefaults.summerTyreClass,
+            winterTyreClass: MiniConsumptionDefaults.winterTyreClass
         )
         let profile = VehicleProfileResolver.activeProfile(
             for: input,
@@ -431,17 +444,7 @@ enum EffectiveVehicleProfileSettingsResolver {
             key: "airConditioningMode",
             fallback: MiniConsumptionDefaults.airConditioningMode
         )
-        let globalSelectedTyreSet = selectedTyreSet(defaults: defaults)
-        let globalSummerTyreClass = tyreClass(
-            defaults: defaults,
-            key: "summerTyreClass",
-            fallback: MiniConsumptionDefaults.summerTyreClass
-        )
-        let globalWinterTyreClass = tyreClass(
-            defaults: defaults,
-            key: "winterTyreClass",
-            fallback: MiniConsumptionDefaults.winterTyreClass
-        )
+        let resolvedTyres = tyreSettings(for: profile, defaults: defaults)
         let defaultReferenceConsumption = ReferenceConsumptionResolver.profileDerivedDefault(for: profile)
         let referenceOverrides: [String: Double] = overrides(defaults: defaults, key: referenceConsumptionOverridesKey)
         let suppressedLegacyFallbackProfileIDs = Set(
@@ -471,9 +474,9 @@ enum EffectiveVehicleProfileSettingsResolver {
                 manualReferenceConsumption: manualReferenceConsumption,
                 motorwaySpeed: globalMotorwaySpeed,
                 airConditioningMode: globalAirConditioningMode,
-                selectedTyreSet: globalSelectedTyreSet,
-                summerTyreClass: globalSummerTyreClass,
-                winterTyreClass: globalWinterTyreClass,
+                selectedTyreSet: resolvedTyres.selectedTyreSet,
+                summerTyreClass: resolvedTyres.summerTyreClass,
+                winterTyreClass: resolvedTyres.winterTyreClass,
                 normalMinimumChargingPercent: resolvedMinimumChargingPercent,
                 normalFastChargeTargetPercent: resolvedFastChargeTargetPercent,
                 averageChargingSpeedKW: resolvedAverageChargingSpeed,
@@ -484,10 +487,6 @@ enum EffectiveVehicleProfileSettingsResolver {
 
         let motorwaySpeedOverrides: [String: Double] = overrides(defaults: defaults, key: motorwaySpeedOverridesKey)
         let airConditioningOverrides: [String: String] = overrides(defaults: defaults, key: airConditioningModeOverridesKey)
-        let tyreSetOverrides: [String: String] = overrides(defaults: defaults, key: selectedTyreSetOverridesKey)
-        let summerTyreOverrides: [String: String] = overrides(defaults: defaults, key: summerTyreClassOverridesKey)
-        let winterTyreOverrides: [String: String] = overrides(defaults: defaults, key: winterTyreClassOverridesKey)
-
         return EffectiveVehicleProfileSettings(
             profile: profile,
             defaultReferenceConsumption: defaultReferenceConsumption,
@@ -497,18 +496,82 @@ enum EffectiveVehicleProfileSettingsResolver {
             ),
             airConditioningMode: airConditioningOverrides[profile.id].flatMap(AirConditioningMode.init(rawValue:))
                 ?? globalAirConditioningMode,
-            selectedTyreSet: tyreSetOverrides[profile.id].flatMap(TyreSet.init(rawValue:))
-                ?? globalSelectedTyreSet,
-            summerTyreClass: summerTyreOverrides[profile.id].flatMap(RollingResistanceClass.init(rawValue:))
-                ?? globalSummerTyreClass,
-            winterTyreClass: winterTyreOverrides[profile.id].flatMap(RollingResistanceClass.init(rawValue:))
-                ?? globalWinterTyreClass,
+            selectedTyreSet: resolvedTyres.selectedTyreSet,
+            summerTyreClass: resolvedTyres.summerTyreClass,
+            winterTyreClass: resolvedTyres.winterTyreClass,
             normalMinimumChargingPercent: resolvedMinimumChargingPercent,
             normalFastChargeTargetPercent: resolvedFastChargeTargetPercent,
             averageChargingSpeedKW: resolvedAverageChargingSpeed,
             chargingTaperStartSOC: resolvedChargingTaperStartSOC,
             useContinuousCalibration: useContinuousCalibration
         )
+    }
+
+    // VehicleProfile tyre classes are profile/template defaults. Once a profile-ID
+    // override exists it is the current user preference; legacy scalars are considered
+    // only for the stable built-in profile identity.
+    static func tyreSettings(
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> EffectiveTyreSettings {
+        let selectedOverrides: [String: String] = overrides(
+            defaults: defaults,
+            key: selectedTyreSetOverridesKey
+        )
+        let summerOverrides: [String: String] = overrides(
+            defaults: defaults,
+            key: summerTyreClassOverridesKey
+        )
+        let winterOverrides: [String: String] = overrides(
+            defaults: defaults,
+            key: winterTyreClassOverridesKey
+        )
+        let legacySettings = legacyTyreSettings(for: profile.id, defaults: defaults)
+
+        return EffectiveTyreSettings(
+            selectedTyreSet: selectedOverrides[profile.id].flatMap(TyreSet.init(rawValue:))
+                ?? legacySettings.selectedTyreSet
+                ?? MiniConsumptionDefaults.selectedTyreSet,
+            summerTyreClass: summerOverrides[profile.id].flatMap(RollingResistanceClass.init(rawValue:))
+                ?? legacySettings.summerTyreClass
+                ?? profile.summerTyreClass,
+            winterTyreClass: winterOverrides[profile.id].flatMap(RollingResistanceClass.init(rawValue:))
+                ?? legacySettings.winterTyreClass
+                ?? profile.winterTyreClass
+        )
+    }
+
+    static func setSelectedTyreSet(
+        _ value: TyreSet,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        setStringOverride(value.rawValue, for: profileID, key: selectedTyreSetOverridesKey, defaults: defaults)
+    }
+
+    static func setSummerTyreClass(
+        _ value: RollingResistanceClass,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        setStringOverride(value.rawValue, for: profileID, key: summerTyreClassOverridesKey, defaults: defaults)
+    }
+
+    static func setWinterTyreClass(
+        _ value: RollingResistanceClass,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        setStringOverride(value.rawValue, for: profileID, key: winterTyreClassOverridesKey, defaults: defaults)
+    }
+
+    static func removeTyreOverrides(
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        removeOverride(for: profileID, key: selectedTyreSetOverridesKey, defaults: defaults)
+        removeOverride(for: profileID, key: summerTyreClassOverridesKey, defaults: defaults)
+        removeOverride(for: profileID, key: winterTyreClassOverridesKey, defaults: defaults)
     }
 
     static func setUseContinuousCalibration(
@@ -523,6 +586,40 @@ enum EffectiveVehicleProfileSettingsResolver {
         values[profileID] = isEnabled
         if let data = try? JSONEncoder().encode(values) {
             defaults.set(data, forKey: useContinuousCalibrationOverridesKey)
+        }
+    }
+
+    static func batteryDegradationPercent(
+        for profileID: String,
+        legacyBuiltInValue: Int,
+        defaults: UserDefaults = .standard
+    ) -> Int {
+        let values: [String: Int] = overrides(
+            defaults: defaults,
+            key: batteryDegradationOverridesKey
+        )
+        let compatibilityValues = [
+            VehicleProfileResolver.builtInMiniProfileID: legacyBuiltInValue
+        ]
+        return MiniConsumptionCalculator.normalizedBatteryDegradationPercent(
+            values[profileID]
+                ?? compatibilityValues[profileID]
+                ?? MiniConsumptionDefaults.batteryDegradationPercent
+        )
+    }
+
+    static func setBatteryDegradationPercent(
+        _ value: Int,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        var values: [String: Int] = overrides(
+            defaults: defaults,
+            key: batteryDegradationOverridesKey
+        )
+        values[profileID] = MiniConsumptionCalculator.normalizedBatteryDegradationPercent(value)
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: batteryDegradationOverridesKey)
         }
     }
 
@@ -675,20 +772,65 @@ enum EffectiveVehicleProfileSettingsResolver {
         }
     }
 
-    private static func selectedTyreSet(defaults: UserDefaults) -> TyreSet {
-        if let value: TyreSet = optionalRawValue(defaults: defaults, key: "selectedTyreSet") {
-            return value
-        }
-        return defaults.object(forKey: "winterTyres") as? Bool == true ? .winter : MiniConsumptionDefaults.selectedTyreSet
+    private struct LegacyTyreSettings {
+        let selectedTyreSet: TyreSet?
+        let summerTyreClass: RollingResistanceClass?
+        let winterTyreClass: RollingResistanceClass?
+
+        static let none = LegacyTyreSettings(
+            selectedTyreSet: nil,
+            summerTyreClass: nil,
+            winterTyreClass: nil
+        )
     }
 
-    private static func tyreClass(
-        defaults: UserDefaults,
+    private static func legacyTyreSettings(
+        for profileID: String,
+        defaults: UserDefaults
+    ) -> LegacyTyreSettings {
+        guard profileID == VehicleProfileResolver.builtInMiniProfileID else {
+            return .none
+        }
+
+        let selectedTyreSet: TyreSet? = optionalRawValue(defaults: defaults, key: "selectedTyreSet")
+            ?? (defaults.object(forKey: "winterTyres") as? Bool).map { $0 ? .winter : .summer }
+        let legacyRollingResistanceClass: RollingResistanceClass? = optionalRawValue(
+            defaults: defaults,
+            key: "rollingResistanceClass"
+        )
+
+        return LegacyTyreSettings(
+            selectedTyreSet: selectedTyreSet,
+            summerTyreClass: optionalRawValue(defaults: defaults, key: "summerTyreClass")
+                ?? legacyRollingResistanceClass,
+            winterTyreClass: optionalRawValue(defaults: defaults, key: "winterTyreClass")
+                ?? legacyRollingResistanceClass
+        )
+    }
+
+    private static func setStringOverride(
+        _ value: String,
+        for profileID: String,
         key: String,
-        fallback: RollingResistanceClass
-    ) -> RollingResistanceClass {
-        optionalRawValue(defaults: defaults, key: key)
-            ?? rawValue(defaults: defaults, key: "rollingResistanceClass", fallback: fallback)
+        defaults: UserDefaults
+    ) {
+        var values: [String: String] = overrides(defaults: defaults, key: key)
+        values[profileID] = value
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: key)
+        }
+    }
+
+    private static func removeOverride(
+        for profileID: String,
+        key: String,
+        defaults: UserDefaults
+    ) {
+        var values: [String: String] = overrides(defaults: defaults, key: key)
+        values.removeValue(forKey: profileID)
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: key)
+        }
     }
 
     private static func overrides<Value: Decodable>(defaults: UserDefaults, key: String) -> [String: Value] {
@@ -807,16 +949,8 @@ enum VehicleProfileStore {
                 fallback: VehicleProfileResolver.defaultCustomPeakDCChargingKW
             ),
             batteryDegradationPercent: clampedBatteryDegradationPercent(batteryDegradationPercent),
-            summerTyreClass: rawRepresentable(
-                defaults: defaults,
-                forKey: "summerTyreClass",
-                defaultValue: MiniConsumptionDefaults.summerTyreClass
-            ),
-            winterTyreClass: rawRepresentable(
-                defaults: defaults,
-                forKey: "winterTyreClass",
-                defaultValue: MiniConsumptionDefaults.winterTyreClass
-            ),
+            summerTyreClass: MiniConsumptionDefaults.summerTyreClass,
+            winterTyreClass: MiniConsumptionDefaults.winterTyreClass,
             createdAt: now,
             updatedAt: now
         )

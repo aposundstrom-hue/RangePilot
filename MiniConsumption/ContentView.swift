@@ -462,9 +462,9 @@ struct ContentView: View {
     @AppStorage("referenceConsumptionByVehicleProfile.v1") private var referenceConsumptionOverridesByProfileData = Data()
     @AppStorage("motorwaySpeedByVehicleProfile.v1") private var motorwaySpeedOverridesByProfileData = Data()
     @AppStorage("airConditioningModeByVehicleProfile.v1") private var airConditioningModeOverridesByProfileData = Data()
-    @AppStorage("selectedTyreSetByVehicleProfile.v1") private var selectedTyreSetOverridesByProfileData = Data()
-    @AppStorage("summerTyreClassByVehicleProfile.v1") private var summerTyreClassOverridesByProfileData = Data()
-    @AppStorage("winterTyreClassByVehicleProfile.v1") private var winterTyreClassOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.selectedTyreSetOverridesKey) private var selectedTyreSetOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.summerTyreClassOverridesKey) private var summerTyreClassOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.winterTyreClassOverridesKey) private var winterTyreClassOverridesByProfileData = Data()
     @AppStorage(EffectiveVehicleProfileSettingsResolver.normalMinimumChargingPercentOverridesKey) private var normalMinimumChargingPercentOverridesByProfileData = Data()
     @AppStorage(EffectiveVehicleProfileSettingsResolver.normalFastChargeTargetPercentOverridesKey) private var normalFastChargeTargetPercentOverridesByProfileData = Data()
     @AppStorage("tripChargingSetupMinutes") private var tripChargingSetupMinutes = defaultTripChargingSetupMinutes
@@ -635,7 +635,7 @@ struct ContentView: View {
                 rollingResistanceClass: tripEstimateRollingResistanceClass,
                 airConditioningMode: tripEstimateAirConditioningMode,
                 usesCustomVehicleProfile: true,
-                usableBatteryKWh: tripPlanningUsableBatteryKWh
+                usableBatteryKWh: forecastModelUsableBatteryKWh
             )
 
             return applyingActiveCalibrationAndTrailerAdjustment(
@@ -669,7 +669,7 @@ struct ContentView: View {
             rollingResistanceClass: tripEstimateRollingResistanceClass,
             airConditioningMode: tripEstimateAirConditioningMode,
             usesCustomVehicleProfile: false,
-            usableBatteryKWh: tripPlanningUsableBatteryKWh
+            usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
         return applyingActiveCalibrationAndTrailerAdjustment(
@@ -701,9 +701,7 @@ struct ContentView: View {
     }
 
     private var rangeUsableBatteryKWh: Double {
-        isCustomVehicleProfileSelected
-            ? activeVehicleProfile.profile.usableBatteryKWh
-            : effectiveUsableBatteryKWh
+        activeVehicleProfile.profile.effectiveUsableBatteryKWh
     }
 
     private var rangeGaugeMaximumKm: Double {
@@ -729,6 +727,10 @@ struct ContentView: View {
     }
 
     private var tripPlanningUsableBatteryKWh: Double {
+        activeVehicleProfile.profile.effectiveUsableBatteryKWh
+    }
+
+    private var forecastModelUsableBatteryKWh: Double {
         positiveFinite(
             activeVehicleProfile.profile.usableBatteryKWh,
             fallback: MiniConsumptionCalculator.nominalUsableBatteryKWh
@@ -766,7 +768,7 @@ struct ContentView: View {
             airConditioningMode: activeAirConditioningMode,
             applyDistanceAdjustment: false,
             usesCustomVehicleProfile: true,
-            usableBatteryKWh: rangeUsableBatteryKWh
+            usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
         return applyingActiveCalibrationAndTrailerAdjustment(
@@ -812,7 +814,7 @@ struct ContentView: View {
             airConditioningMode: activeAirConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
             usesCustomVehicleProfile: false,
-            usableBatteryKWh: rangeUsableBatteryKWh
+            usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
         return applyingActiveCalibrationAndTrailerAdjustment(
@@ -852,7 +854,7 @@ struct ContentView: View {
                 rollingResistanceClass: outcomeRollingResistanceClass,
                 airConditioningMode: outcomeAirConditioningMode,
                 usesCustomVehicleProfile: true,
-                usableBatteryKWh: rangeUsableBatteryKWh
+                usableBatteryKWh: forecastModelUsableBatteryKWh
             )
 
             return applyingActiveCalibrationAndTrailerAdjustment(
@@ -963,6 +965,7 @@ struct ContentView: View {
                 ? activeCalibrationCorrection.totalFactor
                 : nil,
             usableBatteryKWh: profile.usableBatteryKWh,
+            effectiveUsableBatteryKWh: profile.effectiveUsableBatteryKWh,
             wltpRangeKm: profile.wltpRangeKm,
             peakDCChargingKW: profile.peakDCChargingKW,
             batteryDegradationPercent: profile.batteryDegradationPercent,
@@ -984,7 +987,14 @@ struct ContentView: View {
     }
 
     private var availableWatchVehicleProfiles: [VehicleProfile] {
-        [VehicleProfileResolver.builtInMiniProfile(from: vehicleProfileResolverInput)] + customVehicleProfiles
+        ([VehicleProfileResolver.builtInMiniProfile(from: vehicleProfileResolverInput)] + customVehicleProfiles)
+            .map { profile in
+                let tyreSettings = EffectiveVehicleProfileSettingsResolver.tyreSettings(for: profile)
+                var resolvedProfile = profile
+                resolvedProfile.summerTyreClass = tyreSettings.summerTyreClass
+                resolvedProfile.winterTyreClass = tyreSettings.winterTyreClass
+                return resolvedProfile
+            }
     }
 
     private var isCustomVehicleProfileSelected: Bool {
@@ -1315,15 +1325,19 @@ struct ContentView: View {
     }
 
     private var activeSelectedTyreSet: TyreSet {
-        selectedTyreSet(for: activeVehicleProfile.profile)
+        activeTyreSettings.selectedTyreSet
     }
 
     private var activeSummerTyreClass: RollingResistanceClass {
-        summerTyreClass(for: activeVehicleProfile.profile)
+        activeTyreSettings.summerTyreClass
     }
 
     private var activeWinterTyreClass: RollingResistanceClass {
-        winterTyreClass(for: activeVehicleProfile.profile)
+        activeTyreSettings.winterTyreClass
+    }
+
+    private var activeTyreSettings: EffectiveTyreSettings {
+        EffectiveVehicleProfileSettingsResolver.tyreSettings(for: activeVehicleProfile.profile)
     }
 
     private var activeNormalMinimumChargingPercent: Double {
@@ -1394,7 +1408,7 @@ struct ContentView: View {
     }
 
     private var effectiveUsableBatteryKWh: Double {
-        MiniConsumptionCalculator.effectiveUsableBatteryKWh(degradationPercent: batteryDegradationPercent)
+        activeVehicleProfile.profile.effectiveUsableBatteryKWh
     }
 
     private var effectiveReferenceConsumption: Double {
@@ -1457,7 +1471,7 @@ struct ContentView: View {
             airConditioningMode: activeAirConditioningMode,
             applyDistanceAdjustment: false,
             usesCustomVehicleProfile: true,
-            usableBatteryKWh: rangeUsableBatteryKWh
+            usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
         return applyingActiveCalibrationAndTrailerAdjustment(
@@ -2368,64 +2382,30 @@ struct ContentView: View {
     }
 
     private func selectedTyreSet(for profile: VehicleProfile) -> TyreSet {
-        guard profile.kind == .custom,
-              let rawValue = selectedTyreSetOverridesByProfileID[profile.id],
-              let overrideValue = TyreSet(rawValue: rawValue) else {
-            return selectedTyreSet
-        }
-
-        return overrideValue
+        EffectiveVehicleProfileSettingsResolver.tyreSettings(for: profile).selectedTyreSet
     }
 
     private func setSelectedTyreSet(_ value: TyreSet, for profile: VehicleProfile) {
-        if profile.kind == .custom {
-            var overrides = selectedTyreSetOverridesByProfileID
-            overrides[profile.id] = value.rawValue
-            selectedTyreSetOverridesByProfileID = overrides
-        } else {
-            selectedTyreSet = value
-            winterTyres = value == .winter
-        }
+        EffectiveVehicleProfileSettingsResolver.setSelectedTyreSet(value, for: profile.id)
+        refreshTyreOverrideData()
     }
 
     private func summerTyreClass(for profile: VehicleProfile) -> RollingResistanceClass {
-        guard profile.kind == .custom,
-              let rawValue = summerTyreClassOverridesByProfileID[profile.id],
-              let overrideValue = RollingResistanceClass(rawValue: rawValue) else {
-            return summerTyreClass
-        }
-
-        return overrideValue
+        EffectiveVehicleProfileSettingsResolver.tyreSettings(for: profile).summerTyreClass
     }
 
     private func setSummerTyreClass(_ value: RollingResistanceClass, for profile: VehicleProfile) {
-        if profile.kind == .custom {
-            var overrides = summerTyreClassOverridesByProfileID
-            overrides[profile.id] = value.rawValue
-            summerTyreClassOverridesByProfileID = overrides
-        } else {
-            summerTyreClass = value
-        }
+        EffectiveVehicleProfileSettingsResolver.setSummerTyreClass(value, for: profile.id)
+        refreshTyreOverrideData()
     }
 
     private func winterTyreClass(for profile: VehicleProfile) -> RollingResistanceClass {
-        guard profile.kind == .custom,
-              let rawValue = winterTyreClassOverridesByProfileID[profile.id],
-              let overrideValue = RollingResistanceClass(rawValue: rawValue) else {
-            return winterTyreClass
-        }
-
-        return overrideValue
+        EffectiveVehicleProfileSettingsResolver.tyreSettings(for: profile).winterTyreClass
     }
 
     private func setWinterTyreClass(_ value: RollingResistanceClass, for profile: VehicleProfile) {
-        if profile.kind == .custom {
-            var overrides = winterTyreClassOverridesByProfileID
-            overrides[profile.id] = value.rawValue
-            winterTyreClassOverridesByProfileID = overrides
-        } else {
-            winterTyreClass = value
-        }
+        EffectiveVehicleProfileSettingsResolver.setWinterTyreClass(value, for: profile.id)
+        refreshTyreOverrideData()
     }
 
     private func setRollingResistanceClass(_ value: RollingResistanceClass, for profile: VehicleProfile) {
@@ -2436,9 +2416,18 @@ struct ContentView: View {
             setWinterTyreClass(value, for: profile)
         }
 
-        if profile.kind != .custom {
-            rollingResistanceClass = value
-        }
+    }
+
+    private func refreshTyreOverrideData(defaults: UserDefaults = .standard) {
+        selectedTyreSetOverridesByProfileData = defaults.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.selectedTyreSetOverridesKey
+        ) ?? Data()
+        summerTyreClassOverridesByProfileData = defaults.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.summerTyreClassOverridesKey
+        ) ?? Data()
+        winterTyreClassOverridesByProfileData = defaults.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.winterTyreClassOverridesKey
+        ) ?? Data()
     }
 
     private func normalMinimumChargingPercent(for profile: VehicleProfile) -> Double {
@@ -2490,21 +2479,6 @@ struct ContentView: View {
     private var airConditioningModeOverridesByProfileID: [String: String] {
         get { decodedProfileOverrides(from: airConditioningModeOverridesByProfileData) }
         nonmutating set { airConditioningModeOverridesByProfileData = encodedProfileOverrides(newValue) }
-    }
-
-    private var selectedTyreSetOverridesByProfileID: [String: String] {
-        get { decodedProfileOverrides(from: selectedTyreSetOverridesByProfileData) }
-        nonmutating set { selectedTyreSetOverridesByProfileData = encodedProfileOverrides(newValue) }
-    }
-
-    private var summerTyreClassOverridesByProfileID: [String: String] {
-        get { decodedProfileOverrides(from: summerTyreClassOverridesByProfileData) }
-        nonmutating set { summerTyreClassOverridesByProfileData = encodedProfileOverrides(newValue) }
-    }
-
-    private var winterTyreClassOverridesByProfileID: [String: String] {
-        get { decodedProfileOverrides(from: winterTyreClassOverridesByProfileData) }
-        nonmutating set { winterTyreClassOverridesByProfileData = encodedProfileOverrides(newValue) }
     }
 
     private var normalMinimumChargingPercentOverridesByProfileID: [String: Double] {
@@ -2579,7 +2553,7 @@ struct ContentView: View {
     }
 
     private var activeRollingResistanceClass: RollingResistanceClass {
-        activeSelectedTyreSet == .summer ? activeSummerTyreClass : activeWinterTyreClass
+        activeTyreSettings.activeRollingResistanceClass
     }
 
     private var activeRollingResistanceClassBinding: Binding<RollingResistanceClass> {
@@ -2751,7 +2725,7 @@ struct ContentView: View {
             customVehicleProfiles = VehicleProfileStore.loadCustomProfiles()
             if selectedVehicleProfileID == VehicleProfileResolver.builtInMiniProfileID
                 || customVehicleProfiles.contains(where: { $0.id == selectedVehicleProfileID }) == false {
-                batteryDegradationPercent = miniBatteryDegradationPercent
+                batteryDegradationPercent = builtInMiniBatteryDegradationPercent()
             }
             migrateTyreSettingsIfNeeded()
             migrateLegacyCustomEVProfileIfNeeded()
@@ -3954,7 +3928,7 @@ struct ContentView: View {
                 .pickerStyle(.menu)
             }
 
-            Text("Battery capacity may gradually decrease over time, often around 1–2% per year.")
+            Text("Estimated loss of usable battery capacity relative to when the vehicle was new.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -3978,7 +3952,7 @@ struct ContentView: View {
                     .pickerStyle(.menu)
                 }
 
-                Text("Battery capacity may gradually decrease over time, often around 1–2% per year.")
+                Text("Estimated loss of usable battery capacity relative to when the vehicle was new.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -5910,7 +5884,7 @@ struct ContentView: View {
             rollingResistanceClass: outcomeRollingResistanceClass,
             airConditioningMode: .on,
             usesCustomVehicleProfile: isCustomVehicleProfileSelected,
-            usableBatteryKWh: rangeUsableBatteryKWh
+            usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
         return applyingTrailerConsumptionAdjustment(
@@ -6625,7 +6599,6 @@ struct ContentView: View {
         }
 
         winterTyres = selectedTyreSet == .winter
-        rollingResistanceClass = activeRollingResistanceClass
     }
 
     private func migrateLegacyCustomEVProfileIfNeeded(defaults: UserDefaults = .standard) {
@@ -6670,7 +6643,7 @@ struct ContentView: View {
         )
         selectedVehicleProfileID = VehicleProfileResolver.builtInMiniProfileID
         experimentalCustomVehicleProfileEnabled = false
-        batteryDegradationPercent = miniBatteryDegradationPercent
+        batteryDegradationPercent = builtInMiniBatteryDegradationPercent(defaults: defaults)
         customVehicleProfiles = VehicleProfileStore.loadCustomProfiles(defaults: defaults)
     }
 
@@ -6828,15 +6801,8 @@ struct ContentView: View {
         var airConditioningOverrides = airConditioningModeOverridesByProfileID
         airConditioningOverrides.removeValue(forKey: profile.id)
         airConditioningModeOverridesByProfileID = airConditioningOverrides
-        var tyreSetOverrides = selectedTyreSetOverridesByProfileID
-        tyreSetOverrides.removeValue(forKey: profile.id)
-        selectedTyreSetOverridesByProfileID = tyreSetOverrides
-        var summerTyreClassOverrides = summerTyreClassOverridesByProfileID
-        summerTyreClassOverrides.removeValue(forKey: profile.id)
-        summerTyreClassOverridesByProfileID = summerTyreClassOverrides
-        var winterTyreClassOverrides = winterTyreClassOverridesByProfileID
-        winterTyreClassOverrides.removeValue(forKey: profile.id)
-        winterTyreClassOverridesByProfileID = winterTyreClassOverrides
+        EffectiveVehicleProfileSettingsResolver.removeTyreOverrides(for: profile.id)
+        refreshTyreOverrideData()
         var minimumChargingOverrides = normalMinimumChargingPercentOverridesByProfileID
         minimumChargingOverrides.removeValue(forKey: profile.id)
         normalMinimumChargingPercentOverridesByProfileID = minimumChargingOverrides
@@ -6868,8 +6834,20 @@ struct ContentView: View {
             )
             customVehicleProfiles = VehicleProfileStore.loadCustomProfiles(defaults: defaults)
         } else {
-            miniBatteryDegradationPercent = batteryDegradationPercent
+            EffectiveVehicleProfileSettingsResolver.setBatteryDegradationPercent(
+                batteryDegradationPercent,
+                for: activeVehicleProfile.profile.id,
+                defaults: defaults
+            )
         }
+    }
+
+    private func builtInMiniBatteryDegradationPercent(defaults: UserDefaults = .standard) -> Int {
+        EffectiveVehicleProfileSettingsResolver.batteryDegradationPercent(
+            for: VehicleProfileResolver.builtInMiniProfileID,
+            legacyBuiltInValue: miniBatteryDegradationPercent,
+            defaults: defaults
+        )
     }
 
     private func exportTripOutcomes() {

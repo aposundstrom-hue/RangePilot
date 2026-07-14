@@ -38,9 +38,26 @@ enum MiniConsumptionCalculator {
         let speedMultiplier: Double
     }
 
+    nonisolated static func normalizedBatteryDegradationPercent(_ degradationPercent: Int) -> Int {
+        min(max(degradationPercent, 0), 10)
+    }
+
+    nonisolated static func effectiveUsableBatteryKWh(
+        originalUsableBatteryKWh: Double,
+        degradationPercent: Int
+    ) -> Double {
+        let normalizedOriginalCapacity = originalUsableBatteryKWh.isFinite && originalUsableBatteryKWh > 0
+            ? originalUsableBatteryKWh
+            : nominalUsableBatteryKWh
+        let normalizedDegradation = normalizedBatteryDegradationPercent(degradationPercent)
+        return normalizedOriginalCapacity * (1.0 - Double(normalizedDegradation) / 100.0)
+    }
+
     nonisolated static func effectiveUsableBatteryKWh(degradationPercent: Int) -> Double {
-        let clampedDegradationPercent = min(max(degradationPercent, 0), 10)
-        return nominalUsableBatteryKWh * (1.0 - Double(clampedDegradationPercent) / 100.0)
+        effectiveUsableBatteryKWh(
+            originalUsableBatteryKWh: nominalUsableBatteryKWh,
+            degradationPercent: degradationPercent
+        )
     }
 
     static func chargingTaperStartSOC(for profile: VehicleProfile) -> Double {

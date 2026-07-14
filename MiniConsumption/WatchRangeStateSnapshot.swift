@@ -15,6 +15,7 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
     let effectiveReferenceConsumptionKWhPer100Km: Double?
     let automaticCalibrationFactor: Double?
     let usableBatteryKWh: Double
+    let effectiveUsableBatteryKWh: Double?
     let wltpRangeKm: Double
     let peakDCChargingKW: Double
     let batteryDegradationPercent: Int
@@ -45,6 +46,7 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
         effectiveReferenceConsumptionKWhPer100Km: Double?,
         automaticCalibrationFactor: Double?,
         usableBatteryKWh: Double,
+        effectiveUsableBatteryKWh: Double?,
         wltpRangeKm: Double,
         peakDCChargingKW: Double,
         batteryDegradationPercent: Int,
@@ -74,6 +76,7 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
         self.effectiveReferenceConsumptionKWhPer100Km = effectiveReferenceConsumptionKWhPer100Km
         self.automaticCalibrationFactor = automaticCalibrationFactor
         self.usableBatteryKWh = usableBatteryKWh
+        self.effectiveUsableBatteryKWh = effectiveUsableBatteryKWh
         self.wltpRangeKm = wltpRangeKm
         self.peakDCChargingKW = peakDCChargingKW
         self.batteryDegradationPercent = batteryDegradationPercent
@@ -97,7 +100,7 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
         case batteryPercent, roadTypeProfile, temperatureC, activeVehicleProfileID
         case availableVehicleProfiles, vehicleProfileName, vehicleProfileKind
         case referenceConsumptionKWhPer100Km, effectiveReferenceConsumptionKWhPer100Km, automaticCalibrationFactor
-        case usableBatteryKWh, wltpRangeKm, peakDCChargingKW, batteryDegradationPercent
+        case usableBatteryKWh, effectiveUsableBatteryKWh, wltpRangeKm, peakDCChargingKW, batteryDegradationPercent
         case motorwaySpeed, roadSurface, windCondition, airConditioningMode
         case selectedTyreSet, summerTyreClass, winterTyreClass, useContinuousCalibration
         case trailerTowModeEnabled, trailerWeightKg, boxyTrailerEnabled, roofBoxMode
@@ -118,6 +121,7 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
             effectiveReferenceConsumptionKWhPer100Km: try container.decodeIfPresent(Double.self, forKey: .effectiveReferenceConsumptionKWhPer100Km),
             automaticCalibrationFactor: try container.decodeIfPresent(Double.self, forKey: .automaticCalibrationFactor),
             usableBatteryKWh: try container.decode(Double.self, forKey: .usableBatteryKWh),
+            effectiveUsableBatteryKWh: try container.decodeIfPresent(Double.self, forKey: .effectiveUsableBatteryKWh),
             wltpRangeKm: try container.decode(Double.self, forKey: .wltpRangeKm),
             peakDCChargingKW: try container.decode(Double.self, forKey: .peakDCChargingKW),
             batteryDegradationPercent: try container.decode(Int.self, forKey: .batteryDegradationPercent),
@@ -125,9 +129,12 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
             roadSurface: try container.decode(RoadSurface.self, forKey: .roadSurface),
             windCondition: try container.decode(WindCondition.self, forKey: .windCondition),
             airConditioningMode: try container.decode(AirConditioningMode.self, forKey: .airConditioningMode),
-            selectedTyreSet: try container.decode(TyreSet.self, forKey: .selectedTyreSet),
-            summerTyreClass: try container.decode(RollingResistanceClass.self, forKey: .summerTyreClass),
-            winterTyreClass: try container.decode(RollingResistanceClass.self, forKey: .winterTyreClass),
+            selectedTyreSet: (try? container.decode(TyreSet.self, forKey: .selectedTyreSet))
+                ?? MiniConsumptionDefaults.selectedTyreSet,
+            summerTyreClass: (try? container.decode(RollingResistanceClass.self, forKey: .summerTyreClass))
+                ?? MiniConsumptionDefaults.summerTyreClass,
+            winterTyreClass: (try? container.decode(RollingResistanceClass.self, forKey: .winterTyreClass))
+                ?? MiniConsumptionDefaults.winterTyreClass,
             useContinuousCalibration: try container.decodeIfPresent(Bool.self, forKey: .useContinuousCalibration) ?? MiniConsumptionDefaults.useContinuousCalibration,
             trailerTowModeEnabled: try container.decodeIfPresent(Bool.self, forKey: .trailerTowModeEnabled) ?? false,
             trailerWeightKg: try container.decodeIfPresent(Double.self, forKey: .trailerWeightKg) ?? MiniConsumptionDefaults.trailerWeightKg,
