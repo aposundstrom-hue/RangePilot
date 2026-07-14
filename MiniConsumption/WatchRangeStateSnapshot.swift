@@ -125,10 +125,12 @@ struct WatchRangeStateSnapshot: Codable, Equatable {
             wltpRangeKm: try container.decode(Double.self, forKey: .wltpRangeKm),
             peakDCChargingKW: try container.decode(Double.self, forKey: .peakDCChargingKW),
             batteryDegradationPercent: try container.decode(Int.self, forKey: .batteryDegradationPercent),
-            motorwaySpeed: try container.decode(Double.self, forKey: .motorwaySpeed),
+            motorwaySpeed: (try? container.decode(Double.self, forKey: .motorwaySpeed))
+                ?? MiniConsumptionDefaults.motorwaySpeedKmh,
             roadSurface: try container.decode(RoadSurface.self, forKey: .roadSurface),
             windCondition: try container.decode(WindCondition.self, forKey: .windCondition),
-            airConditioningMode: try container.decode(AirConditioningMode.self, forKey: .airConditioningMode),
+            airConditioningMode: (try? container.decode(AirConditioningMode.self, forKey: .airConditioningMode))
+                ?? MiniConsumptionDefaults.airConditioningMode,
             selectedTyreSet: (try? container.decode(TyreSet.self, forKey: .selectedTyreSet))
                 ?? MiniConsumptionDefaults.selectedTyreSet,
             summerTyreClass: (try? container.decode(RollingResistanceClass.self, forKey: .summerTyreClass))

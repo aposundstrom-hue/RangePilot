@@ -435,9 +435,7 @@ struct ContentView: View {
     @AppStorage("referenceConsumption") private var referenceConsumption = defaultReferenceConsumptionKWhPer100Km
     @AppStorage("tripDistance") private var distance = MiniConsumptionDefaults.tripDistanceKm
     @AppStorage("temperature") private var temperature = MiniConsumptionDefaults.temperatureC
-    @AppStorage("airConditioningMode") private var airConditioningMode = MiniConsumptionDefaults.airConditioningMode
     @AppStorage("roadTypeProfile") private var roadTypeProfile = MiniConsumptionDefaults.roadTypeProfile
-    @AppStorage("motorwaySpeed") private var motorwaySpeed = MiniConsumptionDefaults.motorwaySpeedKmh
     @AppStorage("roadSurface") private var roadSurface = MiniConsumptionDefaults.roadSurface
     @AppStorage("windCondition") private var windCondition = MiniConsumptionDefaults.windCondition
     @AppStorage("trailerTowModeEnabled") private var trailerTowModeEnabled = false
@@ -460,8 +458,8 @@ struct ContentView: View {
     @AppStorage("averageChargingSpeedKW") private var averageChargingSpeedKW = MiniConsumptionCalculator.defaultAverageChargingSpeedKW
     @AppStorage(EffectiveVehicleProfileSettingsResolver.averageChargingSpeedOverridesKey) private var averageChargingSpeedOverridesByProfileData = Data()
     @AppStorage("referenceConsumptionByVehicleProfile.v1") private var referenceConsumptionOverridesByProfileData = Data()
-    @AppStorage("motorwaySpeedByVehicleProfile.v1") private var motorwaySpeedOverridesByProfileData = Data()
-    @AppStorage("airConditioningModeByVehicleProfile.v1") private var airConditioningModeOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.motorwaySpeedOverridesKey) private var motorwaySpeedOverridesByProfileData = Data()
+    @AppStorage(EffectiveVehicleProfileSettingsResolver.airConditioningModeOverridesKey) private var airConditioningModeOverridesByProfileData = Data()
     @AppStorage(EffectiveVehicleProfileSettingsResolver.selectedTyreSetOverridesKey) private var selectedTyreSetOverridesByProfileData = Data()
     @AppStorage(EffectiveVehicleProfileSettingsResolver.summerTyreClassOverridesKey) private var summerTyreClassOverridesByProfileData = Data()
     @AppStorage(EffectiveVehicleProfileSettingsResolver.winterTyreClassOverridesKey) private var winterTyreClassOverridesByProfileData = Data()
@@ -1120,7 +1118,7 @@ struct ContentView: View {
     }
 
     private var activeMotorwaySpeed: Double {
-        motorwaySpeed(for: activeVehicleProfile.profile)
+        EffectiveVehicleProfileSettingsResolver.motorwaySpeed(for: activeVehicleProfile.profile)
     }
 
     private var normalizedTrailerWeightKg: Double {
@@ -1321,7 +1319,7 @@ struct ContentView: View {
     }
 
     private var activeAirConditioningMode: AirConditioningMode {
-        airConditioningMode(for: activeVehicleProfile.profile)
+        EffectiveVehicleProfileSettingsResolver.airConditioningMode(for: activeVehicleProfile.profile)
     }
 
     private var activeSelectedTyreSet: TyreSet {
@@ -2297,26 +2295,9 @@ struct ContentView: View {
         }
     }
 
-    private func motorwaySpeed(for profile: VehicleProfile) -> Double {
-        let fallback = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
-        guard profile.kind == .custom,
-              let overrideValue = motorwaySpeedOverridesByProfileID[profile.id] else {
-            return fallback
-        }
-
-        return MiniConsumptionDefaults.normalizedMotorwaySpeed(overrideValue)
-    }
-
     private func setMotorwaySpeed(_ value: Double, for profile: VehicleProfile) {
-        let normalizedValue = MiniConsumptionDefaults.normalizedMotorwaySpeed(value)
-
-        if profile.kind == .custom {
-            var overrides = motorwaySpeedOverridesByProfileID
-            overrides[profile.id] = normalizedValue
-            motorwaySpeedOverridesByProfileID = overrides
-        } else {
-            motorwaySpeed = normalizedValue
-        }
+        EffectiveVehicleProfileSettingsResolver.setMotorwaySpeed(value, for: profile.id)
+        refreshDrivingDefaultOverrideData()
     }
 
     private func setWindCondition(_ value: WindCondition, now: Date = Date(), defaults: UserDefaults = .standard) {
@@ -2361,24 +2342,18 @@ struct ContentView: View {
         trailerWeightKg = MiniConsumptionDefaults.defaultTrailerWeightKg(usesPounds: weightUnits == .pounds)
     }
 
-    private func airConditioningMode(for profile: VehicleProfile) -> AirConditioningMode {
-        guard profile.kind == .custom,
-              let rawValue = airConditioningModeOverridesByProfileID[profile.id],
-              let overrideValue = AirConditioningMode(rawValue: rawValue) else {
-            return airConditioningMode
-        }
-
-        return overrideValue
+    private func setAirConditioningMode(_ value: AirConditioningMode, for profile: VehicleProfile) {
+        EffectiveVehicleProfileSettingsResolver.setAirConditioningMode(value, for: profile.id)
+        refreshDrivingDefaultOverrideData()
     }
 
-    private func setAirConditioningMode(_ value: AirConditioningMode, for profile: VehicleProfile) {
-        if profile.kind == .custom {
-            var overrides = airConditioningModeOverridesByProfileID
-            overrides[profile.id] = value.rawValue
-            airConditioningModeOverridesByProfileID = overrides
-        } else {
-            airConditioningMode = value
-        }
+    private func refreshDrivingDefaultOverrideData(defaults: UserDefaults = .standard) {
+        motorwaySpeedOverridesByProfileData = defaults.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.motorwaySpeedOverridesKey
+        ) ?? Data()
+        airConditioningModeOverridesByProfileData = defaults.data(
+            forKey: EffectiveVehicleProfileSettingsResolver.airConditioningModeOverridesKey
+        ) ?? Data()
     }
 
     private func selectedTyreSet(for profile: VehicleProfile) -> TyreSet {
@@ -2469,16 +2444,6 @@ struct ContentView: View {
         EffectiveVehicleProfileSettingsResolver.setNormalFastChargeTargetPercent(value, for: profile)
         refreshChargingWindowOverrideData()
         resetTransientAlternativeTripPlanSelection()
-    }
-
-    private var motorwaySpeedOverridesByProfileID: [String: Double] {
-        get { decodedProfileOverrides(from: motorwaySpeedOverridesByProfileData) }
-        nonmutating set { motorwaySpeedOverridesByProfileData = encodedProfileOverrides(newValue) }
-    }
-
-    private var airConditioningModeOverridesByProfileID: [String: String] {
-        get { decodedProfileOverrides(from: airConditioningModeOverridesByProfileData) }
-        nonmutating set { airConditioningModeOverridesByProfileData = encodedProfileOverrides(newValue) }
     }
 
     private var normalMinimumChargingPercentOverridesByProfileID: [String: Double] {
@@ -6317,7 +6282,7 @@ struct ContentView: View {
             if let motorwaySpeed = input.motorwaySpeed {
                 tripEstimateMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
             } else {
-                tripEstimateMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
+                tripEstimateMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed)
             }
 
             if let temperature = input.temperature {
@@ -6795,12 +6760,8 @@ struct ContentView: View {
         var referenceOverrides = referenceConsumptionOverridesByProfileID
         referenceOverrides.removeValue(forKey: profile.id)
         referenceConsumptionOverridesByProfileID = referenceOverrides
-        var motorwaySpeedOverrides = motorwaySpeedOverridesByProfileID
-        motorwaySpeedOverrides.removeValue(forKey: profile.id)
-        motorwaySpeedOverridesByProfileID = motorwaySpeedOverrides
-        var airConditioningOverrides = airConditioningModeOverridesByProfileID
-        airConditioningOverrides.removeValue(forKey: profile.id)
-        airConditioningModeOverridesByProfileID = airConditioningOverrides
+        EffectiveVehicleProfileSettingsResolver.removeDrivingDefaultOverrides(for: profile.id)
+        refreshDrivingDefaultOverrideData()
         EffectiveVehicleProfileSettingsResolver.removeTyreOverrides(for: profile.id)
         refreshTyreOverrideData()
         var minimumChargingOverrides = normalMinimumChargingPercentOverridesByProfileID

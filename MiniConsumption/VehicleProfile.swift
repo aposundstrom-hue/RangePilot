@@ -392,8 +392,8 @@ enum EffectiveVehicleProfileSettingsResolver {
     static let normalFastChargeTargetPercentOverridesKey = "normalFastChargeTargetPercentByVehicleProfile.v1"
     static let averageChargingSpeedOverridesKey = "averageChargingSpeedKWByVehicleProfile.v1"
     private static let referenceConsumptionOverridesKey = "referenceConsumptionByVehicleProfile.v1"
-    private static let motorwaySpeedOverridesKey = "motorwaySpeedByVehicleProfile.v1"
-    private static let airConditioningModeOverridesKey = "airConditioningModeByVehicleProfile.v1"
+    static let motorwaySpeedOverridesKey = "motorwaySpeedByVehicleProfile.v1"
+    static let airConditioningModeOverridesKey = "airConditioningModeByVehicleProfile.v1"
     static let selectedTyreSetOverridesKey = "selectedTyreSetByVehicleProfile.v1"
     static let summerTyreClassOverridesKey = "summerTyreClassByVehicleProfile.v1"
     static let winterTyreClassOverridesKey = "winterTyreClassByVehicleProfile.v1"
@@ -436,14 +436,8 @@ enum EffectiveVehicleProfileSettingsResolver {
             key: "referenceConsumption",
             fallback: defaultReferenceConsumptionKWhPer100Km
         )
-        let globalMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(
-            double(defaults: defaults, key: "motorwaySpeed", fallback: MiniConsumptionDefaults.motorwaySpeedKmh)
-        )
-        let globalAirConditioningMode = rawValue(
-            defaults: defaults,
-            key: "airConditioningMode",
-            fallback: MiniConsumptionDefaults.airConditioningMode
-        )
+        let resolvedMotorwaySpeed = motorwaySpeed(for: profile, defaults: defaults)
+        let resolvedAirConditioningMode = airConditioningMode(for: profile, defaults: defaults)
         let resolvedTyres = tyreSettings(for: profile, defaults: defaults)
         let defaultReferenceConsumption = ReferenceConsumptionResolver.profileDerivedDefault(for: profile)
         let referenceOverrides: [String: Double] = overrides(defaults: defaults, key: referenceConsumptionOverridesKey)
@@ -467,35 +461,12 @@ enum EffectiveVehicleProfileSettingsResolver {
             defaults: defaults
         )
 
-        guard profile.kind == .custom else {
-            return EffectiveVehicleProfileSettings(
-                profile: profile,
-                defaultReferenceConsumption: defaultReferenceConsumption,
-                manualReferenceConsumption: manualReferenceConsumption,
-                motorwaySpeed: globalMotorwaySpeed,
-                airConditioningMode: globalAirConditioningMode,
-                selectedTyreSet: resolvedTyres.selectedTyreSet,
-                summerTyreClass: resolvedTyres.summerTyreClass,
-                winterTyreClass: resolvedTyres.winterTyreClass,
-                normalMinimumChargingPercent: resolvedMinimumChargingPercent,
-                normalFastChargeTargetPercent: resolvedFastChargeTargetPercent,
-                averageChargingSpeedKW: resolvedAverageChargingSpeed,
-                chargingTaperStartSOC: resolvedChargingTaperStartSOC,
-                useContinuousCalibration: useContinuousCalibration
-            )
-        }
-
-        let motorwaySpeedOverrides: [String: Double] = overrides(defaults: defaults, key: motorwaySpeedOverridesKey)
-        let airConditioningOverrides: [String: String] = overrides(defaults: defaults, key: airConditioningModeOverridesKey)
         return EffectiveVehicleProfileSettings(
             profile: profile,
             defaultReferenceConsumption: defaultReferenceConsumption,
             manualReferenceConsumption: manualReferenceConsumption,
-            motorwaySpeed: MiniConsumptionDefaults.normalizedMotorwaySpeed(
-                motorwaySpeedOverrides[profile.id] ?? globalMotorwaySpeed
-            ),
-            airConditioningMode: airConditioningOverrides[profile.id].flatMap(AirConditioningMode.init(rawValue:))
-                ?? globalAirConditioningMode,
+            motorwaySpeed: resolvedMotorwaySpeed,
+            airConditioningMode: resolvedAirConditioningMode,
             selectedTyreSet: resolvedTyres.selectedTyreSet,
             summerTyreClass: resolvedTyres.summerTyreClass,
             winterTyreClass: resolvedTyres.winterTyreClass,
@@ -505,6 +476,63 @@ enum EffectiveVehicleProfileSettingsResolver {
             chargingTaperStartSOC: resolvedChargingTaperStartSOC,
             useContinuousCalibration: useContinuousCalibration
         )
+    }
+
+    static func motorwaySpeed(
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> Double {
+        let values: [String: Double] = overrides(defaults: defaults, key: motorwaySpeedOverridesKey)
+        let legacyValue = legacyBuiltInMotorwaySpeed(
+            for: profile.id,
+            defaults: defaults
+        )
+        return MiniConsumptionDefaults.normalizedMotorwaySpeed(
+            values[profile.id]
+                ?? legacyValue
+                ?? MiniConsumptionDefaults.motorwaySpeedKmh
+        )
+    }
+
+    static func airConditioningMode(
+        for profile: VehicleProfile,
+        defaults: UserDefaults = .standard
+    ) -> AirConditioningMode {
+        let values: [String: String] = overrides(defaults: defaults, key: airConditioningModeOverridesKey)
+        return values[profile.id].flatMap(AirConditioningMode.init(rawValue:))
+            ?? legacyBuiltInAirConditioningMode(
+                for: profile.id,
+                defaults: defaults
+            )
+            ?? MiniConsumptionDefaults.airConditioningMode
+    }
+
+    static func setMotorwaySpeed(
+        _ value: Double,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        var values: [String: Double] = overrides(defaults: defaults, key: motorwaySpeedOverridesKey)
+        values[profileID] = MiniConsumptionDefaults.normalizedMotorwaySpeed(value)
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: motorwaySpeedOverridesKey)
+        }
+    }
+
+    static func setAirConditioningMode(
+        _ value: AirConditioningMode,
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        setStringOverride(value.rawValue, for: profileID, key: airConditioningModeOverridesKey, defaults: defaults)
+    }
+
+    static func removeDrivingDefaultOverrides(
+        for profileID: String,
+        defaults: UserDefaults = .standard
+    ) {
+        removeDoubleOverride(for: profileID, key: motorwaySpeedOverridesKey, defaults: defaults)
+        removeOverride(for: profileID, key: airConditioningModeOverridesKey, defaults: defaults)
     }
 
     // VehicleProfile tyre classes are profile/template defaults. Once a profile-ID
@@ -831,6 +859,43 @@ enum EffectiveVehicleProfileSettingsResolver {
         if let data = try? JSONEncoder().encode(values) {
             defaults.set(data, forKey: key)
         }
+    }
+
+    private static func removeDoubleOverride(
+        for profileID: String,
+        key: String,
+        defaults: UserDefaults
+    ) {
+        var values: [String: Double] = overrides(defaults: defaults, key: key)
+        values.removeValue(forKey: profileID)
+        if let data = try? JSONEncoder().encode(values) {
+            defaults.set(data, forKey: key)
+        }
+    }
+
+    private static func legacyBuiltInMotorwaySpeed(
+        for profileID: String,
+        defaults: UserDefaults
+    ) -> Double? {
+        guard profileID == VehicleProfileResolver.builtInMiniProfileID,
+              defaults.object(forKey: "motorwaySpeed") != nil else {
+            return nil
+        }
+        return double(
+            defaults: defaults,
+            key: "motorwaySpeed",
+            fallback: MiniConsumptionDefaults.motorwaySpeedKmh
+        )
+    }
+
+    private static func legacyBuiltInAirConditioningMode(
+        for profileID: String,
+        defaults: UserDefaults
+    ) -> AirConditioningMode? {
+        guard profileID == VehicleProfileResolver.builtInMiniProfileID else {
+            return nil
+        }
+        return optionalRawValue(defaults: defaults, key: "airConditioningMode")
     }
 
     private static func overrides<Value: Decodable>(defaults: UserDefaults, key: String) -> [String: Value] {
