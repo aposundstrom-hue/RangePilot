@@ -23,7 +23,6 @@ struct MiniConsumptionSettingsSnapshot {
     let roofBoxMode: RoofBoxMode
     let batteryDegradationPercent: Int
     let originalUsableBatteryKWh: Double
-    let activeForecastUsesCustomVehicleProfile: Bool
     let activeVehicleProfile: VehicleProfile
     let resolvedChargingTaperStartSOC: Double
     let arrivalBatteryTargetPercent: Double
@@ -111,7 +110,6 @@ struct MiniConsumptionSettingsSnapshot {
             roofBoxMode: defaults.rawRepresentable(forKey: "roofBoxMode", defaultValue: .off),
             batteryDegradationPercent: activeVehicleProfile.batteryDegradationPercent,
             originalUsableBatteryKWh: activeVehicleProfile.usableBatteryKWh,
-            activeForecastUsesCustomVehicleProfile: activeVehicleProfile.kind == .custom,
             activeVehicleProfile: activeVehicleProfile,
             resolvedChargingTaperStartSOC: effectiveProfile.chargingTaperStartSOC,
             arrivalBatteryTargetPercent: defaults.double(forKey: "arrivalBatteryTargetPercent", defaultValue: ChargingWindow.defaultArrivalBatteryTargetPercent),
@@ -155,7 +153,6 @@ struct MiniConsumptionSettingsSnapshot {
             rollingResistanceClass: activeRollingResistanceClass,
             airConditioningMode: airConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
-            usesCustomVehicleProfile: activeForecastUsesCustomVehicleProfile,
             usableBatteryKWh: originalUsableBatteryKWh
         )
 
@@ -200,7 +197,6 @@ struct MiniConsumptionSettingsSnapshot {
             rollingResistanceClass: activeRollingResistanceClass,
             airConditioningMode: airConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
-            usesCustomVehicleProfile: activeForecastUsesCustomVehicleProfile,
             usableBatteryKWh: originalUsableBatteryKWh
         )
 

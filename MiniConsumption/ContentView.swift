@@ -613,41 +613,6 @@ struct ContentView: View {
     }
 
     private var tripEstimateForecast: ForecastResult {
-        guard isCustomVehicleProfileSelected == false else {
-            let calibrationCorrection = continuousCalibrationSummary.correction(
-                for: CalibrationPredictionContext(
-                    roadTypeProfile: tripEstimateRoadTypeProfile,
-                    tyreSet: tripEstimateTyreSet,
-                    trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled
-                )
-            )
-            let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-                referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
-                distance: tripEstimateDistance,
-                temperature: tripEstimateTemperature,
-                roadTypeProfile: tripEstimateRoadTypeProfile,
-                motorwaySpeed: tripEstimateMotorwaySpeed,
-                roadSurface: tripEstimateRoadSurface,
-                windCondition: tripEstimateWindCondition,
-                planningMode: tripEstimatePlanningMode,
-                rollingResistanceClass: tripEstimateRollingResistanceClass,
-                airConditioningMode: tripEstimateAirConditioningMode,
-                usesCustomVehicleProfile: true,
-                usableBatteryKWh: forecastModelUsableBatteryKWh
-            )
-
-            return applyingActiveCalibrationAndTrailerAdjustment(
-                to: ruleBasedForecast,
-                correction: calibrationCorrection,
-                roadTypeProfile: tripEstimateRoadTypeProfile,
-                motorwaySpeed: tripEstimateMotorwaySpeed,
-                trailerTowModeEnabled: tripEstimateTrailerTowModeEnabled,
-                trailerWeightKg: tripEstimateTrailerWeightKg,
-                boxyTrailerEnabled: tripEstimateBoxyTrailerEnabled,
-                roofBoxMode: tripEstimateRoofBoxMode
-            )
-        }
-
         let calibrationCorrection = continuousCalibrationSummary.correction(
             for: CalibrationPredictionContext(
                 roadTypeProfile: tripEstimateRoadTypeProfile,
@@ -666,7 +631,6 @@ struct ContentView: View {
             planningMode: tripEstimatePlanningMode,
             rollingResistanceClass: tripEstimateRollingResistanceClass,
             airConditioningMode: tripEstimateAirConditioningMode,
-            usesCustomVehicleProfile: false,
             usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
@@ -748,33 +712,7 @@ struct ContentView: View {
     }
 
     private func rangeForecast(for planningMode: PlanningMode) -> ForecastResult {
-        guard isCustomVehicleProfileSelected else {
-            return forecast(for: planningMode)
-        }
-
-        let calibrationCorrection = activeCalibrationCorrection
-        let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
-            distance: distance,
-            temperature: temperature,
-            roadTypeProfile: roadTypeProfile,
-            motorwaySpeed: activeMotorwaySpeed,
-            roadSurface: roadSurface,
-            windCondition: windCondition,
-            planningMode: planningMode,
-            rollingResistanceClass: activeRollingResistanceClass,
-            airConditioningMode: activeAirConditioningMode,
-            applyDistanceAdjustment: false,
-            usesCustomVehicleProfile: true,
-            usableBatteryKWh: forecastModelUsableBatteryKWh
-        )
-
-        return applyingActiveCalibrationAndTrailerAdjustment(
-            to: ruleBasedForecast,
-            correction: calibrationCorrection,
-            roadTypeProfile: roadTypeProfile,
-            motorwaySpeed: activeMotorwaySpeed
-        )
+        forecast(for: planningMode)
     }
 
     private func rangeRemainingRange(for planningMode: PlanningMode) -> RemainingRangeEstimate {
@@ -811,7 +749,6 @@ struct ContentView: View {
             rollingResistanceClass: activeRollingResistanceClass,
             airConditioningMode: activeAirConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
-            usesCustomVehicleProfile: false,
             usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
@@ -832,41 +769,6 @@ struct ContentView: View {
     }
 
     private var outcomeLogForecast: ForecastResult {
-        if isCustomVehicleProfileSelected {
-            let calibrationCorrection = continuousCalibrationSummary.correction(
-                for: CalibrationPredictionContext(
-                    roadTypeProfile: outcomeRoadTypeProfile,
-                    tyreSet: outcomeTyreSet,
-                    trailerTowModeEnabled: outcomeTrailerTowModeEnabled
-                )
-            )
-            let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-                referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
-                distance: distance,
-                temperature: outcomeTemperature,
-                roadTypeProfile: outcomeRoadTypeProfile,
-                motorwaySpeed: outcomeMotorwaySpeed,
-                roadSurface: outcomeRoadSurface,
-                windCondition: outcomeWindCondition,
-                planningMode: .normal,
-                rollingResistanceClass: outcomeRollingResistanceClass,
-                airConditioningMode: outcomeAirConditioningMode,
-                usesCustomVehicleProfile: true,
-                usableBatteryKWh: forecastModelUsableBatteryKWh
-            )
-
-            return applyingActiveCalibrationAndTrailerAdjustment(
-                to: ruleBasedForecast,
-                correction: calibrationCorrection,
-                roadTypeProfile: outcomeRoadTypeProfile,
-                motorwaySpeed: outcomeMotorwaySpeed,
-                trailerTowModeEnabled: outcomeTrailerTowModeEnabled,
-                trailerWeightKg: outcomeTrailerWeightKg,
-                boxyTrailerEnabled: outcomeBoxyTrailerEnabled,
-                roofBoxMode: outcomeRoofBoxMode
-            )
-        }
-
         let calibrationCorrection = continuousCalibrationSummary.correction(
             for: CalibrationPredictionContext(
                 roadTypeProfile: outcomeRoadTypeProfile,
@@ -885,8 +787,7 @@ struct ContentView: View {
             planningMode: .normal,
             rollingResistanceClass: outcomeRollingResistanceClass,
             airConditioningMode: outcomeAirConditioningMode,
-            usesCustomVehicleProfile: false,
-            usableBatteryKWh: rangeUsableBatteryKWh
+            usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 
         return applyingActiveCalibrationAndTrailerAdjustment(
@@ -1447,36 +1348,10 @@ struct ContentView: View {
     }
 
     private var quickTripForecast: ForecastResult {
-        guard isCustomVehicleProfileSelected else {
-            return forecast(
-                distanceKm: normalizedQuickTripDistance,
-                planningMode: tripPlanningStrategy,
-                applyDistanceAdjustment: false
-            )
-        }
-
-        let calibrationCorrection = activeCalibrationCorrection
-        let ruleBasedForecast = MiniConsumptionCalculator.calculateForecast(
-            referenceConsumption: forecastReferenceConsumption(for: calibrationCorrection),
-            distance: normalizedQuickTripDistance,
-            temperature: temperature,
-            roadTypeProfile: roadTypeProfile,
-            motorwaySpeed: activeMotorwaySpeed,
-            roadSurface: roadSurface,
-            windCondition: windCondition,
+        forecast(
+            distanceKm: normalizedQuickTripDistance,
             planningMode: tripPlanningStrategy,
-            rollingResistanceClass: activeRollingResistanceClass,
-            airConditioningMode: activeAirConditioningMode,
-            applyDistanceAdjustment: false,
-            usesCustomVehicleProfile: true,
-            usableBatteryKWh: forecastModelUsableBatteryKWh
-        )
-
-        return applyingActiveCalibrationAndTrailerAdjustment(
-            to: ruleBasedForecast,
-            correction: calibrationCorrection,
-            roadTypeProfile: roadTypeProfile,
-            motorwaySpeed: activeMotorwaySpeed
+            applyDistanceAdjustment: false
         )
     }
 
@@ -5848,7 +5723,6 @@ struct ContentView: View {
             planningMode: .normal,
             rollingResistanceClass: outcomeRollingResistanceClass,
             airConditioningMode: .on,
-            usesCustomVehicleProfile: isCustomVehicleProfileSelected,
             usableBatteryKWh: forecastModelUsableBatteryKWh
         )
 

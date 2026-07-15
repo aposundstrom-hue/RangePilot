@@ -390,7 +390,6 @@ enum MiniConsumptionCalculator {
         rollingResistanceClass: RollingResistanceClass,
         airConditioningMode: AirConditioningMode = .on,
         applyDistanceAdjustment: Bool = true,
-        usesCustomVehicleProfile: Bool = false,
         usableBatteryKWh: Double = MiniConsumptionCalculator.nominalUsableBatteryKWh
     ) -> ForecastResult {
         if roadTypeProfile == .motorwayMix {
@@ -407,7 +406,6 @@ enum MiniConsumptionCalculator {
                 airConditioningMode: .on,
                 applyDistanceAdjustment: applyDistanceAdjustment,
                 motorwaySpeedSensitivityOverride: 0,
-                usesCustomVehicleProfile: usesCustomVehicleProfile,
                 usableBatteryKWh: usableBatteryKWh
             )
             let countrysideResult = calculateRouteForecast(
@@ -423,7 +421,6 @@ enum MiniConsumptionCalculator {
                 airConditioningMode: .on,
                 applyDistanceAdjustment: applyDistanceAdjustment,
                 motorwaySpeedSensitivityOverride: 0,
-                usesCustomVehicleProfile: usesCustomVehicleProfile,
                 usableBatteryKWh: usableBatteryKWh
             )
             let motorwayResult = calculateRouteForecast(
@@ -439,7 +436,6 @@ enum MiniConsumptionCalculator {
                 airConditioningMode: .on,
                 applyDistanceAdjustment: applyDistanceAdjustment,
                 motorwaySpeedSensitivityOverride: 0,
-                usesCustomVehicleProfile: usesCustomVehicleProfile,
                 usableBatteryKWh: usableBatteryKWh
             )
             let blendedResult = blendedForecastResult(
@@ -479,7 +475,6 @@ enum MiniConsumptionCalculator {
             rollingResistanceClass: rollingResistanceClass,
             airConditioningMode: airConditioningMode,
             applyDistanceAdjustment: applyDistanceAdjustment,
-            usesCustomVehicleProfile: usesCustomVehicleProfile,
             usableBatteryKWh: usableBatteryKWh
         )
     }
@@ -497,7 +492,6 @@ enum MiniConsumptionCalculator {
         airConditioningMode: AirConditioningMode,
         applyDistanceAdjustment: Bool,
         motorwaySpeedSensitivityOverride: Double? = nil,
-        usesCustomVehicleProfile: Bool,
         usableBatteryKWh: Double
     ) -> ForecastResult {
         let temperatureAdjustment = temperatureAdjustmentKWhPer100km(for: temperature)
@@ -508,10 +502,6 @@ enum MiniConsumptionCalculator {
             + distanceAdjustment
 
         let roadTypeFactor = roadTypeProfile.consumptionFactor
-        let customMotorwayBaselineFactor = customMotorwayBaselineFactor(
-            roadTypeProfile: roadTypeProfile,
-            usesCustomVehicleProfile: usesCustomVehicleProfile
-        )
         let coldMotorwayFactor = coldMotorwayFactor(
             temperature: temperature,
             motorwayScalingFactor: roadTypeProfile.winterScalingFactor,
@@ -532,7 +522,6 @@ enum MiniConsumptionCalculator {
         let rollingResistanceFactor = 1 + rollingResistanceClass.adjustment
 
         let adjustmentFactor = roadTypeFactor
-            * customMotorwayBaselineFactor
             * coldMotorwayFactor
             * coldCityFactor
             * motorwaySpeedFactor
@@ -565,7 +554,7 @@ enum MiniConsumptionCalculator {
             usableBatteryPercentageUsed: usableBatteryPercentageUsed,
             temperatureAdjustmentKWhPer100km: temperatureAdjustment,
             distanceAdjustmentKWhPer100km: distanceAdjustment,
-            roadTypeFactor: roadTypeFactor * customMotorwayBaselineFactor,
+            roadTypeFactor: roadTypeFactor,
             coldMotorwayFactor: coldMotorwayFactor * coldCityFactor,
             motorwaySpeedFactor: motorwaySpeedFactor,
             roadSurfaceFactor: roadSurfaceFactor,
@@ -775,17 +764,6 @@ enum MiniConsumptionCalculator {
         for planningMode: PlanningMode
     ) -> Double {
         planningMode.adjustmentFactor
-    }
-
-    private nonisolated static func customMotorwayBaselineFactor(
-        roadTypeProfile: RoadTypeProfile,
-        usesCustomVehicleProfile: Bool
-    ) -> Double {
-        guard usesCustomVehicleProfile, roadTypeProfile == .motorway else {
-            return 1
-        }
-
-        return 1.03
     }
 
     nonisolated static func airConditioningAdjustmentFactor(

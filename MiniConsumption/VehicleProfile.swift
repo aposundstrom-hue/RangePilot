@@ -659,8 +659,11 @@ enum EffectiveVehicleProfileSettingsResolver {
             defaults: defaults,
             key: useContinuousCalibrationOverridesKey
         )
+        let legacyBuiltInValue = profileID == VehicleProfileResolver.builtInMiniProfileID
+            ? defaults.object(forKey: "useContinuousCalibration") as? Bool
+            : nil
         return values[profileID]
-            ?? (defaults.object(forKey: "useContinuousCalibration") as? Bool)
+            ?? legacyBuiltInValue
             ?? MiniConsumptionDefaults.useContinuousCalibration
     }
 

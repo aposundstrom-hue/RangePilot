@@ -86,7 +86,6 @@ struct ContentView: View {
             rollingResistanceClass: forecastAssumptions.activeRollingResistanceClass,
             airConditioningMode: forecastAssumptions.airConditioningMode,
             applyDistanceAdjustment: false,
-            usesCustomVehicleProfile: vehicleProfile.calculationProfile.kind == .custom,
             usableBatteryKWh: vehicleProfile.calculationProfile.usableBatteryKWh
         )
         .withScenarioEquipment(

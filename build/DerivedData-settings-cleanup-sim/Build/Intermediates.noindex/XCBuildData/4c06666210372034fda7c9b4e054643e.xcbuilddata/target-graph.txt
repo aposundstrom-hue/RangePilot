@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'RangePilot' in project 'RangePilot'
+➜ Explicit dependency on target 'Mini Range Watch Watch App' in project 'RangePilot'
+Target 'Mini Range Watch Watch App' in project 'RangePilot' (no dependencies)
