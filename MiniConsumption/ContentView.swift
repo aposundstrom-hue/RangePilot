@@ -975,6 +975,30 @@ struct ContentView: View {
         )
     }
 
+    private var draftTripAssumptionsSnapshot: TripAssumptionsSnapshot {
+        TripAssumptionsSnapshot(
+            startBatteryPercent: draftTripAssumptionsStartBatteryPercentBinding.wrappedValue,
+            temperature: draftTripAssumptionsTemperature,
+            roadTypeProfile: draftTripAssumptionsRoadTypeProfile,
+            motorwaySpeed: draftTripAssumptionsMotorwaySpeedBinding.wrappedValue,
+            roadSurface: draftTripAssumptionsRoadSurface.segmentedEquivalent,
+            windCondition: draftTripAssumptionsWindCondition,
+            arrivalBatteryTargetPercent: draftTripAssumptionsArrivalBatteryTargetPercentBinding.wrappedValue,
+            minimumChargingStopBatteryPercent: draftTripAssumptionsMinimumChargingStopBatteryPercentBinding.wrappedValue,
+            targetChargingStopBatteryPercent: draftTripAssumptionsTargetChargingStopBatteryPercentBinding.wrappedValue,
+            trailerTowModeEnabled: draftTripAssumptionsTrailerTowModeEnabled,
+            trailerWeightKg: MiniConsumptionDefaults.normalizedTrailerWeightKg(
+                draftTripAssumptionsTrailerWeightKg,
+                usesPounds: weightUnits == .pounds
+            ),
+            boxyTrailerEnabled: draftTripAssumptionsBoxyTrailerEnabled,
+            roofBoxMode: draftTripAssumptionsRoofBoxMode,
+            tyreSet: draftTripAssumptionsTyreSet,
+            rollingResistanceClass: draftTripAssumptionsRollingResistanceClass,
+            airConditioningMode: draftTripAssumptionsAirConditioningMode
+        )
+    }
+
     private var areTripAssumptionsAdjustedForCurrentTrip: Bool {
         if tripAssumptionsRemainExplicitAfterProfileSwitch {
             return true
@@ -983,12 +1007,21 @@ struct ContentView: View {
             return false
         }
 
-        return hasTripAssumptionChanges(from: tripAssumptionsBaseline)
+        return hasTripAssumptionChanges(current: currentTripAssumptionsSnapshot, from: tripAssumptionsBaseline)
     }
 
-    private func hasTripAssumptionChanges(from baseline: TripAssumptionsSnapshot) -> Bool {
-        let current = currentTripAssumptionsSnapshot
+    private var areDraftTripAssumptionsAdjustedForCurrentTrip: Bool {
+        guard let tripAssumptionsBaseline else {
+            return false
+        }
 
+        return hasTripAssumptionChanges(current: draftTripAssumptionsSnapshot, from: tripAssumptionsBaseline)
+    }
+
+    private func hasTripAssumptionChanges(
+        current: TripAssumptionsSnapshot,
+        from baseline: TripAssumptionsSnapshot
+    ) -> Bool {
         return differs(current.startBatteryPercent, baseline.startBatteryPercent)
             || differs(current.temperature, baseline.temperature)
             || current.roadTypeProfile != baseline.roadTypeProfile
@@ -2897,11 +2930,21 @@ struct ContentView: View {
                             .tint(.secondary)
                         }
                     }
+
+                    if areDraftTripAssumptionsAdjustedForCurrentTrip {
+                        Button("Reset to trip defaults") {
+                            resetDraftTripAssumptionsToSessionBaseline()
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .accessibilityHint("Restores the settings captured when this trip was started")
+                    }
                 }
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Trip assumptions")
+            .navigationTitle("Trip settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -4074,7 +4117,9 @@ struct ContentView: View {
                         text: $tripAssistantDescription,
                         isFocused: $isTripAssistantDescriptionFocused,
                         showsClearButton: isTripSearchActive,
+                        isBusy: isTripAssistantInterpreting || isTripAssistantRouteLookupPending,
                         onClear: clearActiveTripSearch,
+                        onGo: submitTripAssistantDescription,
                         onFocusChanged: presentTripPlanningInputInfoIfNeeded
                     )
 
@@ -4082,7 +4127,7 @@ struct ContentView: View {
                         .padding(.leading, 8)
                         .padding(.bottom, 4)
                 }
-                .frame(minHeight: 60, alignment: .top)
+                .frame(minHeight: 54, alignment: .top)
                 .background(Color(.tertiarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
@@ -4096,7 +4141,7 @@ struct ContentView: View {
                 }
 
                 Button {
-                    interpretTripAssistantDescription()
+                    submitTripAssistantDescription()
                 } label: {
                     if isTripAssistantInterpreting || isTripAssistantRouteLookupPending {
                         ProgressView()
@@ -4120,46 +4165,28 @@ struct ContentView: View {
     }
 
     private var tripAssumptionsCompactRow: some View {
-        HStack(spacing: 8) {
-            Button {
-                presentTripAssumptionsEditor()
-            } label: {
-                HStack(spacing: 10) {
-                    Text("Trip assumptions")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
+        Button {
+            presentTripAssumptionsEditor()
+        } label: {
+            HStack(spacing: 10) {
+                Label("Edit trip settings", systemImage: "slider.horizontal.3")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
 
-                    Spacer()
+                Spacer(minLength: 8)
 
-                    Text(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Adjust")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                tripSettingsSummaryIndicators
 
-                    if areTripAssumptionsAdjustedForCurrentTrip {
-                        tripAssumptionChangeIndicators
-                    }
-
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                }
-                .contentShape(Rectangle())
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Trip assumptions")
-            .accessibilityValue(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Adjust")
-            .accessibilityHint("Opens trip assumptions for this trip")
-
-            if areTripAssumptionsAdjustedForCurrentTrip {
-                Button("Reset") {
-                    resetTripAssumptionsToCurrentRangeSettings()
-                }
-                .font(.caption.weight(.semibold))
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .accessibilityLabel("Reset to Range settings")
-            }
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Edit trip settings")
+        .accessibilityValue(areTripAssumptionsAdjustedForCurrentTrip ? "Contains settings that differ from this trip's defaults" : "Uses this trip's defaults")
+        .accessibilityHint("Opens settings for this trip")
     }
 
     private var tripRouteSummaryText: String {
@@ -4176,7 +4203,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private var tripAssumptionChangeIndicators: some View {
+    private var tripSettingsSummaryIndicators: some View {
         if let baseline = tripAssumptionsBaseline {
             let current = currentTripAssumptionsSnapshot
 
@@ -4202,11 +4229,11 @@ struct ContentView: View {
                     RangeDisclosureSummaryIcon(systemName: "road.lanes", accessibilityLabel: "Driving mix changed")
                 }
 
-                if current.roadSurface != baseline.roadSurface {
+                if current.roadSurface != .dry || current.roadSurface != baseline.roadSurface {
                     tripRoadSurfaceChangeIndicator(for: current.roadSurface)
                 }
 
-                if current.windCondition != baseline.windCondition {
+                if current.windCondition != .normal || current.windCondition != baseline.windCondition {
                     RangeDisclosureSummaryIcon(systemName: "wind", accessibilityLabel: "Wind changed")
                 }
 
@@ -4214,7 +4241,8 @@ struct ContentView: View {
                     RangeDisclosureSummaryChip(text: formattedMotorwaySpeed(current.motorwaySpeed))
                 }
 
-                if current.trailerTowModeEnabled != baseline.trailerTowModeEnabled
+                if current.trailerTowModeEnabled
+                    || current.trailerTowModeEnabled != baseline.trailerTowModeEnabled
                     || (current.trailerTowModeEnabled
                         && (differs(current.trailerWeightKg, baseline.trailerWeightKg)
                             || current.boxyTrailerEnabled != baseline.boxyTrailerEnabled)) {
@@ -4222,16 +4250,17 @@ struct ContentView: View {
                         .accessibilityLabel("Trailer or tow changed")
                 }
 
-                if current.roofBoxMode != baseline.roofBoxMode {
+                if current.roofBoxMode != .off || current.roofBoxMode != baseline.roofBoxMode {
                     RangeDisclosureSummaryIcon(systemName: "shippingbox", accessibilityLabel: "Roof box changed")
                 }
 
-                if current.tyreSet != baseline.tyreSet
+                if current.tyreSet == .winter
+                    || current.tyreSet != baseline.tyreSet
                     || current.rollingResistanceClass != baseline.rollingResistanceClass {
-                    RangeDisclosureSummaryChip(text: "Tyres")
+                    RangeDisclosureSummaryChip(text: current.tyreSet == .winter ? "Winter" : "Tyres")
                 }
 
-                if current.airConditioningMode != baseline.airConditioningMode {
+                if current.airConditioningMode == .off || current.airConditioningMode != baseline.airConditioningMode {
                     RangeDisclosureSummaryIcon(systemName: "fan", accessibilityLabel: "Air conditioning changed")
                 }
             }
@@ -4508,6 +4537,29 @@ struct ContentView: View {
 
     private func cancelTripAssumptionsEditor() {
         isTripAssumptionsEditorPresented = false
+    }
+
+    private func resetDraftTripAssumptionsToSessionBaseline() {
+        guard let baseline = tripAssumptionsBaseline else {
+            return
+        }
+
+        draftTripAssumptionsStartBatteryPercent = baseline.startBatteryPercent
+        draftTripAssumptionsTemperature = baseline.temperature
+        draftTripAssumptionsRoadTypeProfile = baseline.roadTypeProfile
+        draftTripAssumptionsMotorwaySpeed = baseline.motorwaySpeed
+        draftTripAssumptionsRoadSurface = baseline.roadSurface
+        draftTripAssumptionsWindCondition = baseline.windCondition
+        draftTripAssumptionsArrivalBatteryTargetPercent = baseline.arrivalBatteryTargetPercent
+        draftTripAssumptionsMinimumChargingStopBatteryPercent = baseline.minimumChargingStopBatteryPercent
+        draftTripAssumptionsTargetChargingStopBatteryPercent = baseline.targetChargingStopBatteryPercent
+        draftTripAssumptionsTrailerTowModeEnabled = baseline.trailerTowModeEnabled
+        draftTripAssumptionsTrailerWeightKg = baseline.trailerWeightKg
+        draftTripAssumptionsBoxyTrailerEnabled = baseline.boxyTrailerEnabled
+        draftTripAssumptionsRoofBoxMode = baseline.roofBoxMode
+        draftTripAssumptionsTyreSet = baseline.tyreSet
+        draftTripAssumptionsRollingResistanceClass = baseline.rollingResistanceClass
+        draftTripAssumptionsAirConditioningMode = baseline.airConditioningMode
     }
 
     private func applyTripAssumptionsEditor() {
@@ -5849,9 +5901,21 @@ struct ContentView: View {
     }
 #endif
 
+    private func submitTripAssistantDescription() {
+        guard isTripAssistantInterpreting == false,
+              isTripAssistantRouteLookupPending == false else {
+            return
+        }
+
+        isTripAssistantDescriptionFocused = false
+        interpretTripAssistantDescription()
+    }
+
     private func interpretTripAssistantDescription() {
         let description = tripAssistantDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !description.isEmpty else {
+        guard !description.isEmpty,
+              isTripAssistantInterpreting == false,
+              isTripAssistantRouteLookupPending == false else {
             return
         }
 
@@ -6092,7 +6156,7 @@ struct ContentView: View {
         isTripAssistantDescriptionFocused = false
         isTripAssumptionsEditorPresented = false
         selectedTripChargingOption = .userSettings
-        initializeTripEstimateAssumptionsIfNeeded()
+        resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: true)
     }
 
     private func resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: Bool) {
@@ -6112,7 +6176,9 @@ struct ContentView: View {
     private func prepareTripAssumptionsForNewRoute() -> Bool {
         initializeTripEstimateAssumptionsIfNeeded()
 
-        let preservesExistingTripAssumptions = areTripAssumptionsAdjustedForCurrentTrip
+        let preservesExistingTripAssumptions = TripSessionPolicy.shouldPreserveTripSettings(
+            hasExistingTrip: hasTripEstimate
+        )
         if preservesExistingTripAssumptions == false {
             resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: false)
         }
@@ -6177,8 +6243,6 @@ struct ContentView: View {
         } else {
             if let batteryPercentage = input.batteryPercentage {
                 tripEstimateStartBatteryPercent = min(max(batteryPercentage, 10), 100)
-            } else {
-                tripEstimateStartBatteryPercent = startBatteryPercent
             }
 
             let roadTypeSelection = TripRoadTypeSelection.resolve(
@@ -6192,14 +6256,13 @@ struct ContentView: View {
 
             if let motorwaySpeed = input.motorwaySpeed {
                 tripEstimateMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(motorwaySpeed)
-            } else {
-                tripEstimateMotorwaySpeed = MiniConsumptionDefaults.normalizedMotorwaySpeed(activeMotorwaySpeed)
             }
 
-            if let temperature = input.temperature {
-                tripEstimateTemperature = min(max(temperature, supportedTemperatureRangeC.lowerBound), supportedTemperatureRangeC.upperBound)
-            } else {
-                tripEstimateTemperature = temperature
+            if let explicitTemperature = input.temperature {
+                tripEstimateTemperature = min(
+                    max(explicitTemperature, supportedTemperatureRangeC.lowerBound),
+                    supportedTemperatureRangeC.upperBound
+                )
             }
 
             if let roadSurface = input.roadSurface {
@@ -7932,12 +7995,12 @@ private struct PrecisionNudgeButton: View {
     var body: some View {
         Button(action: action) {
             Text(symbol)
-                .font(.system(size: 17, weight: .medium, design: .rounded))
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
                 .frame(width: 25, height: 25)
-                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .contentShape(.interaction, Rectangle().inset(by: -9.5))
     }
 }
 
@@ -10162,17 +10225,20 @@ private struct TripPlanningDescriptionInputView: View {
     @Binding var text: String
     let isFocused: FocusState<Bool>.Binding
     let showsClearButton: Bool
+    let isBusy: Bool
     let onClear: () -> Void
+    let onGo: () -> Void
     let onFocusChanged: (Bool) -> Void
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .center, spacing: 8) {
             TextField("Where are you going?", text: $text, axis: .vertical)
-                .lineLimit(2...5)
+                .lineLimit(1...5)
                 .textInputAutocapitalization(.sentences)
-                .submitLabel(.done)
+                .submitLabel(.go)
                 .focused(isFocused)
-                .padding(.top, 2)
+                .onSubmit(onGo)
+                .padding(.vertical, 4)
                 .padding(.leading, 12)
 
             if showsClearButton {
@@ -10192,11 +10258,14 @@ private struct TripPlanningDescriptionInputView: View {
         .padding(.trailing, 6)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-
-                Button("Done") {
+                Button("Cancel") {
                     isFocused.wrappedValue = false
                 }
+
+                Spacer()
+
+                Button("Go", action: onGo)
+                    .disabled(isBusy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
         .onChange(of: isFocused.wrappedValue) { _, isFocused in

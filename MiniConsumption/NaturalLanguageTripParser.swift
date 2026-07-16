@@ -686,15 +686,15 @@ extension NaturalLanguageTripEstimateInput {
         let mergedPlannedDistance = deterministicInput.plannedDistanceKm ?? plannedDistanceKm
 
         return Self(
-            batteryPercentage: deterministicInput.batteryPercentage ?? batteryPercentage,
+            batteryPercentage: deterministicInput.batteryPercentage,
             plannedDistanceKm: mergedPlannedDistance,
             route: mergedRoute,
             chargingPreference: deterministicInput.chargingPreference ?? chargingPreference,
             batteryThresholdQuestionPercent: deterministicInput.batteryThresholdQuestionPercent ?? batteryThresholdQuestionPercent,
             roadTypeProfile: roadTypeProfile ?? deterministicInput.roadTypeProfile,
             hasExplicitRoadTypeWording: hasExplicitRoadTypeWording || deterministicInput.hasExplicitRoadTypeWording,
-            motorwaySpeed: deterministicInput.motorwaySpeed ?? motorwaySpeed,
-            temperature: deterministicInput.temperature ?? temperature,
+            motorwaySpeed: deterministicInput.motorwaySpeed,
+            temperature: deterministicInput.temperature,
             roadSurface: roadSurface ?? deterministicInput.roadSurface,
             windCondition: windCondition ?? deterministicInput.windCondition,
             planningMode: planningMode ?? deterministicInput.planningMode

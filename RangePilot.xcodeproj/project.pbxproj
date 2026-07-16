@@ -17,6 +17,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A10000012FEE000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83F04D002FBB936400BE1A9F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 83F04D072FBB936400BE1A9F;
+			remoteInfo = RangePilot;
+		};
 		E123AAF92FD5E8EB007407EA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83F04D002FBB936400BE1A9F /* Project object */;
@@ -41,6 +48,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A10000022FEE000000000002 /* RangePilotTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RangePilotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		83F04D082FBB936400BE1A9F /* RangePilot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RangePilot.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E123AAF12FD5E8EA007407EA /* Mini Range Watch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mini Range Watch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E123AB132FD70000007407EA /* MiniConsumption/MiniConsumptionRangeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConsumption/MiniConsumptionRangeModels.swift; sourceTree = SOURCE_ROOT; };
@@ -51,6 +59,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		A10000032FEE000000000003 /* RangePilotTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RangePilotTests;
+			sourceTree = "<group>";
+		};
 		83F04D0A2FBB936400BE1A9F /* MiniConsumption */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = MiniConsumption;
@@ -64,6 +77,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		A10000042FEE000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		83F04D052FBB936400BE1A9F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -86,6 +106,7 @@
 			children = (
 				E1D7CF4D2FD94D4B00943C97 /* RangePilot.storekit */,
 				83F04D0A2FBB936400BE1A9F /* MiniConsumption */,
+				A10000032FEE000000000003 /* RangePilotTests */,
 				E123AAF22FD5E8EA007407EA /* Mini Range Watch Watch App */,
 				83F04D092FBB936400BE1A9F /* Products */,
 				E123AB022FD5F351007407EA /* Recovered References */,
@@ -97,6 +118,7 @@
 			children = (
 				83F04D082FBB936400BE1A9F /* RangePilot.app */,
 				E123AAF12FD5E8EA007407EA /* Mini Range Watch Watch App.app */,
+				A10000022FEE000000000002 /* RangePilotTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,6 +137,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		A10000052FEE000000000005 /* RangePilotTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000062FEE000000000006 /* Build configuration list for PBXNativeTarget "RangePilotTests" */;
+			buildPhases = (
+				A10000072FEE000000000007 /* Sources */,
+				A10000042FEE000000000004 /* Frameworks */,
+				A10000082FEE000000000008 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000092FEE000000000009 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A10000032FEE000000000003 /* RangePilotTests */,
+			);
+			name = RangePilotTests;
+			packageProductDependencies = (
+			);
+			productName = RangePilotTests;
+			productReference = A10000022FEE000000000002 /* RangePilotTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		83F04D072FBB936400BE1A9F /* RangePilot */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 83F04D132FBB936500BE1A9F /* Build configuration list for PBXNativeTarget "RangePilot" */;
@@ -171,6 +216,10 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
+					A10000052FEE000000000005 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 83F04D072FBB936400BE1A9F;
+					};
 					83F04D072FBB936400BE1A9F = {
 						CreatedOnToolsVersion = 26.5;
 						SystemCapabilities = {
@@ -205,11 +254,19 @@
 			targets = (
 				83F04D072FBB936400BE1A9F /* RangePilot */,
 				E123AAF02FD5E8EA007407EA /* Mini Range Watch Watch App */,
+				A10000052FEE000000000005 /* RangePilotTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		A10000082FEE000000000008 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		83F04D062FBB936400BE1A9F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -229,6 +286,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A10000072FEE000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		83F04D042FBB936400BE1A9F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -250,6 +314,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		A10000092FEE000000000009 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 83F04D072FBB936400BE1A9F /* RangePilot */;
+			targetProxy = A10000012FEE000000000001 /* PBXContainerItemProxy */;
+		};
 		E123AAFA2FD5E8EB007407EA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = E123AAF02FD5E8EA007407EA /* Mini Range Watch Watch App */;
@@ -258,6 +327,52 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		A100000A2FEE00000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FQZHUBZ7DR;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ontographist.MiniConsumptionTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RangePilot.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RangePilot";
+			};
+			name = Debug;
+		};
+		A100000B2FEE00000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FQZHUBZ7DR;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ontographist.MiniConsumptionTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RangePilot.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RangePilot";
+			};
+			name = Release;
+		};
 		83F04D112FBB936500BE1A9F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -534,6 +649,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		A10000062FEE000000000006 /* Build configuration list for PBXNativeTarget "RangePilotTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A100000A2FEE00000000000A /* Debug */,
+				A100000B2FEE00000000000B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		83F04D032FBB936400BE1A9F /* Build configuration list for PBXProject "RangePilot" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
