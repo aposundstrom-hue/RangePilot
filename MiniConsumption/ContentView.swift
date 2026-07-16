@@ -562,6 +562,7 @@ struct ContentView: View {
     @State private var isTripAssumptionsChargingStopLevelsExpanded = false
     @State private var isTripAssumptionsDrivingConditionsExpanded = false
     @State private var isTripAssumptionsVehicleExpanded = false
+    @State private var isAdvancedVehicleSettingsExpanded = false
     @State private var draftMinimumChargingPercent = ChargingWindow.defaultMinimumPercent
     @State private var draftFastChargeTargetPercent = ChargingWindow.defaultTargetPercent
     @State private var draftArrivalBatteryTargetPercent = ChargingWindow.defaultArrivalBatteryTargetPercent
@@ -2575,6 +2576,7 @@ struct ContentView: View {
             normalizeTrailerWeightIfNeeded()
             roadTypeProfile = roadTypeProfile
             roadSurface = roadSurface.segmentedEquivalent
+            initializeTripEstimateAssumptionsIfNeeded()
             publishWatchRangeStateSnapshot()
         }
         .onChange(of: displayUnits) {
@@ -2900,12 +2902,17 @@ struct ContentView: View {
                 aboutAppButton
 
                 settingsDomainHeading(
+                    "Application",
+                    detail: "Settings that apply across all vehicle profiles."
+                )
+                unitsCard
+
+                settingsDomainHeading(
                     "Vehicle profile",
                     detail: "Specifications, charging behavior, calibration, and trip data for the selected vehicle."
                 )
                 vehicleProfileCard
                     .id(SettingsScrollTarget.vehicleProfileCard)
-                chargingSettingsCard
                 calibrationCard
                 dataCard
 
@@ -2914,12 +2921,6 @@ struct ContentView: View {
                     detail: "Preferences used when estimating charging stops."
                 )
                 tripPlanningSettingsCard
-
-                settingsDomainHeading(
-                    "Application",
-                    detail: "Settings that apply across all vehicle profiles."
-                )
-                unitsCard
 
                 settingsDomainHeading("Reset")
                 resetAllSettingsCard
@@ -3089,8 +3090,8 @@ struct ContentView: View {
         }
         .overlay(alignment: .bottomLeading) {
             VStack(spacing: 8) {
-                rangeChargingThresholdToggle
                 rangeReturnTripToggle
+                rangeChargingThresholdToggle
             }
             .padding(12)
         }
@@ -3448,7 +3449,47 @@ struct ContentView: View {
                         miniVehicleProfileDetails
                     }
 
-                    batteryDegradationControl
+                    DisclosureGroup(isExpanded: $isAdvancedVehicleSettingsExpanded) {
+                        VStack(alignment: .leading, spacing: 14) {
+                            batteryDegradationControl
+
+                            VStack(alignment: .leading, spacing: 10) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Average fast-charging speed")
+                                            .font(.subheadline.weight(.semibold))
+                                        Spacer()
+                                        Text("\(rounded(averageChargingSpeedKWBinding.wrappedValue)) kW")
+                                            .foregroundStyle(.secondary)
+                                    }
+
+                                    Slider(
+                                        value: averageChargingSpeedKWBinding,
+                                        in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
+                                        step: MiniConsumptionCalculator.averageChargingSpeedStepKW
+                                    )
+                                    .tint(rangePilotAccentColor)
+                                }
+
+                                Text("Used as the average charging power before tapering. This should reflect a normal fast-charge session, not the brief peak.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                Button("Reset to default") {
+                                    resetAverageChargingSpeedForActiveProfile()
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(abs(averageChargingSpeedKWBinding.wrappedValue - activeAverageChargingSpeedDefaultKW) < 0.001)
+                            }
+                        }
+                        .padding(.top, 8)
+                    } label: {
+                        Text("Advanced vehicle settings")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                    }
+                    .tint(.secondary)
                 } else {
                     Text("Choose vehicle")
                         .font(.subheadline.weight(.medium))
@@ -3938,12 +3979,14 @@ struct ContentView: View {
         }
     }
 
-    private var chargingSettingsCard: some View {
-        card(
-            title: "Charging behavior",
-            footnote: "Saved for the selected vehicle profile."
-        ) {
+    private var tripPlanningSettingsCard: some View {
+        card(title: "Charging stops") {
             VStack(alignment: .leading, spacing: 14) {
+                Text("Charging stop levels are saved for the selected profile.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Preferred low level before charging")
@@ -3978,56 +4021,22 @@ struct ContentView: View {
                     .tint(rangePilotAccentColor)
                 }
 
-                VStack(alignment: .leading, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Average fast-charging speed")
-                                .font(.subheadline.weight(.semibold))
-                            Spacer()
-                            Text("\(rounded(averageChargingSpeedKWBinding.wrappedValue)) kW")
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Slider(
-                            value: averageChargingSpeedKWBinding,
-                            in: MiniConsumptionCalculator.averageChargingSpeedBoundsKW(for: activeVehicleProfile.profile),
-                            step: MiniConsumptionCalculator.averageChargingSpeedStepKW
-                        )
-                        .tint(rangePilotAccentColor)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Charging setup time")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Text("\(rounded(tripChargingSetupMinutesBinding.wrappedValue)) min")
+                            .foregroundStyle(.secondary)
                     }
 
-                    Text("Used as the average charging power before tapering. This should reflect a normal fast-charge session, not the brief peak.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Button("Reset to default") {
-                        resetAverageChargingSpeedForActiveProfile()
-                    }
-                    .buttonStyle(.bordered)
-                    .disabled(abs(averageChargingSpeedKWBinding.wrappedValue - activeAverageChargingSpeedDefaultKW) < 0.001)
+                    Slider(
+                        value: tripChargingSetupMinutesBinding,
+                        in: 0...5,
+                        step: 1
+                    )
+                    .tint(rangePilotAccentColor)
                 }
-            }
-        }
-    }
-
-    private var tripPlanningSettingsCard: some View {
-        card(title: "Charging stops") {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Charging setup time")
-                        .font(.subheadline.weight(.semibold))
-                    Spacer()
-                    Text("\(rounded(tripChargingSetupMinutesBinding.wrappedValue)) min")
-                        .foregroundStyle(.secondary)
-                }
-
-                Slider(
-                    value: tripChargingSetupMinutesBinding,
-                    in: 0...5,
-                    step: 1
-                )
-                .tint(rangePilotAccentColor)
             }
         }
     }
@@ -4098,7 +4107,7 @@ struct ContentView: View {
 
                     Spacer()
 
-                    Text(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Range settings")
+                    Text(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Adjust")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
@@ -4114,7 +4123,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Trip assumptions")
-            .accessibilityValue(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Range settings")
+            .accessibilityValue(areTripAssumptionsAdjustedForCurrentTrip ? "Adjusted" : "Adjust")
             .accessibilityHint("Opens trip assumptions for this trip")
 
             if areTripAssumptionsAdjustedForCurrentTrip {
@@ -5639,8 +5648,7 @@ struct ContentView: View {
 
         runTripAssistantEstimate(
             description: destinationQuery,
-            fallbackDistanceKm: nil,
-            preservesCurrentTripAssumptions: true
+            fallbackDistanceKm: nil
         )
     }
 
@@ -5846,8 +5854,7 @@ struct ContentView: View {
 
         runTripAssistantEstimate(
             description: description,
-            fallbackDistanceKm: nil,
-            preservesCurrentTripAssumptions: false
+            fallbackDistanceKm: nil
         )
     }
 
@@ -5954,9 +5961,8 @@ struct ContentView: View {
             planningMode: nil
         )
 
-        let preservesExistingTripAssumptions = tripAssumptionsBaseline != nil
+        let preservesExistingTripAssumptions = prepareTripAssumptionsForNewRoute()
         selectedAppTab = .trip
-        initializeTripEstimateAssumptionsIfNeeded()
         tripAssistantSearchGeneration += 1
         let searchGeneration = tripAssistantSearchGeneration
         tripAssistantDescription = destinationLabel
@@ -6005,11 +6011,9 @@ struct ContentView: View {
 
     private func runTripAssistantEstimate(
         description: String,
-        fallbackDistanceKm: Double?,
-        preservesCurrentTripAssumptions: Bool
+        fallbackDistanceKm: Double?
     ) {
-        let preservesExistingTripAssumptions = preservesCurrentTripAssumptions || tripAssumptionsBaseline != nil
-        initializeTripEstimateAssumptionsIfNeeded()
+        let preservesExistingTripAssumptions = prepareTripAssumptionsForNewRoute()
 
         tripAssistantSearchGeneration += 1
         let searchGeneration = tripAssistantSearchGeneration
@@ -6101,6 +6105,16 @@ struct ContentView: View {
         }
         tripAssumptionsBaseline = currentSettings
         tripAssumptionsRemainExplicitAfterProfileSwitch = false
+    }
+
+    private func prepareTripAssumptionsForNewRoute() -> Bool {
+        initializeTripEstimateAssumptionsIfNeeded()
+
+        let preservesExistingTripAssumptions = areTripAssumptionsAdjustedForCurrentTrip
+        if preservesExistingTripAssumptions == false {
+            resetTripEstimateAssumptionsFromCurrentSettings(resetDistance: false)
+        }
+        return preservesExistingTripAssumptions
     }
 
     private func applyTripAssistantInput(
