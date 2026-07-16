@@ -603,6 +603,7 @@ struct ContentView: View {
     @State private var pendingDeletedVehicleProfile: VehicleProfile?
     @State private var isVehicleSetupSheetTemporarilyHidden = false
     @StateObject private var rangeMapLocationProvider = RangeMapLocationProvider()
+    @StateObject private var tripMapLocationProvider = RangeMapLocationProvider()
     @State private var rangeMapAutofitRequestID = 0
     @State private var isRangeChargingReserveInfoPresented = false
     @State private var isRangeReturnTripInfoPresented = false
@@ -1657,6 +1658,9 @@ struct ContentView: View {
 
     private var hasTripRoutePlanningResult: Bool {
         hasTripEstimate
+            && tripAssistantRoute?.destination
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty == false
     }
 
 #if canImport(MapKit)
@@ -2673,6 +2677,9 @@ struct ContentView: View {
 
     private var tripTab: some View {
         mainTab(title: "Trip") {
+#if canImport(MapKit)
+            tripPlanningMapCard
+#endif
             describeTripCard
             if hasTripRoutePlanningResult {
                 tripResultCard
@@ -2683,6 +2690,29 @@ struct ContentView: View {
             refreshTripEstimateAssumptionsIfNeeded()
         }
     }
+
+#if canImport(MapKit)
+    private var tripPlanningMapCard: some View {
+        card {
+            TripRoutePreviewView(
+                route: tripAssistantRoute,
+                routePolyline: tripAssistantRouteEstimate?.polyline,
+                summaryText: hasTripRoutePlanningResult ? tripRouteSummaryText : nil,
+                needsCharging: hasTripRoutePlanningResult && batteryPlan.needsCharging,
+                selectedPlan: hasTripRoutePlanningResult ? selectedTripChargingOptionPlan : nil,
+                locationProvider: tripMapLocationProvider,
+                onPlanRouteToCoordinate: { coordinate, destinationLabel in
+                    planTripToSelectedMapCoordinate(coordinate, destinationLabel: destinationLabel)
+                },
+                onSearchChargersNearby: { coordinate in
+                    Task {
+                        await AppleMapsHandoff.openChargingSearch(centeredAt: coordinate)
+                    }
+                }
+            )
+        }
+    }
+#endif
 
     private var quickTripSheet: some View {
         NavigationStack {
@@ -2916,10 +2946,7 @@ struct ContentView: View {
                 calibrationCard
                 dataCard
 
-                settingsDomainHeading(
-                    "Trip planning",
-                    detail: "Preferences used when estimating charging stops."
-                )
+                settingsDomainHeading("Trip planning")
                 tripPlanningSettingsCard
 
                 settingsDomainHeading("Reset")
@@ -3980,13 +4007,11 @@ struct ContentView: View {
     }
 
     private var tripPlanningSettingsCard: some View {
-        card(title: "Charging stops") {
+        card(
+            title: "Charging stops",
+            footnote: "Preferences used when estimating charging stops. Charging stop levels are saved for the selected profile."
+        ) {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Charging stop levels are saved for the selected profile.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Preferred low level before charging")
@@ -4044,11 +4069,10 @@ struct ContentView: View {
     private var describeTripCard: some View {
         card {
             VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 2) {
                     TripPlanningDescriptionInputView(
                         text: $tripAssistantDescription,
                         isFocused: $isTripAssistantDescriptionFocused,
-                        accentColor: rangePilotAccentColor,
                         showsClearButton: isTripSearchActive,
                         onClear: clearActiveTripSearch,
                         onFocusChanged: presentTripPlanningInputInfoIfNeeded
@@ -4056,9 +4080,9 @@ struct ContentView: View {
 
                     favoriteDestinationMenu
                         .padding(.leading, 8)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 4)
                 }
-                .frame(minHeight: 88, alignment: .top)
+                .frame(minHeight: 60, alignment: .top)
                 .background(Color(.tertiarySystemGroupedBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
@@ -4332,27 +4356,6 @@ struct ContentView: View {
     private var tripResultCard: some View {
         card {
             VStack(alignment: .leading, spacing: 16) {
-#if canImport(MapKit)
-                if let tripAssistantRoute,
-                   !tripAssistantRoute.destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    TripRoutePreviewView(
-                        route: tripAssistantRoute,
-                        routePolyline: tripAssistantRouteEstimate?.polyline,
-                        summaryText: tripRouteSummaryText,
-                        needsCharging: batteryPlan.needsCharging,
-                        selectedPlan: selectedTripChargingOptionPlan,
-                        onPlanRouteToCoordinate: { coordinate, destinationLabel in
-                            planTripToSelectedMapCoordinate(coordinate, destinationLabel: destinationLabel)
-                        },
-                        onSearchChargersNearby: { coordinate in
-                            Task {
-                                await AppleMapsHandoff.openChargingSearch(centeredAt: coordinate)
-                            }
-                        }
-                    )
-                }
-#endif
-
                 if isCustomVehicleProfileSelected {
                     experimentalTripVehicleProfileRow
                 }
@@ -5938,7 +5941,6 @@ struct ContentView: View {
         tripEstimateTyreSet = snapshot.tyreSet
         tripEstimateRollingResistanceClass = snapshot.rollingResistanceClass
         tripEstimateAirConditioningMode = snapshot.airConditioningMode
-        hasTripEstimate = true
     }
 
 #if canImport(CoreLocation) && canImport(MapKit)
@@ -6131,22 +6133,43 @@ struct ContentView: View {
         tripAssistantRouteEstimate = routeEstimate
 #endif
 
-        let routeDistanceKm = routeEstimate?.distanceKm
-        let resolvedDistanceKm = preservesCurrentTripAssumptions
-            ? routeDistanceKm ?? fallbackDistanceKm ?? input.plannedDistanceKm
-            : routeDistanceKm ?? input.plannedDistanceKm ?? fallbackDistanceKm
-        let routeAverageSpeedKmh = routeEstimate?.averageSpeedKmh
+        let routeDistanceKm: Double?
+        if let distanceKm = routeEstimate?.distanceKm,
+           distanceKm.isFinite,
+           distanceKm > 0 {
+            routeDistanceKm = distanceKm
+        } else {
+            routeDistanceKm = nil
+        }
+
+        let nonRouteDistanceKm = preservesCurrentTripAssumptions
+            ? fallbackDistanceKm ?? input.plannedDistanceKm
+            : input.plannedDistanceKm ?? fallbackDistanceKm
+        let resolvedDistanceKm: Double?
+        if let routeDistanceKm {
+            resolvedDistanceKm = routeDistanceKm
+        } else if let nonRouteDistanceKm, nonRouteDistanceKm.isFinite {
+            // Parsed/manual distances retain the input control's bounds; resolved MapKit routes do not.
+            resolvedDistanceKm = min(max(nonRouteDistanceKm, 1), 1000)
+        } else {
+            resolvedDistanceKm = nil
+        }
+        let routeAverageSpeedKmh = routeDistanceKm == nil ? nil : routeEstimate?.averageSpeedKmh
 
         if let resolvedDistanceKm {
-            tripEstimateDistance = min(max(resolvedDistanceKm, 1), 1000)
+            tripEstimateDistance = resolvedDistanceKm
             isTripDistanceMapDerived = routeDistanceKm != nil
         } else {
-            tripEstimateDistance = min(max(distance, 1), 1000)
             isTripDistanceMapDerived = false
         }
 
+        let hasDestination = input.route?.destination
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .isEmpty == false
+        let hasResolvedTrip = hasDestination && resolvedDistanceKm != nil
+
         if preservesCurrentTripAssumptions {
-            hasTripEstimate = true
+            hasTripEstimate = hasResolvedTrip
             return TripRoadTypeSelection.Result(
                 roadTypeProfile: tripEstimateRoadTypeProfile,
                 usedFallback: false
@@ -6203,7 +6226,7 @@ struct ContentView: View {
             )
             tripEstimateMinimumChargingStopBatteryPercent = activeNormalMinimumChargingPercent
             tripEstimateTargetChargingStopBatteryPercent = activeNormalFastChargeTargetPercent
-            hasTripEstimate = true
+            hasTripEstimate = hasResolvedTrip
 
             return roadTypeSelection
         }
@@ -6740,11 +6763,12 @@ struct ContentView: View {
 
 #if canImport(MapKit)
 private struct TripRoutePreviewView: View {
-    let route: TripRouteDescription
+    let route: TripRouteDescription?
     let routePolyline: MKPolyline?
     let summaryText: String?
     let needsCharging: Bool
     let selectedPlan: TripChargingOptionPlan?
+    @ObservedObject var locationProvider: RangeMapLocationProvider
     let onPlanRouteToCoordinate: (CLLocationCoordinate2D, String) -> Void
     let onSearchChargersNearby: (CLLocationCoordinate2D) -> Void
     @State private var mapPosition: MapCameraPosition
@@ -6757,11 +6781,12 @@ private struct TripRoutePreviewView: View {
     private let compactRouteMapHeight: CGFloat = 170
 
     init(
-        route: TripRouteDescription,
+        route: TripRouteDescription?,
         routePolyline: MKPolyline?,
         summaryText: String?,
         needsCharging: Bool,
         selectedPlan: TripChargingOptionPlan?,
+        locationProvider: RangeMapLocationProvider,
         onPlanRouteToCoordinate: @escaping (CLLocationCoordinate2D, String) -> Void,
         onSearchChargersNearby: @escaping (CLLocationCoordinate2D) -> Void
     ) {
@@ -6770,13 +6795,14 @@ private struct TripRoutePreviewView: View {
         self.summaryText = summaryText
         self.needsCharging = needsCharging
         self.selectedPlan = selectedPlan
+        self.locationProvider = locationProvider
         self.onPlanRouteToCoordinate = onPlanRouteToCoordinate
         self.onSearchChargersNearby = onSearchChargersNearby
         _mapPosition = State(initialValue: Self.mapPosition(for: routePolyline))
     }
 
     private var hasRenderableRoute: Bool {
-        guard let routePolyline else {
+        guard let route, let routePolyline else {
             return false
         }
 
@@ -6835,6 +6861,22 @@ private struct TripRoutePreviewView: View {
         Self.mapIdentity(for: route, routePolyline: routePolyline)
     }
 
+    private var locationIdentity: String {
+        guard let coordinate = locationProvider.coordinate, Self.isValid(coordinate) else {
+            return "missing"
+        }
+
+        return "\(coordinate.latitude),\(coordinate.longitude)"
+    }
+
+    private var hasCurrentLocation: Bool {
+        guard let coordinate = locationProvider.coordinate else {
+            return false
+        }
+
+        return Self.isValid(coordinate)
+    }
+
     private var captionText: String {
         guard needsCharging else {
             return "No charging stop estimated for this trip."
@@ -6849,7 +6891,7 @@ private struct TripRoutePreviewView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Route preview", systemImage: "map")
+            Label(hasRenderableRoute ? "Route preview" : "Trip map", systemImage: "map")
                 .font(.subheadline.weight(.semibold))
 
             if let summaryText, !summaryText.isEmpty {
@@ -6858,16 +6900,26 @@ private struct TripRoutePreviewView: View {
                     .foregroundStyle(.secondary)
             }
 
+            routeMap
+
             if hasRenderableRoute {
-                routeMap
+                Text(captionText)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .onAppear {
+            locationProvider.activateIfNeeded()
+            resetMapPosition()
+        }
+        .onChange(of: routeMapIdentity) {
+            resetMapPosition()
+        }
+        .onChange(of: locationIdentity) {
+            guard !hasRenderableRoute else {
+                return
             }
 
-            Text(captionText)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-        }
-        .onAppear(perform: resetMapPosition)
-        .onChange(of: routeMapIdentity) {
             resetMapPosition()
         }
         .confirmationDialog(
@@ -6875,7 +6927,7 @@ private struct TripRoutePreviewView: View {
             isPresented: $isContextDialogPresented,
             titleVisibility: .visible
         ) {
-            Button("New trip to this point") {
+            Button("Plan trip to this location") {
                 guard let selectedContextCoordinate else {
                     return
                 }
@@ -6886,10 +6938,6 @@ private struct TripRoutePreviewView: View {
                 )
                 self.selectedContextCoordinate = nil
             }
-
-            // TODO: Enable once trip planning supports intermediate MKDirections stops.
-            Button("Add waypoint (coming soon)") {}
-                .disabled(true)
 
             Button("Search chargers nearby") {
                 guard let selectedContextCoordinate else {
@@ -6914,7 +6962,7 @@ private struct TripRoutePreviewView: View {
         let mapHeight = isRouteMapExpanded ? max(compactRouteMapHeight, routeMapWidth) : compactRouteMapHeight
 
         return ZStack(alignment: .topTrailing) {
-            if hasRenderableRoute, mapHeight > 1 {
+            if mapHeight > 1 {
                 mapContent
                     .frame(maxWidth: .infinity)
                     .frame(height: mapHeight)
@@ -6958,11 +7006,13 @@ private struct TripRoutePreviewView: View {
 
     @ViewBuilder
     private var mapContent: some View {
-        if let routePolyline {
+        if hasRenderableRoute || hasCurrentLocation {
             MapReader { mapProxy in
                 Map(position: $mapPosition, interactionModes: [.pan, .zoom]) {
-                    MapPolyline(routePolyline)
-                        .stroke(rangePilotAccentColor, lineWidth: 4)
+                    if let routePolyline, hasRenderableRoute {
+                        MapPolyline(routePolyline)
+                            .stroke(rangePilotAccentColor, lineWidth: 4)
+                    }
 
                     if let startCoordinate {
                         Annotation("Start", coordinate: startCoordinate) {
@@ -6981,6 +7031,8 @@ private struct TripRoutePreviewView: View {
                             estimatedStopMarker(index: annotation.index)
                         }
                     }
+
+                    UserAnnotation()
                 }
                 .simultaneousGesture(
                     DragGesture(minimumDistance: 0, coordinateSpace: .local)
@@ -7005,17 +7057,33 @@ private struct TripRoutePreviewView: View {
             }
             .id(routeMapIdentity)
         } else {
-            Color.clear
+            mapFallbackContent
         }
     }
 
     private func resetMapPosition() {
-        mapPosition = Self.mapPosition(for: routePolyline)
+        mapPosition = Self.mapPosition(
+            for: hasRenderableRoute ? routePolyline : nil,
+            userCoordinate: locationProvider.coordinate
+        )
     }
 
-    private static func mapPosition(for routePolyline: MKPolyline?) -> MapCameraPosition {
+    private static func mapPosition(
+        for routePolyline: MKPolyline?,
+        userCoordinate: CLLocationCoordinate2D? = nil
+    ) -> MapCameraPosition {
         guard let mapRect = paddedMapRect(for: routePolyline) else {
-            return .automatic
+            guard let userCoordinate, isValid(userCoordinate) else {
+                return .automatic
+            }
+
+            return .region(
+                MKCoordinateRegion(
+                    center: userCoordinate,
+                    latitudinalMeters: 12_000,
+                    longitudinalMeters: 12_000
+                )
+            )
         }
 
         return .rect(mapRect)
@@ -7058,23 +7126,40 @@ private struct TripRoutePreviewView: View {
     }
 
     private static func mapIdentity(
-        for route: TripRouteDescription,
+        for route: TripRouteDescription?,
         routePolyline: MKPolyline?
     ) -> String {
         guard let routePolyline else {
-            return "missing-route-\(route.destination)"
+            return "missing-route-\(route?.destination ?? "")"
         }
 
         let rect = routePolyline.boundingMapRect
         return [
-            route.origin ?? "",
-            route.destination,
+            route?.origin ?? "",
+            route?.destination ?? "",
             "\(routePolyline.pointCount)",
             String(format: "%.0f", rect.origin.x),
             String(format: "%.0f", rect.origin.y),
             String(format: "%.0f", rect.size.width),
             String(format: "%.0f", rect.size.height)
         ].joined(separator: "|")
+    }
+
+    @ViewBuilder
+    private var mapFallbackContent: some View {
+        if locationProvider.isLocationUnavailable {
+            Text("Enable location access to plan a trip from your current location.")
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 28)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.secondarySystemGroupedBackground))
+        } else {
+            ProgressView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(.secondarySystemGroupedBackground))
+        }
     }
 
     private func routeEndpointMarker(color: Color, systemImage: String) -> some View {
@@ -10076,7 +10161,6 @@ private struct OneTimeInfoDialogPresenter: ViewModifier {
 private struct TripPlanningDescriptionInputView: View {
     @Binding var text: String
     let isFocused: FocusState<Bool>.Binding
-    let accentColor: Color
     let showsClearButton: Bool
     let onClear: () -> Void
     let onFocusChanged: (Bool) -> Void
@@ -10084,11 +10168,11 @@ private struct TripPlanningDescriptionInputView: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
             TextField("Where are you going?", text: $text, axis: .vertical)
-                .lineLimit(3...5)
+                .lineLimit(2...5)
                 .textInputAutocapitalization(.sentences)
                 .submitLabel(.done)
                 .focused(isFocused)
-                .padding(.top, 10)
+                .padding(.top, 2)
                 .padding(.leading, 12)
 
             if showsClearButton {
@@ -10104,15 +10188,8 @@ private struct TripPlanningDescriptionInputView: View {
                 .accessibilityLabel("Clear destination")
                 .accessibilityHint("Starts a new trip planning session.")
             }
-
-            Image(systemName: "mic.fill")
-                .font(.body.weight(.semibold))
-                .frame(width: 34, height: 34)
-                .foregroundStyle(accentColor)
-                .accessibilityLabel("Voice entry")
-                .accessibilityHint("Use keyboard dictation from the focused trip description field.")
-                .padding(.trailing, 6)
         }
+        .padding(.trailing, 6)
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
